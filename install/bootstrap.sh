@@ -13,13 +13,13 @@ link_from_prop() {
 		# 空行・コメントをスキップ
 		[[ -z "$line" || "$line" =~ ^# ]] && continue
 
-		# awkで正確に '->' で分割
+		# awkで '->' で分割して source と destination を取得
 		src=$(echo "$line" | awk -F'->' '{print $1}' | xargs)
 		dst=$(echo "$line" | awk -F'->' '{print $2}' | xargs | envsubst)
 
 		src_path="$DOTFILES_DIR/$dir/$src"
 
-		# バックアップ処理
+		# 既存ファイルがある場合はバックアップ
 		if [ -e "$dst" ] && [ ! -L "$dst" ]; then
 			echo "Backing up existing $dst to $dst.backup"
 			mv "$dst" "$dst.backup"
@@ -34,4 +34,14 @@ link_from_prop() {
 echo "Linking dotfiles..."
 link_from_prop zsh
 link_from_prop git
-echo "Done!"
+echo "Dotfiles linking done."
+
+# Homebrew パッケージのインストール
+BREWFILE="$DOTFILES_DIR/install/Brewfile"
+if command -v brew &>/dev/null && [ -f "$BREWFILE" ]; then
+	echo "Installing packages via Brewfile..."
+	brew bundle --file="$BREWFILE"
+	echo "Brew installation completed."
+else
+	echo "Homebrew not found or Brewfile missing. Skipping package install."
+fi

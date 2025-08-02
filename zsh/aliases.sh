@@ -16,3 +16,7 @@ alias ...='cd ../..'
 
 # VSCode
 alias v='code .'
+
+#Python
+alias py='python3'
+alias python='python3'

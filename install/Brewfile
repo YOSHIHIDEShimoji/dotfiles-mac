@@ -1,0 +1,39 @@
+# CLI tools
+brew "git"
+brew "gh"
+brew "fzf"
+brew "ripgrep"
+brew "bat"
+brew "wget"
+brew "curl"
+brew "jq"
+brew "tree"
+
+# GUI apps (cask)
+cask "google-chrome"
+cask "spotify"
+cask "discord"
+cask "visual-studio-code"
+cask "coteditor"
+cask "clipy"
+cask "rectangle"
+cask "hiddenbar"
+cask "dropover"
+cask "alfred"
+cask "hammerspoon"
+cask "istat-menus"
+cask "slack"  
+
+# Additional GUI apps
+# Google 日本語入力
+# Google Drive
+# Adobe Acrobat Reader
+# Afdobe Creative Cloud
+# CleanMyMac
+# AppCleaner
+# BetterTouchTool
+# KeyboardCleanTool
+# Whisper Transcription
+# MonitorControl Lite
+# MiniCalendar
+# Microsoft Word / Excel / PowerPoint
