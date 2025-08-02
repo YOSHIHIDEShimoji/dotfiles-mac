@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# system files
+Thumbs.db
+ehthumbs.db
+
+# Logs
+*.log
+
+# build artifacts
+build/
+dist/
+*.o
+*.out

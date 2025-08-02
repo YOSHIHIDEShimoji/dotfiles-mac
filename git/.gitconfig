@@ -1,0 +1,25 @@
+[user]
+    name = Yoshihide Shimoji
+    email = g.y.shimoji@gmail.com
+
+[core]
+    editor = code --wait
+    excludesfile = ~/.gitignore_global
+
+[init]
+    defaultBranch = main
+
+[alias]
+  st = status
+  co = checkout
+  br = branch
+  cm = commit -m
+  ca = commit -a -m
+  last = log -1 HEAD
+  lg = log --oneline --graph --all --decorate
+  df = diff
+  dfc = diff --cached
+  unstage = reset HEAD --
+  undo = reset --soft HEAD~1
+  pu = push
+  pl = pull
