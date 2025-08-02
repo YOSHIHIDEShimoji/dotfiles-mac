@@ -23,6 +23,7 @@ cask "alfred"
 cask "hammerspoon"
 cask "istat-menus"
 cask "slack"  
+cask "karabiner-elements"  
 
 # Additional GUI apps
 # Google 日本語入力
