@@ -77,3 +77,12 @@ ghopen() {
 		open "$url" 2>/dev/null || google-chrome "$url" &
 	fi
 }
+
+# Python プロジェクトの仮想環境をアクティブにする (sakaijun_udemy)
+function sj() {
+	cd ~/python_projects/sakaijun_udemy
+	if [[ "$VIRTUAL_ENV" != "" ]]; then
+		deactivate
+	fi
+	source .venv/bin/activate
+}

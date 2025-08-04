@@ -1,2 +1,2 @@
-.gitconfig -> ${HOME}/.gitconfig
-.gitignore_global -> ${HOME}/.gitignore_global
+gitconfig -> ${HOME}/.gitconfig
+gitignore_global -> ${HOME}/.gitignore_global

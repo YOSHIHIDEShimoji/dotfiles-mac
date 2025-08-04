@@ -1,0 +1,43 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# System files
+Thumbs.db
+ehthumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Build artifacts
+build/
+dist/
+*.o
+*.out
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+pip-log.txt
+pip-delete-this-directory.txt
+*.egg-info/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.cache/
+pytest_cache/
+.mypy_cache/
+.pyright/
+*.spec
+*.db
+*.sqlite3
