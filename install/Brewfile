@@ -8,6 +8,7 @@ brew "wget"
 brew "curl"
 brew "jq"
 brew "tree"
+brew "python"
 
 # GUI apps (cask)
 cask "google-chrome"

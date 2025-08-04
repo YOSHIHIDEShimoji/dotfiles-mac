@@ -34,6 +34,9 @@ link_from_prop() {
 echo "Linking dotfiles..."
 link_from_prop zsh
 link_from_prop git
+mkdir -p "${HOME}/.config/karabiner"
+link_from_prop karabiner
+
 echo "Dotfiles linking done."
 
 # Homebrew パッケージのインストール
