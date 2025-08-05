@@ -10,11 +10,14 @@ for plugin in $ZDOTDIR/plugins/*.zsh(N) $ZDOTDIR/plugins/*/*.zsh(N); do
 	source "$plugin"
 done
 
-# 補完
+# 補完（早めに初期化）
 autoload -Uz compinit && compinit
+
+# zsh-syntax-highlighting は最後！
+source $ZDOTDIR/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # テーマ
 source $ZDOTDIR/themes/my-zsh-theme
 
-# zoxide（インストール済み）
+# zoxide
 eval "$(zoxide init zsh)"
