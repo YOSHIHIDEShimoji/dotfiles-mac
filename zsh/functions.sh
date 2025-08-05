@@ -102,8 +102,17 @@ copyfile () {
 	cat "$1" | clipcopy
 }
 
-# web_search from terminal
+# ファイルを開くコマンド 
+open_command () {
+	if [[ "$OSTYPE" == darwin* ]]; then
+		open "$@"
+	else
+		xdg-open "$@" &> /dev/null
+	fi
+}
 
+
+# web_search from terminal
 function web_search() {
   emulate -L zsh
 
