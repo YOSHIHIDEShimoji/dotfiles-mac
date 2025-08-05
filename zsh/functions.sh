@@ -226,4 +226,11 @@ if [[ ${#ZSH_WEB_SEARCH_ENGINES} -gt 0 ]]; then
   unset engines key
 fi
 
-
+# Python プロジェクトの仮想環境をアクティブにする (sakaijun_udemy)
+sj() {
+	cd ~/python_projects/sakaijun_udemy
+	if [[ "$VIRTUAL_ENV" != "" ]]; then
+		deactivate
+	fi
+	source .venv/bin/activate
+}
