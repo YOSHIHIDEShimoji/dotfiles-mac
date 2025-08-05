@@ -1,6 +1,20 @@
-# dotfiles-mac/zsh/.zshrc
+ZDOTDIR=~/dotfiles-mac/zsh
 
-[ -f "${HOME}/dotfiles-mac/zsh/exports.sh" ] && source "${HOME}/dotfiles-mac/zsh/exports.sh"
-[ -f "${HOME}/dotfiles-mac/zsh/aliases.sh" ] && source "${HOME}/dotfiles-mac/zsh/aliases.sh"
-[ -f "${HOME}/dotfiles-mac/zsh/functions.sh" ] && source "${HOME}/dotfiles-mac/zsh/functions.sh"
+# 基本設定
+source $ZDOTDIR/exports.sh
+source $ZDOTDIR/aliases.sh
+source $ZDOTDIR/functions.sh
 
+# プラグイン読み込み（*.zsh or plugin ディレクトリ内の *.zsh）
+for plugin in $ZDOTDIR/plugins/*.zsh(N) $ZDOTDIR/plugins/*/*.zsh(N); do
+	source "$plugin"
+done
+
+# 補完
+autoload -Uz compinit && compinit
+
+# テーマ
+source $ZDOTDIR/themes/my-zsh-theme
+
+# zoxide（インストール済み）
+eval "$(zoxide init zsh)"
