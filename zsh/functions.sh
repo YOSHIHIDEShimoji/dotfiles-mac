@@ -56,27 +56,44 @@ gbd() {
 }
 
 # GitHub 上でカレント（または指定）パスを開く
-ghopen() {
+ghopen () {
 	target_path="${1:-.}"
-	abs_path=$(realpath "$target_path")
+	abs_path=$(cd "$target_path" && pwd)
 
+	# Git リポジトリのルートを取得
 	repo_root=$(git -C "$abs_path" rev-parse --show-toplevel 2>/dev/null) || {
 		echo "Not in a Git repository"
 		return 1
 	}
 
 	repo_name=$(basename "$repo_root")
-	rel_path=$(realpath --relative-to="$repo_root" "$abs_path")
+
+	# 相対パスを安全に計算
+	if [[ "$abs_path" == "$repo_root" ]]; then
+		rel_path=""
+	else
+		rel_path="${abs_path#$repo_root/}"
+	fi
+
 	branch=$(git -C "$abs_path" symbolic-ref --short HEAD)
 
-	url="https://github.com/YOSHIHIDEShimoji/${repo_name}/tree/${branch}/${rel_path}"
+	if [[ -n "$rel_path" ]]; then
+		url="https://github.com/YOSHIHIDEShimoji/${repo_name}/tree/${branch}/${rel_path}"
+	else
+		url="https://github.com/YOSHIHIDEShimoji/${repo_name}/tree/${branch}"
+	fi
 
-	if grep -qi microsoft /proc/version; then
+	# 開く処理
+	if [[ "$(uname -s)" == "Darwin" ]]; then
+		open "$url"
+	elif grep -qi microsoft /proc/version 2>/dev/null; then
 		explorer.exe "$url"
 	else
-		open "$url" 2>/dev/null || google-chrome "$url" &
+		xdg-open "$url" || google-chrome "$url" &
 	fi
 }
+
+
 
 # コマンド使用統計を表示
 zsh_stats () {
