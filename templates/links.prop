@@ -1,0 +1,4 @@
+templates/empty.docx     -> ${HOME}/.templates/empty.docx
+templates/empty.xlsx     -> ${HOME}/.templates/empty.xlsx
+templates/empty.pptx     -> ${HOME}/.templates/empty.pptx
+
