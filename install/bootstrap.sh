@@ -32,10 +32,16 @@ link_from_prop() {
 }
 
 echo "Linking dotfiles..."
+
+# 必要なディレクトリを用意
+mkdir -p "${HOME}/.config/karabiner"
+mkdir -p "${HOME}/.templates"
+
+# シンボリックリンクを作成
 link_from_prop zsh
 link_from_prop git
-mkdir -p "${HOME}/.config/karabiner"
 link_from_prop karabiner
+link_from_prop templates
 
 echo "Dotfiles linking done."
 

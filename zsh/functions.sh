@@ -93,7 +93,16 @@ ghopen () {
 	fi
 }
 
+# 指定パスに移動して l コマンドを実行
+cl () {
+	cd "${1:-$HOME}" && l .
+}
 
+# ~/.zshrc を再読み込み
+rr () {
+	source ~/.zshrc
+	echo "~/.zshrc@ reloaded (~/.zshrc -> ~/dotfiles-mac/zsh/zshrc)"
+}
 
 # コマンド使用統計を表示
 zsh_stats () {
@@ -127,6 +136,34 @@ open_command () {
 		xdg-open "$@" &> /dev/null
 	fi
 }
+
+# word で開く
+word() {
+	local filepath="$1"
+	[ -z "$filepath" ] && echo "Usage: word [path]" && return 1
+	[[ "$filepath" != *.docx ]] && filepath="${filepath}.docx"
+	[ ! -f "$filepath" ] && cp ~/.templates/empty.docx "$filepath"
+	open -a "Microsoft Word" "$filepath"
+}
+
+# excel で開く
+excel() {
+	local filepath="$1"
+	[ -z "$filepath" ] && echo "Usage: excel [path]" && return 1
+	[[ "$filepath" != *.xlsx ]] && filepath="${filepath}.xlsx"
+	[ ! -f "$filepath" ] && cp ~/.templates/empty.xlsx "$filepath"
+	open -a "Microsoft Excel" "$filepath"
+}
+
+# powerpoint で開く
+powerpoint() {
+	local filepath="$1"
+	[ -z "$filepath" ] && echo "Usage: powerpoint [path]" && return 1
+	[[ "$filepath" != *.pptx ]] && filepath="${filepath}.pptx"
+	[ ! -f "$filepath" ] && cp ~/.templates/empty.pptx "$filepath"
+	open -a "Microsoft PowerPoint" "$filepath"
+}
+
 
 
 # web_search from terminal
