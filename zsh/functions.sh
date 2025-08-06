@@ -137,34 +137,50 @@ open_command () {
 	fi
 }
 
-# word で開く
+# Word で開く
 word() {
 	local filepath="$1"
-	[ -z "$filepath" ] && echo "Usage: word [path]" && return 1
+	local template="$HOME/dotfiles-mac/templates/empty.docx"
+
+	if [ -z "$filepath" ]; then
+		echo "Usage: word [path]"
+		return 1
+	fi
+
 	[[ "$filepath" != *.docx ]] && filepath="${filepath}.docx"
-	[ ! -f "$filepath" ] && cp ~/.templates/empty.docx "$filepath"
+	[ ! -f "$filepath" ] && cp "$template" "$filepath"
 	open -a "Microsoft Word" "$filepath"
 }
 
-# excel で開く
+# Excel で開く
 excel() {
 	local filepath="$1"
-	[ -z "$filepath" ] && echo "Usage: excel [path]" && return 1
+	local template="$HOME/dotfiles-mac/templates/empty.xlsx"
+
+	if [ -z "$filepath" ]; then
+		echo "Usage: excel [path]"
+		return 1
+	fi
+
 	[[ "$filepath" != *.xlsx ]] && filepath="${filepath}.xlsx"
-	[ ! -f "$filepath" ] && cp ~/.templates/empty.xlsx "$filepath"
+	[ ! -f "$filepath" ] && cp "$template" "$filepath"
 	open -a "Microsoft Excel" "$filepath"
 }
 
-# powerpoint で開く
+# PowerPoint で開く
 powerpoint() {
 	local filepath="$1"
-	[ -z "$filepath" ] && echo "Usage: powerpoint [path]" && return 1
+	local template="$HOME/dotfiles-mac/templates/empty.pptx"
+
+	if [ -z "$filepath" ]; then
+		echo "Usage: powerpoint [path]"
+		return 1
+	fi
+
 	[[ "$filepath" != *.pptx ]] && filepath="${filepath}.pptx"
-	[ ! -f "$filepath" ] && cp ~/.templates/empty.pptx "$filepath"
+	[ ! -f "$filepath" ] && cp "$template" "$filepath"
 	open -a "Microsoft PowerPoint" "$filepath"
 }
-
-
 
 # web_search from terminal
 function web_search() {
