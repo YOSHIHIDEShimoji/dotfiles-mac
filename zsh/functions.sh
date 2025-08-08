@@ -56,7 +56,7 @@ gbd() {
 }
 
 # GitHub 上でカレント（または指定）パスを開く
-ghopen () {
+ghopen() {
 	target_path="${1:-.}"
 	abs_path=$(cd "$target_path" && pwd)
 
@@ -94,12 +94,12 @@ ghopen () {
 }
 
 # 指定パスに移動して l コマンドを実行
-cl () {
+cl() {
 	cd "${1:-$HOME}" && l .
 }
 
 # ~/.zshrc を再読み込み
-rr () {
+rr() {
 	source ~/.zshrc
 	echo "~/.zshrc@ reloaded (~/.zshrc -> ~/dotfiles-mac/zsh/zshrc)"
 }
@@ -110,7 +110,7 @@ zsh_stats () {
 }
 
 # URLエンコード
-omz_urlencode () {
+omz_urlencode() {
 	python3 -c "import sys, urllib.parse; print(urllib.parse.quote(' '.join(sys.argv[1:])))" "$@"
 }
 
@@ -123,7 +123,7 @@ copypath () {
 }
 
 # ファイルをクリップボードにコピー
-copyfile () {
+copyfile() {
 	emulate -L zsh
 	cat "$1" | clipcopy
 }
@@ -182,6 +182,11 @@ powerpoint() {
 	open -a "Microsoft PowerPoint" "$filepath"
 }
 
+# Homebrew パッケージを更新
+update() {
+	brew update && brew upgrade && brew cleanup && brew doctor
+	echo "Homebrew packages updated."
+}
 # web_search from terminal
 function web_search() {
   emulate -L zsh
