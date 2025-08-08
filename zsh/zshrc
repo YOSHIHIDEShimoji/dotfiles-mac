@@ -10,10 +10,10 @@ for plugin in $ZDOTDIR/plugins/*.zsh(N) $ZDOTDIR/plugins/*/*.zsh(N); do
 	source "$plugin"
 done
 
-# 補完（早めに初期化）
+# 補完
 autoload -Uz compinit && compinit
 
-# zsh-syntax-highlighting は最後！
+# zsh-syntax-highlighting
 source $ZDOTDIR/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # テーマ
@@ -21,3 +21,6 @@ source $ZDOTDIR/themes/my-zsh-theme
 
 # zoxide
 eval "$(zoxide init zsh)"
+
+# iterm2設定
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
