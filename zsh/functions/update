@@ -1,0 +1,5 @@
+# Homebrew パッケージを更新
+update() {
+	brew update && brew upgrade && brew cleanup && brew doctor
+	echo "Homebrew packages updated."
+}

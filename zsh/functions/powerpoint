@@ -1,0 +1,14 @@
+# PowerPoint で開く
+powerpoint() {
+	local filepath="$1"
+	local template="$HOME/dotfiles-mac/templates/empty.pptx"
+
+	if [ -z "$filepath" ]; then
+		echo "Usage: powerpoint [path]"
+		return 1
+	fi
+
+	[[ "$filepath" != *.pptx ]] && filepath="${filepath}.pptx"
+	[ ! -f "$filepath" ] && cp "$template" "$filepath"
+	open -a "Microsoft PowerPoint" "$filepath"
+}

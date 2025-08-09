@@ -1,0 +1,7 @@
+# pathをクリップボードにコピー
+copypath () {
+	local file="${1:-.}"
+	[[ $file = /* ]] || file="$PWD/$file"
+	print -n "${file:a}" | clipcopy || return 1
+	echo ${(%):-"%B${file:a}%b copied to clipboard."}
+}

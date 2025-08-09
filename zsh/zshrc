@@ -3,7 +3,15 @@ ZDOTDIR=~/dotfiles-mac/zsh
 # 基本設定
 source $ZDOTDIR/exports.sh
 source $ZDOTDIR/aliases.sh
-source $ZDOTDIR/functions.sh
+
+# functions（自動発見して autoload）
+FUNCTIONS_DIR="$ZDOTDIR/functions"
+fpath=($FUNCTIONS_DIR $fpath)
+
+# 直下のファイルを全部 autoload（ファイル名＝関数名）
+for f in $FUNCTIONS_DIR/*(.N); do
+  autoload -Uz "${f:t}"
+done
 
 # プラグイン読み込み（*.zsh or plugin ディレクトリ内の *.zsh）
 for plugin in $ZDOTDIR/plugins/*.zsh(N) $ZDOTDIR/plugins/*/*.zsh(N); do
