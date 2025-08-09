@@ -1,0 +1,8 @@
+# ファイルを開くコマンド 
+open_command () {
+	if [[ "$OSTYPE" == darwin* ]]; then
+		open "$@"
+	else
+		xdg-open "$@" &> /dev/null
+	fi
+}

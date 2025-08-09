@@ -1,0 +1,14 @@
+# Word で開く
+word() {
+	local filepath="$1"
+	local template="$HOME/dotfiles-mac/templates/empty.docx"
+
+	if [ -z "$filepath" ]; then
+		echo "Usage: word [path]"
+		return 1
+	fi
+
+	[[ "$filepath" != *.docx ]] && filepath="${filepath}.docx"
+	[ ! -f "$filepath" ] && cp "$template" "$filepath"
+	open -a "Microsoft Word" "$filepath"
+}

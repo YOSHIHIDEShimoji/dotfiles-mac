@@ -1,0 +1,5 @@
+# ファイルをクリップボードにコピー
+copyfile() {
+	emulate -L zsh
+	cat "$1" | clipcopy
+}
