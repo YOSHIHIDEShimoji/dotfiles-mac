@@ -1,159 +1,181 @@
-# dotfiles-mac: README
+# dotfiles-mac
 
-## 🔧 プロジェクトの目的
+macOS環境用のdotfiles管理リポジトリです。Zsh、Git、Karabiner-Elements、Homebrewの設定を一元管理し、新しいMac環境を素早くセットアップできます。
 
-macOS 上で Linux 同様に `~/.zshrc` や `~/.gitconfig` をクリーンに保ちながら、dotfiles リポジトリによって環境構築を自動化する。
+## ✨ 特徴
 
----
+- 🚀 **ワンコマンドセットアップ** - `bootstrap.sh`で全ての設定を自動適用
+- ⌨️ **高度なキーバインド** - Karabiner-ElementsでCtrlキーをナビゲーションモードに変換
+- 📦 **パッケージ管理** - Brewfileで必要なアプリケーションを一括インストール
+- 🛠 **便利な関数群** - 日常作業を効率化する20以上のカスタム関数
+- 🎨 **Zshカスタマイズ** - プラグイン、エイリアス、補完機能を完備
 
-## 📁 ディレクトリ構成
+## 📋 必要要件
 
-```
-dotfiles-mac/
-├── README.md # このファイル
-│
-├── git/
-│ ├── gitconfig # Git の設定（modular include 対応）
-│ ├── gitignore_global # グローバル Git ignore
-│ └── links.prop # ~/.gitconfig  ~/.gitignore_globalへのリンク定義
-│
-├── install/
-│ ├── bootstrap.sh # dotfiles セットアップスクリプト
-│ └── Brewfile # CLI / GUI アプリ一括管理ファイル
-│
-├── karabiner/
-│ ├── karabiner.json # キーリマップ設定
-│ └── links.prop # ~/.config/karabiner へのリンク定義
-│
-├── scripts/
-│
-└── zsh/
-    ├── .zshrc # zsh 設定ファイル（modular 読み込み）
-    ├── aliases.sh # エイリアス設定
-    ├── exports.sh # PATH 等の export 設定
-    ├── functions.sh # 自作関数（web_search, copypath 等）
-    ├── links.prop # ~/.zshrc へのリンク定義
-    ├── plugins/ # zsh プラグイン群（submodule）
-    │   ├── zsh-autosuggestions
-    │   ├── zsh-completions
-    │   └── zsh-syntax-highlighting
-    │
-    └── themes/ # プロンプトテーマ（powerlevel10k 対応）
-```
+- macOS (最新版推奨)
+- Xcode Command Line Tools
+- [Homebrew](https://brew.sh/ja/)
+- Git
+- GitHub アカウント（SSH設定済み）
 
----
+## 🚀 クイックスタート
 
-## 🛠 セットアップ手順
+### 新しいMacでの完全セットアップ
 
-以下の手順で環境構築を行います。
-
-```zsh
-# 1. Xcode Command Line Tools のインストール（手動）
+```bash
+# 1. Xcode Command Line Tools のインストール
 xcode-select --install
 
 # 2. Homebrew のインストール
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# 3. git / PATH 設定
+# 3. Git インストールとPATH設定
 brew install git
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
-# 4. SSH 鍵生成と GitHub 設定
-ssh-keygen -t ed25519 -C "g.y.shimoji@gmail.com"
+# 4. SSH鍵生成とGitHub設定
+ssh-keygen -t ed25519 -C "your-email@example.com"
 cat ~/.ssh/id_ed25519.pub
+# → GitHubの Settings > SSH Keys に公開鍵を登録
 
-# 5. GitHub の SSH Key に上記公開鍵を貼り付け
-ssh -T git@github.com 
+# 5. 接続確認
+ssh -T git@github.com
 
-# 6. dotfiles リポジトリをクローン（サブモジュール付き）
+# 6. dotfilesリポジトリをクローン（サブモジュール付き）
 git clone --recursive git@github.com:YOSHIHIDEShimoji/dotfiles-mac.git ~/dotfiles-mac
-cd ~/dotfiles-mac
 
-# 7. bootstrap スクリプトを実行（自動リンク & インストール）
+# 7. 自動セットアップ実行
+cd ~/dotfiles-mac
 ./install/bootstrap.sh
 ```
 
-このスクリプトにより以下が実行される：
+### 既存環境での簡易セットアップ
 
-* `zsh/links.prop` や `git/links.prop` に基づいて dotfiles を `~` 以下にシンボリックリンク
-* Brewfile に基づいて CLI / GUI アプリをインストール
-* zsh プラグイン用のサブモジュールも自動的にセットアップ
+```bash
+# リポジトリをクローン
+git clone --recursive git@github.com:YOSHIHIDEShimoji/dotfiles-mac.git ~/dotfiles-mac
 
----
-
-## 💻 Brewfile でインストールされる主要アプリ
-
-### CLI
-
-```brewfile
-brew "git"
-brew "gh"
-brew "fzf"
-brew "ripgrep"
-brew "bat"
-brew "wget"
-brew "curl"
-brew "jq"
-brew "tree"
-brew "python"
+# セットアップスクリプトを実行
+cd ~/dotfiles-mac/install
+./bootstrap.sh
 ```
 
-### GUI
+## 📁 ディレクトリ構造
 
-```brewfile
-cask "google-chrome"
-cask "spotify"
-cask "discord"
-cask "visual-studio-code"
-cask "coteditor"
-cask "clipy"
-cask "rectangle"
-cask "hiddenbar"
-cask "alfred"
-cask "hammerspoon"
-cask "istat-menus"
-cask "slack"
-cask "karabiner-elements"
-cask "iterm2"
+```
+dotfiles-mac/
+├── git/                  # Git設定
+│   ├── gitconfig        # Git全般設定
+│   └── gitignore_global # グローバル.gitignore
+├── zsh/                  # Zsh設定
+│   ├── zshrc            # メインのZsh設定
+│   ├── aliases.sh       # エイリアス定義
+│   ├── exports.sh       # 環境変数
+│   ├── functions/       # カスタム関数
+│   ├── plugins/         # Zshプラグイン
+│   └── themes/          # Zshテーマ
+├── karabiner/           # Karabiner-Elements設定
+│   └── karabiner.json   # キーバインド設定
+├── install/             # インストール関連
+│   ├── bootstrap.sh     # セットアップスクリプト
+│   └── Brewfile         # Homebrewパッケージリスト
+├── scripts/             # ユーティリティスクリプト
+│   ├── open_chrome_personal.sh  # 個人用Chrome起動
+│   └── open_chrome_chiba-u.sh   # 仕事用Chrome起動
+└── templates/           # ファイルテンプレート
+    ├── empty.docx       # Word用テンプレート
+    ├── empty.xlsx       # Excel用テンプレート
+    └── empty.pptx       # PowerPoint用テンプレート
 ```
 
-※ GUI アプリをすでに手動でインストール済みでも、上書きされることはありません（ただしバージョン差異による警告は出る可能性あり）。
+## ⚙️ 主な機能
 
----
+### Karabiner-Elements設定
+- **Caps Lock → Control**: Caps LockキーをControlキーに変換
+- **Controlナビゲーションモード**: 左Controlキー押下中に以下のキーバインドが有効
+  - `i/j/k/l`: 矢印キー (上/左/下/右)
+  - `u/o`: 行頭/行末へ移動
+  - `h`: Enter
+  - `n/m`: Backspace/Delete
+  - `y`: Escape
+  - その他のアルファベット: 大文字に変換
 
-## 🧩 手動でインストールが必要なアプリ一覧
+### Zshカスタム関数
+- `mkcd`: ディレクトリ作成と同時に移動
+- `cl`: ディレクトリ移動してls実行
+- `gbd`: 現在のGitブランチを安全に削除
+- `ghopen`: 現在のディレクトリをGitHubで開く
+- `update`: Homebrewパッケージを一括更新
+- `word/excel/powerpoint`: Office文書を新規作成して開く
+- `web_search`: ターミナルから各種検索エンジンで検索
 
-以下のアプリは Brew または MAS で提供されていない、あるいは GUI 経由でのインストールが推奨されるため、手動でインストールしてください：
+### Gitエイリアス
+- `git st`: status
+- `git co`: checkout
+- `git br`: branch
+- `git cm`: commit -m
+- `git lg`: グラフ形式のログ表示
 
-* Google 日本語入力
-* Google Drive
-* Adobe Acrobat Reader
-* Adobe Creative Cloud
-* CleanMyMac
-* AppCleaner
-* BetterTouchTool
-* KeyboardCleanTool
-* Whisper Transcription
-* MonitorControl Lite
-* MiniCalendar
-* Microsoft Word / Excel / PowerPoint
+## 📦 インストールされるアプリケーション
 
----
+### CLI ツール
+- git, gh, fzf, ripgrep, bat, wget, curl, jq, tree, python
+- zoxide（スマートなディレクトリ移動）※手動インストール推奨
 
-## 🔗 リンク内容（例）
+### GUI アプリケーション
+- Google Chrome, Visual Studio Code
+- Discord, Spotify, Slack
+- iTerm2, Alfred, Rectangle
+- Karabiner-Elements
+- その他開発・生産性向上ツール
 
-```sh
-~/.zshrc                           → dotfiles-mac/zsh/.zshrc
-~/.gitconfig                       → dotfiles-mac/git/.gitconfig
-~/.gitignore_global                → dotfiles-mac/git/.gitignore_global
-~/.config/karabiner/karabiner.json → dotfiles-mac/git/.gitignore_global
+## 🔧 カスタマイズ
+
+### 新しい関数の追加
+```bash
+# zsh/functions/に新しいファイルを作成
+echo 'echo "Hello, $1!"' > ~/dotfiles-mac/zsh/functions/hello
+
+# zshrcを再読み込み
+rr
 ```
 
+### Brewfileの編集
+```bash
+# 新しいアプリケーションを追加
+echo 'cask "notion"' >> ~/dotfiles-mac/install/Brewfile
+
+# インストール実行
+brew bundle --file=~/dotfiles-mac/install/Brewfile
+```
+
+## 🆘 トラブルシューティング
+
+### シンボリックリンクが作成されない
+```bash
+# 手動でリンクを作成
+ln -sf ~/dotfiles-mac/zsh/zshrc ~/.zshrc
+ln -sf ~/dotfiles-mac/git/gitconfig ~/.gitconfig
+```
+
+### Karabiner-Elementsが動作しない
+1. システム環境設定 → セキュリティとプライバシー → プライバシー
+2. アクセシビリティでKarabiner-Elementsを許可
+
+## 📝 ライセンス
+
+このプロジェクトはMITライセンスの下で公開されています。
+
+## 👤 作者
+
+**Yoshihide Shimoji**
+- GitHub: [@YOSHIHIDEShimoji](https://github.com/YOSHIHIDEShimoji)
+- Email: g.y.shimoji@gmail.com
+
+## 🤝 貢献
+
+Issue報告やPull Requestは歓迎です！
+
 ---
 
-## 🧠 補足
-
-* zsh のカスタム関数は `functions.sh` に集約（`copypath`, `copyfile`, `web_search`, `zsh_stats` など）
-* サブモジュールは `.gitmodules` に記録され、clone 時に `--recursive` を付けることで取得
-* `web_search` は `ohmyzsh-web-search` から必要部分を抜粋して使用
-* 補完・シンタックスハイライトは `zsh-users/zsh-completions`, `zsh-users/zsh-autosuggestions`, `zsh-users/zsh-syntax-highlighting` による
+⭐ このリポジトリが役立ったら、スターをお願いします！
