@@ -960,7 +960,7 @@
                                     "key_code": "international1",
                                     "modifiers": { "optional": ["shift", "command", "option"] }
                                 },
-                                "to": [{ "key_code": "international1" }],
+                                "to": [{ "key_code": "international3" }],
                                 "type": "basic"
                             }
                         ]
