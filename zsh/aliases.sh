@@ -13,7 +13,6 @@ alias l='ls -CF'
 alias h='history'
 alias ..='cd ..'
 alias ...='cd ../..'
-alias sz='source ~/.zshrc'
 
 # VSCode
 alias v='code .'
