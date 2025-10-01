@@ -26,13 +26,12 @@ cask "istat-menus"
 cask "slack"  
 cask "karabiner-elements"  
 cask "iterm2"
-# mactex
 
 # Additional GUI apps
 # Google 日本語入力
 # Google Drive
 # Adobe Acrobat Reader
-# Afdobe Creative Cloud
+# Adobe Creative Cloud
 # CleanMyMac
 # AppCleaner
 # BetterTouchTool
