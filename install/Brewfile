@@ -26,6 +26,7 @@ cask "istat-menus"
 cask "slack"  
 cask "karabiner-elements"  
 cask "iterm2"
+# mactex
 
 # Additional GUI apps
 # Google 日本語入力
