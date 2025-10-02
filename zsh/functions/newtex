@@ -1,3 +1,4 @@
+# $ZDOTDIR/functions/newtex
 newtex() {
   # 使い方: newtex [-n|--no-open] <PROJECT_NAME or PATH>
   local no_open=0 name=""
@@ -6,7 +7,7 @@ newtex() {
   while (( $# )); do
     case "$1" in
       -n|--no-open) no_open=1; shift ;;
-      -*) shift ;;             # 未知オプションは無視（拡張したければ追加）
+      -*) shift ;;             # 未知オプションは無視
       *) name="$1"; shift ;;
     esac
   done
@@ -47,38 +48,7 @@ newtex() {
   # デフォルトで VS Code を開く（-n のときは開かない）
   if (( no_open == 0 )); then
     if command -v code >/dev/null 2>&1; then
-      # まずフォルダとtexを開く
-      code -r "$dest"
       code -r -g "$dest/src/sample.tex"
-
-      # macOS: AppleScriptで分割＆PDF表示
-      osascript <<APPLESCRIPT >/dev/null 2>&1
-        tell application "Visual Studio Code" to activate
-        delay 0.6
-        tell application "System Events"
-          tell application process "Code"
-            -- 右に分割して右ペインへ
-            keystroke "\\" using {command down}
-            delay 0.2
-            key code 19 using {control down} -- ctrl+2 = 右ペイン
-
-            -- LaTeX Workshop: Build
-            keystroke "p" using {command down, shift down}
-            delay 0.2
-            keystroke "LaTeX Workshop: Build LaTeX project"
-            key code 36
-
-            -- LaTeX Workshop: View PDF
-            keystroke "p" using {command down, shift down}
-            delay 0.2
-            keystroke "LaTeX Workshop: View LaTeX PDF"
-            key code 36
-
-            -- 左ペインへ戻る
-            key code 18 using {control down} -- ctrl+1
-          end tell
-        end tell
-APPLESCRIPT
     else
       open "$dest"
     fi
