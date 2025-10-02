@@ -7,4 +7,7 @@ out/
 *.toc
 *.synctex.gz
 *.pdf
+
+# テンプレの out ディレクトリは特例で追跡
+!templates/latex-sample/out/
 !templates/latex-sample/out/sample.pdf
