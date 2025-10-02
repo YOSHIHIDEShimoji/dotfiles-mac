@@ -1,3 +1,6 @@
+# dotfiles repo root
+export DOTFILES="$HOME/dotfiles-mac"
+
 # VSCode CLI
 export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
 
@@ -6,3 +9,6 @@ export PATH="/opt/homebrew/bin:$PATH"
 
 # $ZDOTDIR/scripts/
 export PATH="/Users/yoshihide/dotfiles-mac/scripts:$PATH"
+
+# tex path
+export PATH="/Library/TeX/texbin:$PATH"
