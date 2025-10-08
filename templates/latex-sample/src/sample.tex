@@ -1,9 +1,24 @@
-% !TeX program = lualatex
 \documentclass{article}
-\usepackage{luatexja}
-\usepackage{luatexja-fontspec}
-\setmainjfont{IPAexMincho} % IPAex を利用
+
+% --- 日本語を扱うための設定 ---
+\usepackage{luatexja}            % LuaLaTeX 向け日本語処理
+\usepackage{luatexja-fontspec}   % fontspec と連携
+\usepackage{fontspec}            % 欧文フォント指定（必須）
+
+% --- フォント設定（macOS向け）---
+\setmainfont{TeX Gyre Termes}    % 英字フォント
+\setmainjfont{Hiragino Mincho ProN} % 日本語フォント（環境に合わせて変更）
 
 \begin{document}
-Hello LaTeX!
+
+Hello, \LaTeX!
+
+これは日本語のテストです。  
+LuaLaTeX で日本語が正しく表示されています。  
+
+数式も使えます：
+\[
+E = mc^2
+\]
+
 \end{document}
