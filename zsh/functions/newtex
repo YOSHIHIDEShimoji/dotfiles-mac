@@ -2,29 +2,26 @@
 newtex() {
   # 使い方: newtex [-n|--no-open] <PROJECT_NAME or PATH>
   local no_open=0 name=""
-
-  # 引数パース
   while (( $# )); do
     case "$1" in
       -n|--no-open) no_open=1; shift ;;
-      -*) shift ;;             # 未知オプションは無視
+      -*) shift ;;
       *) name="$1"; shift ;;
     esac
   done
-
   if [[ -z "$name" ]]; then
     print "Usage: newtex [-n|--no-open] <PROJECT_NAME or PATH>"
     return 2
   fi
   if [[ -z "${DOTFILES:-}" ]]; then
-    print "DOTFILES is not set"; return 1
+    print "DOTFILES is not set"
+    return 1
   fi
-
   local src="$DOTFILES/templates/latex-sample"
   if [[ ! -d "$src" ]]; then
-    print "Template not found: $src"; return 1
+    print "Template not found: $src"
+    return 1
   fi
-
   local dest
   if [[ "$name" = /* ]]; then
     dest="$name"
@@ -32,23 +29,19 @@ newtex() {
     dest="$PWD/$name"
   fi
   if [[ -e "$dest" ]]; then
-    print "Error: already exists -> $dest"; return 1
+    print "Error: already exists -> $dest"
+    return 1
   fi
-
-  # コピー（隠しファイル含む）
   mkdir -p "$dest"
   if command -v rsync >/dev/null 2>&1; then
     rsync -a --exclude='.DS_Store' -- "$src/." "$dest/"
   else
     cp -R "$src"/. "$dest"/
   fi
-
   print "Created LaTeX project: $dest"
-
-  # デフォルトで VS Code を開く（-n のときは開かない）
   if (( no_open == 0 )); then
     if command -v code >/dev/null 2>&1; then
-      code -r -g "$dest/src/sample.tex"
+      code -r "$dest"
     else
       open "$dest"
     fi
