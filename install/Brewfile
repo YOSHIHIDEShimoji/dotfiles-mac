@@ -9,6 +9,7 @@ brew "curl"
 brew "jq"
 brew "tree"
 brew "python"
+brew "pandoc"
 
 # GUI apps (cask)
 cask "google-chrome"
