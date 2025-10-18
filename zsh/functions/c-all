@@ -1,0 +1,66 @@
+# c-all: ディレクトリ内のすべての .c ファイルを c() 関数で順に実行する
+c-all() {
+    # null_glob を有効化して、マッチするファイルがなくてもエラーにしない
+    setopt localoptions null_glob
+
+    # オプション用の変数
+    local quiet=0      # ヘッダ出力を抑制する（-q）
+    local dryrun=0     # 実行せずファイル一覧だけ出す（-n）
+    local match="*.c"  # ファイルパターン
+    local dir="."      # デフォルトはカレントディレクトリ
+
+    # ヘルプ表示
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: c-all [-q] [-n] [-m pattern] [path]"
+        echo "  -q           Quiet mode (suppress headers)"
+        echo "  -n           Dry run (show files to be run, but don't execute)"
+        echo "  -m pattern   Match pattern (default: *.c)"
+        echo "  [path]       Directory to search (default: current directory)"
+        return 0
+    fi
+
+    # オプション解析
+    while getopts "qnm:" opt; do
+        case "$opt" in
+            q) quiet=1 ;;         # -q: quietモード
+            n) dryrun=1 ;;        # -n: dry-runモード
+            m) match="$OPTARG" ;; # -m: ファイルパターン指定
+            *) echo "Usage: c-all [-q] [-n] [-m pattern] [path]" >&2; return 1 ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    # パス指定があれば使用（なければカレント）
+    [[ -n "$1" ]] && dir="$1"
+
+    # ディレクトリの存在確認
+    if [[ ! -d "$dir" ]]; then
+        echo "Error: directory not found: $dir" >&2
+        return 1
+    fi
+
+    # 対象ファイル一覧を取得
+    local files=("$dir"/$match)
+    local file
+
+    # 各ファイルに対して順に実行
+    for file in $files; do
+        # 実際に存在するファイルのみ処理
+        [[ -f "$file" ]] || continue
+
+        # -n オプション（dry-run）の場合は実行せず一覧表示
+        if (( dryrun )); then
+            echo "$file"
+
+        # -q オプション（quiet）の場合はヘッダを出さず結果のみ表示
+        elif (( quiet )); then
+            c "$file"
+
+        # 通常モード（ヘッダ＋結果）
+        else
+            echo "==> $file <=="
+            c "$file"
+            echo
+        fi
+    done
+}
