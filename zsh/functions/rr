@@ -1,5 +1,5 @@
-# ~/.zshrc を再読み込み
 rr() {
-	source ~/.zshrc
-	echo "~/.zshrc@ reloaded (~/.zshrc -> ~/dotfiles-mac/zsh/zshrc)"
+  echo "Reloading shell environment..."
+  hash -r
+  exec zsh
 }
