@@ -17,4 +17,4 @@ export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PA
 typeset -U path PATH
 
 # sem を設定
-export SEM="$HOME/Library/CloudStorage/GoogleDrive-g.y.shimoji@gmail.com/マイドライブ/Chiba-u(drive)/2nd/sem2"
+export SM="$HOME/Library/CloudStorage/GoogleDrive-g.y.shimoji@gmail.com/マイドライブ/Chiba-u(drive)/2nd/sem2"
