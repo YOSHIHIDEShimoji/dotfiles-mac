@@ -16,3 +16,5 @@ export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PA
 # PATH の重複を除去（zsh専用）
 typeset -U path PATH
 
+# sem を設定
+export SEM="$HOME/Library/CloudStorage/GoogleDrive-g.y.shimoji@gmail.com/マイドライブ/Chiba-u(drive)/2nd/sem2"
