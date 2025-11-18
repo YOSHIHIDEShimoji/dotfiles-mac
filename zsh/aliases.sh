@@ -22,6 +22,9 @@ alias py='python3'
 alias python='python3'
 alias pip='pip3'
 
+# clear 一発できれいにする
+alias clear='clear; clear'
+
 # web_search()　のエイリアス
 alias bing='web_search bing'
 alias brs='web_search brave'
