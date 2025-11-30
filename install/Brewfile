@@ -27,6 +27,7 @@ cask "istat-menus"
 cask "slack"  
 cask "karabiner-elements"  
 cask "iterm2"
+cask "maccy"
 
 # Additional GUI apps
 # Google 日本語入力
