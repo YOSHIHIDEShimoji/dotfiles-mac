@@ -1,4 +1,4 @@
-# dotfiles-mac
+# dotfiles-mac(適宜更新していきます)
 
 macOS環境用のdotfiles管理リポジトリです。Zsh、Git、Karabiner-Elements、Homebrewの設定を一元管理し、新しいMac環境を素早くセットアップできます。
 
