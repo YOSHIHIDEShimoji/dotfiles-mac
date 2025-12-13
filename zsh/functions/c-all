@@ -1,4 +1,5 @@
 c-all() {
+  source ~/.zshrc  
   setopt localoptions null_glob
   OPTIND=1
   local quiet=0

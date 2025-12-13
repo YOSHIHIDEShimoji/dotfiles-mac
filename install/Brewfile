@@ -10,6 +10,8 @@ brew "jq"
 brew "tree"
 brew "python"
 brew "pandoc"
+brew "gh"
+brew "git-filter-repo"
 
 # GUI apps (cask)
 cask "google-chrome"
