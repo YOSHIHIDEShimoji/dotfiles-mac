@@ -18,3 +18,6 @@ typeset -U path PATH
 
 # sem を設定
 export SEM="$HOME/Library/CloudStorage/GoogleDrive-g.y.shimoji@gmail.com/マイドライブ/Chiba-u(drive)/2nd/sem2"
+
+# sbin
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"

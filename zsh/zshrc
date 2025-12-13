@@ -28,7 +28,13 @@ source $ZDOTDIR/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source $ZDOTDIR/themes/my-zsh-theme
 
 # zoxide
-eval "$(zoxide init zsh)"
+# eval "$(zoxide init zsh)"
 
 # iterm2設定
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+
+# ~/Google Drive を /tmp に移動
+if [ -d "$HOME/Google Drive" ] && [ ! -e "/tmp/Google Drive" ]; then
+  mv "$HOME/Google Drive" /tmp
+fi
+
