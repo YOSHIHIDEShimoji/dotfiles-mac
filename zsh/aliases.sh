@@ -25,6 +25,9 @@ alias pip='pip3'
 # clear 一発できれいにする
 alias clear='clear; clear'
 
+# moodle のダッシュボードを開く
+alias moodle='open -na "Google Chrome" --args --profile-directory="Profile 1" "https://moodle.gs.chiba-u.jp/moodle/my/"'
+
 # web_search()　のエイリアス
 alias bing='web_search bing'
 alias brs='web_search brave'
