@@ -1,0 +1,27 @@
+awake() {
+  local usage="Usage: awake [time(s/m/h)] (e.g., awake 1.5h)"
+  
+  if [ -z "$1" ]; then
+    echo "Caffeinated... (Infinite mode. Press Ctrl+C to stop)"
+    caffeinate -i -d
+    return
+  fi
+
+  # 数値部分（小数含む）と単位を分離
+  local val=$(echo "$1" | sed -E 's/([0-9.]+).*/\1/')
+  local unit=$(echo "$1" | sed -E 's/[0-9.]+//')
+  local multiplier=1
+
+  case $unit in
+    m) multiplier=60 ;;
+    h) multiplier=3600 ;;
+    s|"") multiplier=1 ;;
+    *) echo "Invalid unit. Use s, m, or h."; echo $usage; return 1 ;;
+  esac
+
+  # 小数計算のために bc を使用（整数に四捨五入）
+  local seconds=$(echo "$val * $multiplier" | bc | xargs printf "%.0f")
+
+  echo "Caffeinated for $1 ($seconds seconds)..."
+  caffeinate -i -d -t $seconds
+}

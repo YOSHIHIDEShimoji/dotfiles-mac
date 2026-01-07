@@ -1,0 +1,52 @@
+\documentclass{article}
+
+% --- 日本語・フォント設定 (macOS/LuaLaTeX) ---
+\usepackage{luatexja}
+\usepackage{luatexja-fontspec}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Termes}
+\setmainjfont{Hiragino Mincho ProN}
+
+% --- 数式・レイアウト設定 ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{setspace}
+\setstretch{1.3} % 行間を1.3倍に設定
+\setlength{\parindent}{0pt} % 段落インデントなし
+
+\begin{document}
+
+% === 表紙ここから ===
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+
+    % --- 所属 (不要なら % で隠す) ---
+    {\Large 千葉大学 医工学コース \par}
+    % ---------------------------
+    
+    \vspace{4cm}
+
+    % --- タイトル ---
+    {\Huge \bfseries タイトルを入力してください \par}
+    \vspace{1em}
+    {\Large サブタイトルがあればここに \par}
+    % ---------------
+
+    \vspace{\fill} % 下に寄せる
+
+    % --- 著者情報 (不要なら % で隠す) ---
+    {\Large 24TB4039 \par}
+    {\Large 下地 慶英 \par}
+    {\large \the\year/\the\month/\the\day \par}
+    % ---------------------------
+
+    \vspace*{3cm}
+\end{titlepage}
+% === 表紙ここまで ===
+
+% === 本文ここから ===
+\newpage
+[本文] ここからレポートを書き始めてください。
+
+\end{document}
