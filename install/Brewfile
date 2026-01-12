@@ -12,6 +12,8 @@ brew "python"
 brew "pandoc"
 brew "gh"
 brew "git-filter-repo"
+brew "inquirer"
+brew "clipcopy"
 
 # GUI apps (cask)
 cask "google-chrome"
