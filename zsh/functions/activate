@@ -1,6 +1,6 @@
 # Python プロジェクトの仮想環境をアクティブにする
 activate() {
-	DIR=~/python_projects/sakaijun_udemy
+	DIR=~/myprojects/python/sakaijun_udemy
 	cd $DIR
 	if [[ "$VIRTUAL_ENV" != "" ]]; then
 		deactivate
