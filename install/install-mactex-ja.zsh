@@ -84,7 +84,7 @@ fi
 print "lualatex: $(command -v lualatex)"
 print "tlmgr:    $(command -v tlmgr || print -- 'not found（新しいシェルでPATH再読み込みが必要な場合があります）')"
 
-# 5) VS Code 拡張（任意）
+# 5) VS Code 拡張
 if [[ "$USE_VSCODE" == "1" ]]; then
   print_step "VS Code 拡張 LaTeX Workshop のインストール"
   if command -v code >/dev/null 2>&1; then
@@ -98,66 +98,6 @@ if [[ "$USE_VSCODE" == "1" ]]; then
     print "code コマンドが見つかりません。VS Code が未導入か、PATH 未設定です。"
     print "VS Code を使う場合は、Command Palette で『Shell Command: Install “code” command in PATH』を実行してください。"
   fi
-fi
-
-# 6) サンプルプロジェクト
-if [[ "$MAKE_SAMPLE" == "1" ]]; then
-  print_step "サンプルプロジェクトの作成: $SAMPLE_DIR"
-  mkdir -p "$SAMPLE_DIR/.vscode" "$SAMPLE_DIR/src" "$SAMPLE_DIR/out"
-
-  cat > "$SAMPLE_DIR/.vscode/settings.json" <<'JSON'
-{
-  "latex-workshop.latex.autoBuild.run": "onSave",
-  "latex-workshop.latex.outDir": "../out",
-  "latex-workshop.view.pdf.viewer": "tab",
-  "latex-workshop.latex.clean.enabled": true,
-  "latex-workshop.latex.clean.fileTypes": [
-    "*.aux", "*.bbl", "*.blg", "*.fls", "*.log", "*.out", "*.toc", "*.synctex.gz"
-  ],
-  "latex-workshop.latex.recipes": [
-    { "name": "lualatex", "tools": ["lualatex"] }
-  ],
-  "latex-workshop.latex.tools": [
-    {
-      "name": "lualatex",
-      "command": "lualatex",
-      "args": [
-        "--interaction=nonstopmode",
-        "--synctex=1",
-        "-output-directory=../out",
-        "%DOC%"
-      ]
-    }
-  ]
-}
-JSON
-
-  cat > "$SAMPLE_DIR/src/sample.tex" <<'TEX'
-% !TeX program = lualatex
-\documentclass{article}
-\usepackage{luatexja}
-\usepackage{luatexja-fontspec}
-\setmainjfont{IPAexMincho} % IPAex を利用
-
-\begin{document}
-こんにちは、LaTeX！（macOS セットアップ）
-\end{document}
-TEX
-
-  cat > "$SAMPLE_DIR/.gitignore" <<'GIT'
-out/
-*.aux
-*.bbl
-*.blg
-*.fls
-*.log
-*.toc
-*.synctex.gz
-*.pdf
-GIT
-
-  print "ホームディレクトリにサンプルプロジェクトを作成しました: $SAMPLE_DIR"
-  print "VS Code で $SAMPLE_DIR を開くと、.vscode 設定と src/sample.tex が既に用意されています。"
 fi
 
 print_step "完了"
