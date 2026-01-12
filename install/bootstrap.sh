@@ -31,6 +31,34 @@ link_from_prop() {
 	done < "$prop"
 }
 
+# LaunchAgents の自動リンク処理
+LAUNCH_SRC="$DOTFILES_DIR/LaunchAgents"
+LAUNCH_DST="${HOME}/Library/LaunchAgents"
+
+if [ -d "$LAUNCH_SRC" ]; then
+	echo "Setting up LaunchAgents..."
+	mkdir -p "$LAUNCH_DST"
+
+	# *.plist が一つもない場合の対策
+	shopt -s nullglob
+	
+	for plist in "$LAUNCH_SRC"/*.plist; do
+		filename=$(basename "$plist")
+		target="$LAUNCH_DST/$filename"
+
+		# リンク作成
+		echo "Linking LaunchAgent: $filename"
+		ln -sfv "$plist" "$target"
+
+		# 新しいMacで実行した場合など、未ロードならロードする
+		if ! launchctl list | grep -q "${filename%.plist}"; then
+			echo "  -> Loading $filename"
+			launchctl load "$target" 2>/dev/null || true
+		fi
+	done
+	shopt -u nullglob
+fi
+
 echo "Linking dotfiles..."
 
 # 必要なディレクトリを用意
