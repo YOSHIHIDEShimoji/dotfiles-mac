@@ -13,9 +13,10 @@ brew "pandoc"
 brew "gh"
 brew "git-filter-repo"
 brew "inquirer"
-brew "clipcopy"
+brew "zoxide"
+brew "fzf"
 
-# GUI apps (cask)
+# GUI apps
 cask "google-chrome"
 cask "spotify"
 cask "discord"
@@ -36,8 +37,8 @@ cask "maccy"
 # Additional GUI apps
 # Google 日本語入力
 # Google Drive
-# Adobe Acrobat Reader
 # Adobe Creative Cloud
+# Adobe Acrobat Reader
 # CleanMyMac
 # AppCleaner
 # BetterTouchTool

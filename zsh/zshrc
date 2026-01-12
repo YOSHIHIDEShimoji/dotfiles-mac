@@ -7,18 +7,16 @@ source $ZDOTDIR/aliases.sh
 # functions（自動発見して autoload）
 FUNCTIONS_DIR="$ZDOTDIR/functions"
 fpath=($FUNCTIONS_DIR $fpath)
-
-# 直下のファイルを全部 autoload（ファイル名＝関数名）
 for f in $FUNCTIONS_DIR/*(.N); do
   autoload -Uz "${f:t}"
 done
 
-# プラグイン読み込み（*.zsh or plugin ディレクトリ内の *.zsh）
+# プラグイン読み込み
 for plugin in $ZDOTDIR/plugins/*.zsh(N) $ZDOTDIR/plugins/*/*.zsh(N); do
-	source "$plugin"
+  source "$plugin"
 done
 
-# 補完
+# 補完 (compinit)
 autoload -Uz compinit && compinit
 
 # zsh-syntax-highlighting
@@ -27,12 +25,19 @@ source $ZDOTDIR/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 # テーマ
 source $ZDOTDIR/themes/my-zsh-theme
 
-# zoxide
-# eval "$(zoxide init zsh)"
+# 挙動設定
+setopt interactive_comments
+setopt no_beep
 
-# iterm2設定
+# iTerm2
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
-# Shell Behavior
-setopt interactive_comments  # ターミナル上で # をコメントとして扱う
-setopt no_beep               # ビープ音を鳴らさない（ついでによく設定されるもの）
+# fzf (補完・キーバインド)
+if command -v fzf >/dev/null 2>&1; then
+  source <(fzf --zsh)
+fi
+
+# zoxide (cd互換モード)
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh --cmd cd)"
+fi
