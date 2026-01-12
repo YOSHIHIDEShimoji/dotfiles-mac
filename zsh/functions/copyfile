@@ -1,5 +1,6 @@
 # ファイルをクリップボードにコピー
 copyfile() {
 	emulate -L zsh
-	cat "$1" | clipcopy
+	cat "$1" | pbcopy
+	echo ${(%):-"%B$1%b copied to clipboard."}
 }
