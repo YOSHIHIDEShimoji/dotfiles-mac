@@ -6,11 +6,18 @@ export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PA
 # tex path
 export PATH="/Library/TeX/texbin:$PATH"
 
-# dotfiles scripts
-export PATH="$HOME/dotfiles-mac/scripts:$PATH"
-
-# Homebrew (最優先にしたいので、下の方に書くか、最後に結合する)
+# Homebrew
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+
+# dotfiles-mac/scripts 配下のサブディレクトリ以下全てに PATH を通し、実行権限を与える。
+if [ -d "$HOME/dotfiles-mac/scripts" ]; then
+    export PATH="$PATH:$HOME/dotfiles-mac/scripts"
+    for dir in $HOME/dotfiles-mac/scripts/*(/); do
+        export PATH="$PATH:$dir"
+    done
+fi
+
+chmod -R +x ~/dotfiles-mac/scripts/
 
 # 重複除去
 typeset -U path PATH

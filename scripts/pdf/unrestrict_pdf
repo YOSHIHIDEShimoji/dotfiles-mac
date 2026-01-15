@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# 引数がない場合に使い方を表示
+if [ $# -eq 0 ]; then
+    echo "Usage: pdf-unrestrict file1.pdf file2.pdf ..."
+    echo "This script removes editing, printing, and copying restrictions."
+    exit 1
+fi
+
+# qpdfがインストールされているか確認
+if ! command -v qpdf &> /dev/null; then
+    echo "Error: qpdf is not installed. Run 'brew install qpdf' first."
+    exit 1
+fi
+
+# 引数で渡された各ファイルに対して処理
+for file in "$@"; do
+    # ファイルが存在するかチェック
+    if [[ ! -f "$file" ]]; then
+        echo "Skipping: '$file' (File not found)"
+        continue
+    fi
+
+    # 出力ファイル名の生成 (例: sample.pdf -> sample_unrestricted.pdf)
+    filename="${file%.*}"
+    extension="${file##*.}"
+    output="${filename}_unrestricted.${extension}"
+
+    echo -n "Removing restrictions from '$file' ... "
+    
+    # qpdf --decrypt は閲覧用パスワードが空であれば、編集制限（Ownerパスワード）を無視して解除します
+    if qpdf --decrypt "$file" "$output" 2>/dev/null; then
+        echo "Done! -> '$output'"
+    else
+        echo "Failed. (The file might have a 'Open Password' set, or it's not a PDF)"
+    fi
+done

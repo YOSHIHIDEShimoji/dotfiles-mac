@@ -1,0 +1,66 @@
+#!/Users/yoshihide/my_projects/python/.venv/bin/python3
+
+import pikepdf
+import os
+import glob
+import sys
+import argparse
+
+def unlock_and_combine_pikepdf(input_dir, output_filename):
+    # ファイル一覧を取得
+    pdf_files = sorted(glob.glob(os.path.join(input_dir, "*.pdf")))
+    
+    if not pdf_files:
+        print(f"エラー: ディレクトリ '{input_dir}' 内にPDFファイルが見つかりません。")
+        return
+
+    combined_pdf = pikepdf.new()
+    success_count = 0
+
+    print(f"{len(pdf_files)} 個のファイルを処理します...")
+
+    for pdf_path in pdf_files:
+        filename = os.path.basename(pdf_path)
+        try:
+            # pikepdf.open は閲覧パスワードがなければ、編集制限を自動で無視して開きます
+            with pikepdf.open(pdf_path) as src_pdf:
+                combined_pdf.pages.extend(src_pdf.pages)
+                print(f"○ 追加成功: {filename}")
+                success_count += 1
+        except Exception as e:
+            print(f"× エラー: {filename}")
+            print(f"  -> 詳細: {e}")
+
+    # 保存
+    if success_count > 0:
+        combined_pdf.save(output_filename)
+        print("-" * 30)
+        print(f"完了！結合されたファイル: {output_filename}")
+    else:
+        print("結合できるファイルがありませんでした。")
+
+if __name__ == "__main__":
+    # argparseの設定
+    parser = argparse.ArgumentParser(
+        description="指定したディレクトリ内のすべてのPDFを結合し、編集制限を解除します。",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    
+    # 必須の引数: ターゲットディレクトリ
+    parser.add_argument(
+        "target_dir", 
+        help="PDFファイルが格納されているディレクトリのパス"
+    )
+    
+    # オプションの引数: 出力ファイル名 (-o または --output)
+    parser.add_argument(
+        "-o", "--output", 
+        default="combined_output.pdf",
+        help="出力するPDFファイル名 (デフォルト: combined_output.pdf)"
+    )
+
+    # 引数の解析
+    args = parser.parse_args()
+
+    # 実行
+    unlock_and_combine_pikepdf(args.target_dir, args.output)
