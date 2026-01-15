@@ -1,0 +1,8 @@
+# zip <Dir Name> で zip 圧縮可能にする
+zip() {
+  if [ "$#" -eq 1 ] && [ -d "$1" ]; then
+    command zip -r "$1.zip" "$1" -x "*.DS_Store" "__MACOSX/*"
+  else
+    command zip "$@"
+  fi
+}
