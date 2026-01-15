@@ -1,0 +1,48 @@
+#!/Users/yoshihide/my_projects/python/.venv/bin/python3
+import pikepdf
+import os
+import sys
+import argparse
+
+def unlock_file(pdf_path):
+    # ファイルが存在するかチェック
+    if not os.path.exists(pdf_path):
+        print(f"エラー: ファイルが見つかりません -> {pdf_path}")
+        return
+
+    # 出力ファイル名の作成 (例: file.pdf -> file_unlocked.pdf)
+    root, ext = os.path.splitext(pdf_path)
+    output_path = f"{root}_unlocked{ext}"
+
+    try:
+        # pikepdfで開いて保存し直す（これで制限解除＆修復）
+        with pikepdf.open(pdf_path) as pdf:
+            pdf.save(output_path)
+        print(f"○ 完了: {os.path.basename(output_path)}")
+        
+    except Exception as e:
+        print(f"× 失敗: {os.path.basename(pdf_path)}")
+        print(f"  -> 詳細: {e}")
+
+if __name__ == "__main__":
+    # argparseの設定
+    parser = argparse.ArgumentParser(
+        description="PDFの編集・印刷制限（Owner Password）を解除し、新しいファイルとして保存します。\n"
+                    "閲覧パスワードがかかっていない（誰でも開ける）ファイルに有効です。",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    # 位置引数: 1つ以上のファイルを受け取る (nargs='+')
+    parser.add_argument(
+        "files", 
+        nargs="+", 
+        help="解除したいPDFファイルのパス（複数指定可）"
+    )
+
+    # 引数の解析
+    args = parser.parse_args()
+
+    # 処理開始
+    print(f"{len(args.files)} 個のファイルを処理します...")
+    for file_path in args.files:
+        unlock_file(file_path)

@@ -17,6 +17,7 @@ brew "zoxide"
 brew "fzf"
 brew "john"
 brew "hashat"
+brew "qpdf"
 
 # GUI apps
 cask "google-chrome"
