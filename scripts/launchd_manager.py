@@ -63,7 +63,7 @@ def setup_autocomplete():
     else:
         readline.parse_and_bind("tab: complete")
 
-# --- スクリプト内容の監査 (コピペ対応版) ---
+# --- スクリプト内容の監査 ---
 def audit_script_content(script_path):
     """
     スクリプト内に必須要素が含まれているかチェックする。

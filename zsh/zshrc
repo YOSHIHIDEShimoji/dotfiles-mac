@@ -4,7 +4,7 @@ ZDOTDIR=~/dotfiles-mac/zsh
 source $ZDOTDIR/exports.sh
 source $ZDOTDIR/aliases.sh
 
-# functions（自動発見して autoload）
+# functions（autoload）
 FUNCTIONS_DIR="$ZDOTDIR/functions"
 fpath=($FUNCTIONS_DIR $fpath)
 for f in $FUNCTIONS_DIR/*(.N); do

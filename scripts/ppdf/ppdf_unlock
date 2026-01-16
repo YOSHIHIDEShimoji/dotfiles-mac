@@ -1,48 +1,78 @@
-#!/Users/yoshihide/my_projects/python/.venv/bin/python3
-import pikepdf
-import os
-import sys
-import argparse
+#!/bin/bash
 
-def unlock_file(pdf_path):
-    # ファイルが存在するかチェック
-    if not os.path.exists(pdf_path):
-        print(f"エラー: ファイルが見つかりません -> {pdf_path}")
-        return
+usage() {
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS] FILE.pdf [FILE.pdf ...]
 
-    # 出力ファイル名の作成 (例: file.pdf -> file_unlocked.pdf)
-    root, ext = os.path.splitext(pdf_path)
-    output_path = f"{root}_unlocked{ext}"
+PDFの制限を解除します。
 
-    try:
-        # pikepdfで開いて保存し直す（これで制限解除＆修復）
-        with pikepdf.open(pdf_path) as pdf:
-            pdf.save(output_path)
-        print(f"○ 完了: {os.path.basename(output_path)}")
-        
-    except Exception as e:
-        print(f"× 失敗: {os.path.basename(pdf_path)}")
-        print(f"  -> 詳細: {e}")
+optional arguments:
+  -h, --help           このヘルプを表示
+  -i, --in-place       元のファイルを上書き (確認あり)
+  -o, --output-dir DIR 指定したディレクトリに保存 (ファイル名はそのまま)
+EOF
+    exit 0
+}
 
-if __name__ == "__main__":
-    # argparseの設定
-    parser = argparse.ArgumentParser(
-        description="PDFの編集・印刷制限（Owner Password）を解除し、新しいファイルとして保存します。\n"
-                    "閲覧パスワードがかかっていない（誰でも開ける）ファイルに有効です。",
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
+IN_PLACE=false
+OUTPUT_DIR=""
+FILES=()
+
+# オプション解析
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        -h|--help) usage ;;
+        -i|--in-place) IN_PLACE=true; shift ;;
+        -o|--output-dir) 
+            if [[ -n "$2" && "$2" != -* ]]; then
+                OUTPUT_DIR="$2"; shift 2
+            else
+                echo "Error: -o にはディレクトリ名が必要です"; exit 1
+            fi ;;
+        -*) echo "Error: 不明なオプション $1"; usage ;;
+        *) FILES+=("$1"); shift ;;
+    esac
+done
+
+set -- "${FILES[@]}"
+if [[ $# -eq 0 ]]; then usage; fi
+
+# 矛盾チェック
+if [ "$IN_PLACE" = true ] && [ -n "$OUTPUT_DIR" ]; then
+    echo "Error: -i (上書き) と -o (ディレクトリ指定) は同時に指定できません。"
+    exit 1
+fi
+
+# 出力ディレクトリ作成
+[ -n "$OUTPUT_DIR" ] && mkdir -p "$OUTPUT_DIR"
+
+# 上書き確認
+if [ "$IN_PLACE" = true ]; then
+    echo -n "警告: すべてのファイルを直接上書きします。よろしいですか？ (y/n): "
+    read -r answer
+    [[ "$answer" != "y" ]] && { echo "中止しました"; exit 0; }
+fi
+
+for file in "$@"; do
+    [[ ! -f "$file" ]] && { echo "Skip: $file"; continue; }
     
-    # 位置引数: 1つ以上のファイルを受け取る (nargs='+')
-    parser.add_argument(
-        "files", 
-        nargs="+", 
-        help="解除したいPDFファイルのパス（複数指定可）"
-    )
-
-    # 引数の解析
-    args = parser.parse_args()
-
-    # 処理開始
-    print(f"{len(args.files)} 個のファイルを処理します...")
-    for file_path in args.files:
-        unlock_file(file_path)
+    base=$(basename "$file")
+    
+    if [ "$IN_PLACE" = true ]; then
+        # 1. 完全上書き (名前変更なし)
+        echo -n "Overwriting: $file ... "
+        qpdf --decrypt --replace-input "$file" 2>/dev/null && echo "Done!" || echo "Failed."
+    elif [ -n "$OUTPUT_DIR" ]; then
+        # 2. ディレクトリ指定あり (名前変更なし)
+        output="$OUTPUT_DIR/$base"
+        echo -n "Processing: $file -> $output ... "
+        qpdf --decrypt "$file" "$output" 2>/dev/null && echo "Done!" || echo "Failed."
+    else
+        # 3. デフォルト (同じ場所に _unlocked を付けて保存)
+        filename="${base%.*}"
+        extension="${base##*.}"
+        output="${filename}_unlocked.${extension}"
+        echo -n "Processing: $file -> $output ... "
+        qpdf --decrypt "$file" "$output" 2>/dev/null && echo "Done!" || echo "Failed."
+    fi
+done
