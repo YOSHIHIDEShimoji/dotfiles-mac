@@ -1,0 +1,84 @@
+c() {
+    time_opt=""
+    include_compile=0
+    cc_flags=()
+
+    while [[ "$1" == -* ]]; do
+        case "$1" in
+            -p|-v) time_opt="$1"; shift ;;
+            -f) time_opt="-f"; format="$2"; shift 2 ;;
+            -T) include_compile=1; shift ;;
+            -D|-I)
+                [[ -n "$2" ]] || { echo "missing arg for $1"; return 1; }
+                cc_flags+=("$1$2")
+                shift 2
+                ;;
+            -D*|-I*|-O*|-W*|-std=*|-march=*|-mtune=*|-g|-ggdb|-fsanitize=*|-fno-*|-pthread)
+                cc_flags+=("$1")
+                shift
+                ;;
+            --) shift; break ;;
+            *) break ;;
+        esac
+    done
+
+    [[ "$1" == *.c ]] || { echo "Usage: c [-p|-v|-f FORMAT|-T] [-D...|-I...|-O...] file.c [args...]"; return 1; }
+
+    src="$(realpath "$1")"
+    shift
+
+    dir="$(dirname "$src")"
+    name="$(basename "${src%.c}")"
+    build_dir="$dir/build"
+    mkdir -p "$build_dir"
+    out="$build_dir/$name"
+
+    if grep -q '#[[:space:]]*include[[:space:]]*<math\.h>' "$src"; then
+        compile_cmd="cc ${cc_flags:+${(j: :)cc_flags}} \"$src\" -o \"$out\" -lm"
+    else
+        compile_cmd="cc ${cc_flags:+${(j: :)cc_flags}} \"$src\" -o \"$out\""
+    fi
+
+    if [[ "$OSTYPE" == "darwin"* && "$time_opt" == "-v" ]]; then
+        time_opt="-l"
+    fi
+
+    if command -v gtime &>/dev/null; then
+        TIME_CMD="gtime"
+    else
+        TIME_CMD="/usr/bin/time"
+    fi
+
+    if [[ $include_compile -eq 1 ]]; then
+        tmp="$(mktemp)"
+        if [[ -n "$time_opt" ]]; then
+            if [[ "$time_opt" == "-f" ]]; then
+                $TIME_CMD -o "$tmp" -f "$format" sh -c "$compile_cmd && \"$out\" \"$@\""
+            else
+                $TIME_CMD -o "$tmp" $time_opt sh -c "$compile_cmd && \"$out\" \"$@\""
+            fi
+        else
+            $TIME_CMD -o "$tmp" -p sh -c "$compile_cmd && \"$out\" \"$@\""
+        fi
+        echo
+        echo "======= TIME RESULT ======="
+        sed 's/^/  /' "$tmp"
+        rm -f "$tmp"
+    else
+        eval "$compile_cmd" || return 1
+        tmp="$(mktemp)"
+        if [[ -n "$time_opt" ]]; then
+            if [[ "$time_opt" == "-f" ]]; then
+                $TIME_CMD -o "$tmp" -f "$format" "$out" "$@"
+            else
+                $TIME_CMD -o "$tmp" $time_opt "$out" "$@"
+            fi
+            echo
+            echo "======= TIME RESULT ======="
+            sed 's/^/  /' "$tmp"
+            rm -f "$tmp"
+        else
+            "$out" "$@"
+        fi
+    fi
+}

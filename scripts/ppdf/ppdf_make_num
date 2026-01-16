@@ -1,0 +1,199 @@
+#!/bin/bash
+
+# ==========================================
+# PDF N-up Script (2-in-1 / 4-in-1 / Custom)
+# Uses qpdf for analysis and pdfjam for layout
+# ==========================================
+
+function usage {
+    echo "Usage: $(basename $0) [-n 2|4] [-x RxC] [-o p|l] [-f] input.pdf [output.pdf]"
+    echo "Options:"
+    echo "  -n <number>   : 2 (default) or 4 pages per sheet (Preset)"
+    echo "  -x <grid>     : Custom grid in 'Rows x Cols' (e.g., '2x3' = 2 rows, 3 cols). Overrides -n."
+    echo "  -o <orient>   : 'p' (portrait/縦) or 'l' (landscape/横)"
+    echo "                  If omitted, auto-detects best layout."
+    echo "  -f            : Draw a frame around each page"
+    echo "  -h            : Show this help"
+    exit 1
+}
+
+# Defaults
+NUP_MODE=2
+CUSTOM_GRID=""
+ORIENTATION="auto"
+FRAME_OPT="false"
+
+# Parse arguments
+while getopts "n:x:o:fh" opt; do
+  case ${opt} in
+    n)
+      if [[ "$OPTARG" != "2" && "$OPTARG" != "4" ]]; then
+        echo "Error: -n must be 2 or 4."
+        exit 1
+      fi
+      NUP_MODE="$OPTARG"
+      ;;
+    x)
+      # Check format like "2x3"
+      if [[ ! "$OPTARG" =~ ^[0-9]+x[0-9]+$ ]]; then
+        echo "Error: -x must be in 'RxC' format (e.g., 2x3)."
+        exit 1
+      fi
+      CUSTOM_GRID="$OPTARG"
+      ;;
+    o)
+      if [[ "$OPTARG" == "p" || "$OPTARG" == "portrait" ]]; then
+        ORIENTATION="portrait"
+      elif [[ "$OPTARG" == "l" || "$OPTARG" == "landscape" ]]; then
+        ORIENTATION="landscape"
+      else
+        echo "Error: -o must be 'p' (portrait) or 'l' (landscape)."
+        exit 1
+      fi
+      ;;
+    f)
+      FRAME_OPT="true"
+      ;;
+    h)
+      usage
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+shift $((OPTIND -1))
+
+INPUT_FILE="$1"
+OUTPUT_FILE="$2"
+
+# Check input
+if [[ -z "$INPUT_FILE" ]]; then
+    echo "Error: Input file is required."
+    usage
+fi
+
+if [[ ! -f "$INPUT_FILE" ]]; then
+    echo "Error: File '$INPUT_FILE' not found."
+    exit 1
+fi
+
+# Set default output filename
+if [[ -z "$OUTPUT_FILE" ]]; then
+    BASENAME=$(basename "$INPUT_FILE" .pdf)
+    if [[ -n "$CUSTOM_GRID" ]]; then
+        SUFFIX="${CUSTOM_GRID}"
+    else
+        SUFFIX="${NUP_MODE}in1"
+    fi
+    OUTPUT_FILE="${BASENAME}_${SUFFIX}.pdf"
+fi
+
+# ==========================================
+# 1. Analyze with qpdf (Auto-layout logic)
+# ==========================================
+
+PAGE_SIZE=$(qpdf --show-pages "$INPUT_FILE" | head -n 1 | awk -F': ' '{print $2}')
+WIDTH=$(echo $PAGE_SIZE | awk '{print $1}' | cut -d'.' -f1)
+HEIGHT=$(echo $PAGE_SIZE | awk '{print $3}' | cut -d'.' -f1)
+
+# Determine Input Orientation
+if [[ $WIDTH -gt $HEIGHT ]]; then
+    INPUT_ORIENT="landscape"
+else
+    INPUT_ORIENT="portrait"
+fi
+
+echo "Input Analysis: Size=${WIDTH}x${HEIGHT} ($INPUT_ORIENT)"
+
+# Decide Layout
+FINAL_ORIENT=""
+NUP_GRID=""
+
+if [[ -n "$CUSTOM_GRID" ]]; then
+    # === Custom Grid Logic (-x specified) ===
+    # User Input: Rows x Cols (Mathematical notation)
+    USER_ROWS=$(echo $CUSTOM_GRID | cut -d'x' -f1)
+    USER_COLS=$(echo $CUSTOM_GRID | cut -d'x' -f2)
+    
+    # pdfjam expects: Cols x Rows
+    NUP_GRID="${USER_COLS}x${USER_ROWS}"
+    
+    if [[ "$ORIENTATION" == "auto" ]]; then
+        # Heuristic:
+        # If Cols > Rows (Wide layout), rotate paper relative to input
+        if [[ $USER_COLS -gt $USER_ROWS ]]; then
+            if [[ "$INPUT_ORIENT" == "portrait" ]]; then
+                FINAL_ORIENT="--landscape"
+            else
+                FINAL_ORIENT="--no-landscape"
+            fi
+        else
+            # Tall or Square layout (Rows >= Cols)
+            if [[ "$INPUT_ORIENT" == "portrait" ]]; then
+                FINAL_ORIENT="--no-landscape"
+            else
+                FINAL_ORIENT="--landscape"
+            fi
+        fi
+        echo "Auto-layout for Custom Grid (Input: ${USER_ROWS}x${USER_COLS} -> pdfjam: ${NUP_GRID}): Setting paper to $(echo $FINAL_ORIENT | sed 's/--//')"
+    else
+        # Manual Override
+        if [[ "$ORIENTATION" == "landscape" ]]; then
+            FINAL_ORIENT="--landscape"
+        else
+            FINAL_ORIENT="--no-landscape"
+        fi
+    fi
+
+else
+    # === Standard Preset Logic (-n 2 or 4) ===
+    # Presets use hardcoded optimal grids
+    if [[ "$ORIENTATION" == "auto" ]]; then
+        echo "Auto-detecting best layout for Preset..."
+        if [[ "$NUP_MODE" == "2" ]]; then
+            if [[ "$INPUT_ORIENT" == "portrait" ]]; then
+                FINAL_ORIENT="--landscape"
+                NUP_GRID="2x1" # 2 Cols x 1 Row
+            else
+                FINAL_ORIENT="--no-landscape"
+                NUP_GRID="1x2" # 1 Col x 2 Rows
+            fi
+        elif [[ "$NUP_MODE" == "4" ]]; then
+            if [[ "$INPUT_ORIENT" == "portrait" ]]; then
+                FINAL_ORIENT="--no-landscape"
+            else
+                FINAL_ORIENT="--landscape"
+            fi
+            NUP_GRID="2x2"
+        fi
+    else
+        # Manual Override for Preset
+        if [[ "$ORIENTATION" == "landscape" ]]; then
+            FINAL_ORIENT="--landscape"
+        else
+            FINAL_ORIENT="--no-landscape"
+        fi
+        
+        if [[ "$NUP_MODE" == "2" ]]; then
+            NUP_GRID="2x1" 
+        else
+            NUP_GRID="2x2"
+        fi
+    fi
+fi
+
+# ==========================================
+# 2. Execute pdfjam
+# ==========================================
+
+echo "Processing: Grid: $NUP_GRID (pdfjam format), Frame: $FRAME_OPT, Output: $OUTPUT_FILE"
+
+LC_COLLATE=C pdfjam "$INPUT_FILE" --nup "$NUP_GRID" --frame "$FRAME_OPT" $FINAL_ORIENT --outfile "$OUTPUT_FILE" --quiet
+
+if [[ $? -eq 0 ]]; then
+    echo "Success! Created: $OUTPUT_FILE"
+else
+    echo "Error during processing."
+    exit 1
+fi
