@@ -1,4 +1,4 @@
-# ls 系
+# ls
 alias ls='ls --color=auto'
 alias dir='dir --color=auto'
 alias vdir='vdir --color=auto'
@@ -9,23 +9,50 @@ alias ll='ls -l'
 alias la='ls -A'
 alias l='ls -CF'
 
-# ターミナル便利系
+# ターミナル
 alias h='history'
 alias ..='cd ..'
 alias ...='cd ../..'
+alias o='open .'
+alias mkdir='mkdir -p'
 
-# VSCode
-alias v='code .'
-
-#Python
-alias py='python3'
-alias python='python3'
-alias pip='pip3'
+# 確認
+alias rm='rm -i'
+alias mv='mv -i'
+alias cp='cp -Ri'
 
 # clear 一発できれいにする
 alias clear='clear; clear'
 
-# moodle のダッシュボードを開く
+# VSCode
+alias v='code .'
+
+# git
+alias g='git'
+alias gs='git status'
+alias gco='git checkout'  # co -> gco
+alias gbr='git branch'    # br -> gbr
+alias gcm='git commit -m' # cm -> gcm
+alias gca='git commit -a -m'
+alias glast='git log -1 HEAD'
+alias glg='git log --oneline --graph --all --decorate'
+alias gdf='git diff'
+alias gdfc='git diff --cached'
+alias gunstage='git reset HEAD --'
+alias gundo='git reset --soft HEAD~1'
+alias gpu='git push'
+alias gpl='git pull'
+
+# Python
+alias py='python3'
+alias python='python3'
+alias pip='pip3'
+
+# ネットワーク・システム
+alias myip='curl ifconfig.me'
+alias port='lsof -i -P'
+
+# リンク
 alias moodle='open -na "Google Chrome" --args --profile-directory="Profile 1" "https://moodle.gs.chiba-u.jp/moodle/my/"'
 
 # web_search()　のエイリアス
