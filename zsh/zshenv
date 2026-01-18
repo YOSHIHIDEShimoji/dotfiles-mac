@@ -1,10 +1,1 @@
 export ZDOTDIR="$HOME/dotfiles-mac/zsh"
-
-# FUNCTIONS_DIR="$ZDOTDIR/functions"
-# fpath=($FUNCTIONS_DIR $fpath)
-
-# for f in $FUNCTIONS_DIR/*(.N); do
-#   autoload -Uz "${f:t}"
-# done
-
-# typeset -U fpath
