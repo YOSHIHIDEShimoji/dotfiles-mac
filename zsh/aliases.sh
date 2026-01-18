@@ -24,7 +24,7 @@ alias cp='cp -Ri'
 # clear 一発できれいにする
 alias clear='clear; clear'
 
-# VSCode
+# VS code
 alias v='code .'
 
 # git
