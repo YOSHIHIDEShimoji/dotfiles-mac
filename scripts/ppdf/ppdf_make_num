@@ -6,10 +6,10 @@
 # ==========================================
 
 function usage {
-    echo "Usage: $(basename $0) [-n 2|4] [-x RxC] [-o p|l] [-f] input.pdf [output.pdf]"
+    echo "Usage: $(basename $0) [-n 2|4] [-x CxR] [-o p|l] [-f] input.pdf [output.pdf]"
     echo "Options:"
     echo "  -n <number>   : 2 (default) or 4 pages per sheet (Preset)"
-    echo "  -x <grid>     : Custom grid in 'Rows x Cols' (e.g., '2x3' = 2 rows, 3 cols). Overrides -n."
+    echo "  -x <grid>     : Custom grid in 'Cols x Rows' (e.g., '2x3' = 2 cols, 3 rows). Overrides -n."
     echo "  -o <orient>   : 'p' (portrait/縦) or 'l' (landscape/横)"
     echo "                  If omitted, auto-detects best layout."
     echo "  -f            : Draw a frame around each page"
@@ -36,7 +36,7 @@ while getopts "n:x:o:fh" opt; do
     x)
       # Check format like "2x3"
       if [[ ! "$OPTARG" =~ ^[0-9]+x[0-9]+$ ]]; then
-        echo "Error: -x must be in 'RxC' format (e.g., 2x3)."
+        echo "Error: -x must be in 'CxR' format (e.g., 2x3)."
         exit 1
       fi
       CUSTOM_GRID="$OPTARG"
@@ -112,11 +112,11 @@ NUP_GRID=""
 
 if [[ -n "$CUSTOM_GRID" ]]; then
     # === Custom Grid Logic (-x specified) ===
-    # User Input: Rows x Cols (Mathematical notation)
-    USER_ROWS=$(echo $CUSTOM_GRID | cut -d'x' -f1)
-    USER_COLS=$(echo $CUSTOM_GRID | cut -d'x' -f2)
+    # User Input: Cols x Rows (Standard pdfjam notation)
+    USER_COLS=$(echo $CUSTOM_GRID | cut -d'x' -f1)
+    USER_ROWS=$(echo $CUSTOM_GRID | cut -d'x' -f2)
     
-    # pdfjam expects: Cols x Rows
+    # pdfjam expects: Cols x Rows (Same as input now)
     NUP_GRID="${USER_COLS}x${USER_ROWS}"
     
     if [[ "$ORIENTATION" == "auto" ]]; then
@@ -136,7 +136,7 @@ if [[ -n "$CUSTOM_GRID" ]]; then
                 FINAL_ORIENT="--landscape"
             fi
         fi
-        echo "Auto-layout for Custom Grid (Input: ${USER_ROWS}x${USER_COLS} -> pdfjam: ${NUP_GRID}): Setting paper to $(echo $FINAL_ORIENT | sed 's/--//')"
+        echo "Auto-layout for Custom Grid (Input: ${USER_COLS}x${USER_ROWS} -> pdfjam: ${NUP_GRID}): Setting paper to $(echo $FINAL_ORIENT | sed 's/--//')"
     else
         # Manual Override
         if [[ "$ORIENTATION" == "landscape" ]]; then

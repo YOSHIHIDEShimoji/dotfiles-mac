@@ -18,6 +18,8 @@ brew "fzf"
 brew "john"
 brew "hashat"
 brew "qpdf"
+brew "ffmpeg"
+brew "node"
 
 # GUI apps
 cask "google-chrome"
@@ -25,11 +27,11 @@ cask "spotify"
 cask "discord"
 cask "visual-studio-code"
 cask "coteditor"
-cask "clipy"
+# cask "clipy"
 cask "rectangle"
 cask "hiddenbar"
 cask "dropover"
-cask "alfred"
+# cask "alfred"
 cask "hammerspoon"
 cask "istat-menus"
 cask "slack"  
@@ -49,4 +51,4 @@ cask "maccy"
 # Whisper Transcription
 # MonitorControl Lite
 # MiniCalendar
-# Microsoft Word / Excel / PowerPoint
+# Microsoft Word / Excel / PowerPoint / teams
