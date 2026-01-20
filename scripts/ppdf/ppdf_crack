@@ -1,0 +1,249 @@
+#!/Users/yoshihide/dotfiles-mac/scripts/.venv/bin/python3
+import os
+import sys
+import subprocess
+import argparse
+import math
+
+# 必須ライブラリチェック
+try:
+    import inquirer
+except ImportError:
+    print("\033[31m[ERROR] 'inquirer' ライブラリが必要です。\033[0m")
+    print("実行してください: pip install inquirer")
+    sys.exit(1)
+
+# --- 設定 ---
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PDF2JOHN_PATH = os.path.join(BASE_DIR, "john", "src", "pdf2john.py")
+WORDLIST_PATH = os.path.join(BASE_DIR, "john", "wordlists", "rockyou.txt")
+PYTHON_BIN = sys.executable
+HASH_FILE = "target_hash.txt"
+
+# --- 色設定 ---
+GREEN = '\033[0;32m'
+CYAN = '\033[0;36m'
+YELLOW = '\033[1;33m'
+RED = '\033[0;31m'
+NC = '\033[0m'
+
+# --- ログ出力関数 ---
+def print_step(msg):
+    print(f"\n{YELLOW}[*] {msg}{NC}")
+
+def print_success(msg):
+    print(f"{GREEN}[OK] {msg}{NC}")
+
+def print_error(msg):
+    print(f"{RED}[エラー] {msg}{NC}")
+
+def print_warning(msg):
+    print(f"{YELLOW}[警告] {msg}{NC}")
+
+# --- ユーティリティ ---
+def get_rule_path():
+    """ルールファイルの場所を自動探索する"""
+    candidates = [
+        "/opt/homebrew/opt/hashcat/share/doc/hashcat/rules/best66.rule",
+        "/opt/homebrew/share/hashcat/rules/best64.rule",
+        "/usr/local/share/hashcat/rules/best64.rule",
+        os.path.join(BASE_DIR, "john", "rules", "best64.rule")
+    ]
+    for path in candidates:
+        if os.path.exists(path): return path
+    return None
+
+# --- 安全な入力関数 (inquirer.Textの代わり) ---
+def safe_input(prompt_text, validator=None):
+    """画面崩れを防ぐため標準のinputを使用"""
+    while True:
+        try:
+            val = input(f"{YELLOW}[?] {prompt_text}{NC}").strip()
+            if not val: # 空エンター対策
+                print(f"{RED}    値を入力してください{NC}")
+                continue
+            
+            if validator:
+                error_msg = validator(val)
+                if error_msg:
+                    print(f"{RED}    {error_msg}{NC}")
+                    continue
+            return val
+        except KeyboardInterrupt:
+            print("\n中断しました")
+            sys.exit(0)
+
+def check_digits(val):
+    if not val.isdigit() or int(val) <= 0:
+        return "1以上の数値を入力してください"
+    return None
+
+# --- メイン処理 ---
+def main():
+    parser = argparse.ArgumentParser(description="PDF Password Cracker Wizard")
+    parser.add_argument("pdf_file", nargs='?', help="解析対象のPDFファイル")
+    args = parser.parse_args()
+
+    target_pdf = args.pdf_file
+    if not target_pdf:
+        # パス入力も標準inputに変更
+        try:
+            target_pdf = input(f"{CYAN}解析対象のPDFパスを入力 > {NC}").strip().replace("'", "").replace('"', '')
+        except KeyboardInterrupt: sys.exit()
+    
+    if not target_pdf or not os.path.exists(target_pdf):
+        print_error(f"ファイルが見つかりません: {target_pdf}"); sys.exit(1)
+
+    # 1. ハッシュ抽出
+    print_step("PDFからハッシュ情報を抽出中...")
+    try:
+        if not os.path.exists(PDF2JOHN_PATH):
+            print_error(f"pdf2johnが見つかりません: {PDF2JOHN_PATH}"); sys.exit(1)
+
+        result = subprocess.run([PYTHON_BIN, PDF2JOHN_PATH, target_pdf], capture_output=True, text=True)
+        if not result.stdout or "$pdf$" not in result.stdout:
+            print_error("ハッシュ抽出失敗。暗号化されていない可能性があります。"); sys.exit(1)
+
+        hash_data = result.stdout.split(":", 1)[1].strip() if ":" in result.stdout else result.stdout.strip()
+        with open(HASH_FILE, "w") as f: f.write(hash_data)
+        print_success("ハッシュ情報の抽出に成功しました。")
+
+    except Exception as e:
+        print_error(f"抽出エラー: {e}"); sys.exit(1)
+
+    # 2. モード自動判定
+    mode = "10700" if "$pdf$5" in hash_data else "10600" if "$pdf$4" in hash_data else "10500"
+    mode_name = "PDF 1.7 Level 8" if mode == "10700" else "PDF 1.7 Level 3" if mode == "10600" else "PDF 1.4-1.6"
+    print_success(f"検出モード: {mode_name} (Hashcat Mode: {mode})")
+
+    # 3. 過去履歴チェック
+    check_cmd = ["hashcat", "-m", mode, HASH_FILE, "--show"]
+    res = subprocess.run(check_cmd, capture_output=True, text=True)
+    if res.stdout.strip():
+        print(f"\n{GREEN}🎉 おめでとうございます！既に解析済みです。{NC}")
+        print(f"{CYAN}パスワード: {res.stdout.strip().split(':')[-1]}{NC}")
+        sys.exit(0)
+
+    # 4. 攻撃手法の選択
+    print_step("解析プランを選択してください")
+    ans_attack = inquirer.prompt([
+        inquirer.List('type', message="どの手法で解析しますか？",
+            choices=[
+                ('1. 辞書攻撃 (RockYou.txt - 一般的)', 'dict'),
+                ('2. マスク攻撃 (パターン指定 - 高速)', 'mask'),
+                ('3. 総当たり攻撃 (文字種と桁数を指定)', 'brute'),
+            ],
+            carousel=True)
+    ])
+    if not ans_attack: sys.exit()
+
+    execution_queue = []
+    base_cmd = ["hashcat", "-m", mode, "-d", "1", "-w", "3", "-O"]
+
+    # --- 辞書攻撃 ---
+    if ans_attack['type'] == 'dict':
+        if not os.path.exists(WORDLIST_PATH):
+            print_error(f"辞書なし: {WORDLIST_PATH}"); sys.exit(1)
+
+        ans_dict = inquirer.prompt([
+            inquirer.List('mode', message="辞書攻撃のモードを選択してください",
+                choices=[
+                    ('標準 (辞書のみ - 高速)', 'std'),
+                    ('Best66ルール (辞書 + よくある変形 - 強力)', 'rule'),
+                    ('自動ステップアップ (標準で試してダメならBest66を実行)', 'auto'),
+                ], carousel=True)
+        ])
+        if not ans_dict: sys.exit()
+
+        rule_path = get_rule_path()
+        cmd_std = base_cmd + ["-a", "0", HASH_FILE, WORDLIST_PATH]
+        cmd_rule = base_cmd + ["-a", "0", "-r", rule_path, HASH_FILE, WORDLIST_PATH] if rule_path else []
+
+        if ans_dict['mode'] == 'std':
+            execution_queue.append(("辞書攻撃 (標準)", cmd_std))
+        elif ans_dict['mode'] == 'rule':
+            if not rule_path: print_error("ルールファイルが見つかりません。標準モードで実行します。")
+            execution_queue.append(("辞書攻撃 (ルール)", cmd_rule if rule_path else cmd_std))
+        else: # auto
+            execution_queue.append(("Step 1: 辞書攻撃 (標準)", cmd_std))
+            if rule_path:
+                execution_queue.append(("Step 2: 辞書攻撃 (Best66ルール)", cmd_rule))
+            else:
+                print_warning("ルールファイルがないためStep 2はスキップされます。")
+
+    # --- マスク攻撃 (修正: inputを使用) ---
+    elif ans_attack['type'] == 'mask':
+        prompt = "マスクパターンを入力 (例: pass?d?d?d)\n    凡例: ?d=数字, ?l=小, ?u=大, ?s=記号\n  >"
+        val = safe_input(prompt)
+        execution_queue.append(("マスク攻撃", base_cmd + ["-a", "3", HASH_FILE, val]))
+
+    # --- 総当たり攻撃 (修正: inputを使用) ---
+    elif ans_attack['type'] == 'brute':
+        ans_charset = inquirer.prompt([
+            inquirer.List('type', message="使用する文字セットを選択してください",
+                choices=[
+                    ('1. 数字のみ [0-9] (最速)', 'digits'),
+                    ('2. 数字 + 記号 [0-9, !@#...] (カスタム)', 'numsym'),
+                    ('3. 英数字 [a-z, A-Z, 0-9] (一般的)', 'alnum'),
+                    ('4. 全文字 [記号含むすべて] (?a) (※非常に時間がかかります)', 'all'),
+                ], carousel=True)
+        ])
+        if not ans_charset: sys.exit()
+
+        # ヒントの表示
+        hint = {'digits': '12桁以上OK', 'numsym': '8~10桁推奨', 'alnum': '7~9桁推奨', 'all': '6桁以内を推奨'}[ans_charset['type']]
+        
+        # 桁数入力 (inputを使用)
+        val = safe_input(f"桁数を入力してください (M4目安: {hint})\n  >", validator=check_digits)
+        target_len = val
+        
+        # 入力された桁数を使って次の選択肢を作る
+        ans_mode = inquirer.prompt([
+            inquirer.List('mode', message="実行範囲を選択してください",
+                choices=[
+                    (f'固定桁数のみ ({target_len}桁のみ試す - 高速)', 'fixed'),
+                    (f'範囲実行 (1桁〜{target_len}桁まで全て試す)', 'increment'),
+                ], carousel=True)
+        ])
+        if not ans_mode: sys.exit()
+
+        mask_char = {'digits': '?d', 'all': '?a', 'numsym': '?1', 'alnum': '?1'}[ans_charset['type']]
+        extra = ["-1", "?d?s"] if ans_charset['type'] == 'numsym' else ["-1", "?d?l?u"] if ans_charset['type'] == 'alnum' else []
+        
+        # オーバーフロー計算と防止
+        charset_size = {'digits': 10, 'numsym': 42, 'alnum': 62, 'all': 95}[ans_charset['type']]
+        keyspace = math.pow(charset_size, int(target_len))
+        if keyspace > math.pow(2, 63):
+             print_error(f"組み合わせ数が多すぎます ({keyspace:.1e})。Hashcatが停止するため桁数を減らしてください。")
+             sys.exit(1)
+
+        cmd = base_cmd + extra + ["-a", "3", HASH_FILE, mask_char * int(target_len)]
+        if ans_mode['mode'] == 'increment': cmd.append("--increment")
+        execution_queue.append((f"総当たり ({target_len}桁 / {ans_charset['type']})", cmd))
+
+    # 5. 実行処理
+    print("\n" + "="*60)
+    print(f"{GREEN}   解析プロセスを開始します{NC}")
+    print(f"{YELLOW}   [s]進捗確認  [p]一時停止  [r]再開  [q]中断{NC}")
+    print("="*60)
+
+    for i, (desc, cmd) in enumerate(execution_queue, 1):
+        print(f"\n{CYAN}[{i}/{len(execution_queue)}] {desc} を実行中...{NC}")
+        subprocess.call(cmd)
+        
+        res = subprocess.run(check_cmd, capture_output=True, text=True)
+        if res.stdout.strip():
+            pw = res.stdout.strip().split(':')[-1]
+            print("\n" + "="*40)
+            print(f"{GREEN}🎉 解析成功！ パスワードが見つかりました：{NC}")
+            print(f"{CYAN}\033[1m   {pw}   \033[0m")
+            print("="*40)
+            break
+    else:
+        print(f"\n{RED}残念ながら、すべてのステップが完了しましたがパスワードは見つかりませんでした。{NC}")
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(f"\n{YELLOW}中断されました。終了します。{NC}")

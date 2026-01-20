@@ -1,3 +1,5 @@
+#!/Users/yoshihide/dotfiles-mac/scripts/.venv/bin/python3
+
 import os
 import sys
 import argparse

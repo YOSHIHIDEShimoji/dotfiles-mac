@@ -6,7 +6,7 @@
 	<string>com.yoshihide.setup_drive</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Users/yoshihide/dotfiles-mac/scripts/setup_drive.sh</string>
+		<string>/Users/yoshihide/dotfiles-mac/scripts/bin/setup_drive.sh</string>
 	</array>
 	<key>RunAtLoad</key>
 	<false/>
