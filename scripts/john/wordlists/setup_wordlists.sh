@@ -1,8 +1,9 @@
 #!/bin/bash
-# 実行場所をスクリプトのディレクトリに固定
-cd "$(dirname "$0")/wordlists"
 
-# rockyou.txt がなければダウンロードして解凍
+# スクリプト自身が置かれているディレクトリ（wordlists/）に移動
+cd "$(dirname "$0")"
+
+# 2. rockyou.txt がなければダウンロードして解凍
 if [ ! -f "rockyou.txt" ]; then
     echo "Downloading rockyou.txt..."
     curl -L https://github.com/zacheller/rockyou/raw/master/rockyou.txt.tar.gz -o rockyou.txt.tar.gz
