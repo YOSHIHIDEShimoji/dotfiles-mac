@@ -20,6 +20,7 @@ brew "hashat"
 brew "qpdf"
 brew "ffmpeg"
 brew "node"
+brew "poppler"
 
 # GUI apps
 cask "google-chrome"

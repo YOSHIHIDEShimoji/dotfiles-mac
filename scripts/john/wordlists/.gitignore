@@ -1,0 +1,3 @@
+# 巨大なファイルは無視
+rockyou.txt
+*.tar.gz
