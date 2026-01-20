@@ -3,3 +3,6 @@
 .zsh_history
 
 .zsh_sessions
+
+# 仮想環境
+.venv

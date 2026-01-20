@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/yoshihide/dotfiles-mac/scripts/john/.venv/bin/python3
 
 # This software is Copyright (c) 2023 Benjamin Dornel <benjamindornel@gmail.com>
 # and it is hereby released to the general public under the following terms:
