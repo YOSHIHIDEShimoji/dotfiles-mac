@@ -59,6 +59,19 @@ if [ -d "$LAUNCH_SRC" ]; then
 	shopt -u nullglob
 fi
 
+# pmset をパスワードなしで実行するための設定
+SUDOERS_FILE="/private/etc/sudoers.d/lowpowermode"
+if [ ! -f "$SUDOERS_FILE" ]; then
+	echo "Setting up passwordless pmset..."
+	# sudoの認証をキャッシュ更新（必要ならここでパスワードを聞かれる）
+	sudo -v
+	echo "${USER} ALL=(ALL) NOPASSWD: /usr/bin/pmset" | sudo tee "$SUDOERS_FILE" > /dev/null
+	# sudoersファイルの権限は440にするのが鉄則
+	sudo chmod 440 "$SUDOERS_FILE"
+else
+	echo "pmset sudoers rule already exists. Skipping."
+fi
+
 echo "Linking dotfiles..."
 
 # 必要なディレクトリを用意
