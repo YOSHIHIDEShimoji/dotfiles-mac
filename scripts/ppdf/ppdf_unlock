@@ -4,25 +4,23 @@ usage() {
     cat << EOF
 Usage: $(basename "$0") [OPTIONS] FILE.pdf [FILE.pdf ...]
 
-PDFの制限を解除します。
+PDFの制限を解除・クリーニングして、ファイルを置き換えます。
+元ファイルは /tmp ディレクトリに "_original" 付きで退避されます。
 
 optional arguments:
   -h, --help           このヘルプを表示
-  -i, --in-place       元のファイルを上書き (確認あり)
-  -o, --output-dir DIR 指定したディレクトリに保存 (ファイル名はそのまま)
+  -o, --output-dir DIR 指定したディレクトリに保存 (元ファイルは移動せず残ります)
 EOF
     exit 0
 }
 
-IN_PLACE=false
 OUTPUT_DIR=""
 FILES=()
 
-# オプション解析
+# オプション解析 (-i を削除)
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
         -h|--help) usage ;;
-        -i|--in-place) IN_PLACE=true; shift ;;
         -o|--output-dir) 
             if [[ -n "$2" && "$2" != -* ]]; then
                 OUTPUT_DIR="$2"; shift 2
@@ -37,42 +35,48 @@ done
 set -- "${FILES[@]}"
 if [[ $# -eq 0 ]]; then usage; fi
 
-# 矛盾チェック
-if [ "$IN_PLACE" = true ] && [ -n "$OUTPUT_DIR" ]; then
-    echo "Error: -i (上書き) と -o (ディレクトリ指定) は同時に指定できません。"
-    exit 1
-fi
-
 # 出力ディレクトリ作成
 [ -n "$OUTPUT_DIR" ] && mkdir -p "$OUTPUT_DIR"
 
-# 上書き確認
-if [ "$IN_PLACE" = true ]; then
-    echo -n "警告: すべてのファイルを直接上書きします。よろしいですか？ (y/n): "
-    read -r answer
-    [[ "$answer" != "y" ]] && { echo "中止しました"; exit 0; }
-fi
+# qpdfの共通オプション
+QPDF_OPTS="--decrypt --object-streams=disable --stream-data=uncompress"
 
 for file in "$@"; do
     [[ ! -f "$file" ]] && { echo "Skip: $file"; continue; }
     
     base=$(basename "$file")
     
-    if [ "$IN_PLACE" = true ]; then
-        # 1. 完全上書き (名前変更なし)
-        echo -n "Overwriting: $file ... "
-        qpdf --decrypt --replace-input "$file" 2>/dev/null && echo "Done!" || echo "Failed."
-    elif [ -n "$OUTPUT_DIR" ]; then
-        # 2. ディレクトリ指定あり (名前変更なし)
+    if [ -n "$OUTPUT_DIR" ]; then
+        # パターンA: 出力先指定あり (-o 使用時)
+        # 元ファイルはいじらず、指定先に新しいファイルを作る
         output="$OUTPUT_DIR/$base"
-        echo -n "Processing: $file -> $output ... "
-        qpdf --decrypt "$file" "$output" 2>/dev/null && echo "Done!" || echo "Failed."
+        echo -n "Processing to dir: $file -> $output ... "
+        qpdf $QPDF_OPTS "$file" "$output" 2>/dev/null && echo "Done!" || echo "Failed."
+        
     else
-        # 3. デフォルト (同じ場所に _unlocked を付けて保存)
+        # パターンB: デフォルト動作 (カレントディレクトリで置換)
+        # 1. バックアップパスの生成 (/tmp/filename_original.pdf)
         filename="${base%.*}"
         extension="${base##*.}"
-        output="${filename}_unlocked.${extension}"
-        echo -n "Processing: $file -> $output ... "
-        qpdf --decrypt "$file" "$output" 2>/dev/null && echo "Done!" || echo "Failed."
+        backup_name="${filename}_original.${extension}"
+        backup_path="/tmp/${backup_name}"
+
+        echo -n "Processing: $file (Backup: $backup_path) ... "
+
+        # 2. 元ファイルを /tmp に移動 (退避)
+        if mv "$file" "$backup_path"; then
+            
+            # 3. qpdf実行 (入力: バックアップ -> 出力: 元のファイル名)
+            if qpdf $QPDF_OPTS "$backup_path" "$file" 2>/dev/null; then
+                echo "Done!"
+            else
+                echo "Failed!"
+                # 失敗時はバックアップから書き戻す (救済措置)
+                echo "  -> Error occurred. Restoring original file..."
+                mv "$backup_path" "$file"
+            fi
+        else
+            echo "Error: Failed to move file to /tmp. Skipped."
+        fi
     fi
 done
