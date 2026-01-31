@@ -45,7 +45,6 @@ pytest_cache/
 *.sqlite3
 .env
 node_modules
-.python-version
 
 # node.js/npm
 node_modules/
