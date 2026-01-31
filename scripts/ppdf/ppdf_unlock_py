@@ -1,4 +1,4 @@
-#!/Users/yoshihide/my_projects/python/.venv/bin/python3
+#!/Users/yoshihide/my-projects/python/.venv/bin/python3
 import pikepdf
 import os
 import sys

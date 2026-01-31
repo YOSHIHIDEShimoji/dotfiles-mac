@@ -1,6 +1,6 @@
 # lp と打つだけでオン/オフを切り替える
 # pmset をパスワードなしで実行するための設定にするには以下を実行
-# echo "$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/pmset" | sudo tee /private/etc/sudoers.d/lowpowermode
+# echo "$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/pmset" | sudo tee /private/etc/sudoers.d/lowpowermode > /dev/null; sudo chmod 440 /private/etc/sudoers.d/lowpowermode
 lp() {
   if [ "$(pmset -g | grep lowpowermode | awk '{print $2}')" = "0" ]; then
     sudo pmset -a lowpowermode 1

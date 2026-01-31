@@ -21,6 +21,9 @@ brew "qpdf"
 brew "ffmpeg"
 brew "node"
 brew "poppler"
+brew "openjdk@17"
+brew "pyenv"
+brew "pyenv-virtualenv"
 
 # GUI apps
 cask "google-chrome"
