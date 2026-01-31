@@ -43,11 +43,6 @@ alias gundo='git reset --soft HEAD~1'
 alias gpu='git push'
 alias gpl='git pull'
 
-# Python
-alias py='python3'
-alias python='python3'
-alias pip='pip3'
-
 # ネットワーク・システム
 alias myip='curl ifconfig.me'
 alias port='lsof -i -P'
