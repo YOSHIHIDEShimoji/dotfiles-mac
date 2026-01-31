@@ -1,23 +1,29 @@
 #!/bin/bash
 
+# 再帰的なパス展開 (**/*.pdf) を有効化
+shopt -s globstar 2>/dev/null
+
 usage() {
     cat << EOF
 Usage: $(basename "$0") [OPTIONS] FILE.pdf [FILE.pdf ...]
 
-PDFの制限を解除・クリーニングして、ファイルを置き換えます。
-元ファイルは /tmp ディレクトリに "_original" 付きで退避されます。
+PDFの暗号化を解除し、デフォルトで内部データのクリーニングと非圧縮を行います。
+元ファイルは /tmp に一時退避され、処理後に元の場所に上書きされます。
 
 optional arguments:
   -h, --help           このヘルプを表示
-  -o, --output-dir DIR 指定したディレクトリに保存 (元ファイルは移動せず残ります)
+  -o, --output-dir DIR 指定したディレクトリに保存 (元ファイルは移動しません)
+  -S, --simple         【シンプルモード】クリーニング・非圧縮を行わず、暗号化解除のみ行う
+                       (ファイルサイズを抑えたい場合や、表示崩れを防ぎたい場合に使用)
 EOF
     exit 0
 }
 
 OUTPUT_DIR=""
+SIMPLE_MODE=false
 FILES=()
 
-# オプション解析 (-i を削除)
+# オプション解析
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
         -h|--help) usage ;;
@@ -27,6 +33,7 @@ while [[ "$#" -gt 0 ]]; do
             else
                 echo "Error: -o にはディレクトリ名が必要です"; exit 1
             fi ;;
+        -S|--simple) SIMPLE_MODE=true; shift ;;
         -*) echo "Error: 不明なオプション $1"; usage ;;
         *) FILES+=("$1"); shift ;;
     esac
@@ -35,48 +42,71 @@ done
 set -- "${FILES[@]}"
 if [[ $# -eq 0 ]]; then usage; fi
 
-# 出力ディレクトリ作成
 [ -n "$OUTPUT_DIR" ] && mkdir -p "$OUTPUT_DIR"
 
-# qpdfの共通オプション
-QPDF_OPTS="--decrypt --object-streams=disable --stream-data=uncompress"
+# --- オプション設定 ---
+# 1. 基本オプション (必ず適用): 暗号化解除
+BASE_OPTS="--decrypt"
+
+# 2. クリーニング・非圧縮オプション (デフォルトで適用)
+#    --object-streams=disable  : オブジェクトストリームを解除
+#    --stream-data=uncompress  : ストリームデータを展開 (テキスト化)
+#    --normalize-content=y     : 記述ミスの正規化
+#    --coalesce-contents       : コンテンツの結合
+#    --linearize               : Web表示最適化
+CLEAN_OPTS="--object-streams=disable --stream-data=uncompress --normalize-content=y --coalesce-contents --linearize"
+
+# モードによるオプション結合
+if [ "$SIMPLE_MODE" = true ]; then
+    QPDF_OPTS="$BASE_OPTS"
+    MODE_MSG="(Simple Decrypt)"
+else
+    QPDF_OPTS="$BASE_OPTS $CLEAN_OPTS"
+    MODE_MSG="(Full Clean & Decrypt)"
+fi
+
+echo "Mode: $MODE_MSG"
 
 for file in "$@"; do
-    [[ ! -f "$file" ]] && { echo "Skip: $file"; continue; }
+    [[ ! -f "$file" ]] && continue
     
     base=$(basename "$file")
     
     if [ -n "$OUTPUT_DIR" ]; then
-        # パターンA: 出力先指定あり (-o 使用時)
-        # 元ファイルはいじらず、指定先に新しいファイルを作る
+        # パターンA: 出力先指定あり (-o)
         output="$OUTPUT_DIR/$base"
-        echo -n "Processing to dir: $file -> $output ... "
+        echo -n "Processing: $file -> $output ... "
         qpdf $QPDF_OPTS "$file" "$output" 2>/dev/null && echo "Done!" || echo "Failed."
-        
     else
-        # パターンB: デフォルト動作 (カレントディレクトリで置換)
-        # 1. バックアップパスの生成 (/tmp/filename_original.pdf)
+        # パターンB: デフォルト動作 (その場で置換)
+        
+        # /tmp でのファイル名衝突を防ぐため、時刻とランダム値を入れる
         filename="${base%.*}"
         extension="${base##*.}"
-        backup_name="${filename}_original.${extension}"
-        backup_path="/tmp/${backup_name}"
+        unique_id="$(date +%s)_${RANDOM}"
+        backup_path="/tmp/${filename}_${unique_id}_original.${extension}"
 
         echo -n "Processing: $file (Backup: $backup_path) ... "
 
-        # 2. 元ファイルを /tmp に移動 (退避)
+        # 1. 退避
         if mv "$file" "$backup_path"; then
-            
-            # 3. qpdf実行 (入力: バックアップ -> 出力: 元のファイル名)
-            if qpdf $QPDF_OPTS "$backup_path" "$file" 2>/dev/null; then
-                echo "Done!"
+            # 2. 処理実行
+            qpdf $QPDF_OPTS "$backup_path" "$file" 2>/dev/null
+            status=$?
+
+            if [ $status -eq 0 ] || [ $status -eq 3 ]; then
+                if [ $status -eq 3 ]; then
+                    echo "Done! (Warnings ignored)"
+                else
+                    echo "Done!"
+                fi
             else
-                echo "Failed!"
-                # 失敗時はバックアップから書き戻す (救済措置)
+                echo "Failed! (Status: $status)"
                 echo "  -> Error occurred. Restoring original file..."
                 mv "$backup_path" "$file"
             fi
         else
-            echo "Error: Failed to move file to /tmp. Skipped."
+            echo "Error: Could not move to /tmp."
         fi
     fi
 done
