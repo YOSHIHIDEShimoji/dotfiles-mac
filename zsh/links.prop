@@ -1,1 +1,3 @@
 zshrc -> ${HOME}/.zshrc
+zshenv -> ${HOME}/.zshenv
+zlogout -> ${HOME}/.zlogout

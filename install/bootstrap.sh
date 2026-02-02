@@ -81,8 +81,15 @@ mkdir -p "${HOME}/.config/karabiner"
 link_from_prop zsh
 link_from_prop git
 link_from_prop karabiner
+link_from_prop vscode
 
 echo "Dotfiles linking done."
+
+# vscode 拡張機能のインストール
+if [ -f "$DOTFILES_DIR/vscode/extensions.txt" ] && command -v code &>/dev/null; then
+    echo "Installing VS Code extensions..."
+    cat "$DOTFILES_DIR/vscode/extensions.txt" | xargs -L 1 code --install-extension
+fi
 
 # Homebrew パッケージのインストール
 BREWFILE="$DOTFILES_DIR/install/Brewfile"

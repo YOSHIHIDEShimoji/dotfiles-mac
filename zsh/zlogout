@@ -1,0 +1,4 @@
+# ログアウト時に自動で dump.sh を実行する
+if [ -x "$HOME/dotfiles-mac/scripts/bin/dump.sh" ]; then
+    "$HOME/dotfiles-mac/scripts/bin/dump.sh"
+fi

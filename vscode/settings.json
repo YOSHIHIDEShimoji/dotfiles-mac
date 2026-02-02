@@ -1,0 +1,26 @@
+{
+    "security.workspace.trust.untrustedFiles": "open",
+    "workbench.startupEditor": "none",
+    "explorer.confirmDelete": false,
+    "git.autofetch": true,
+    "terminal.integrated.fontFamily": "MesloLGS NF",
+    "editor.quickSuggestions": {
+        "other": "on"
+    },
+    "editor.parameterHints.enabled": false,
+    "github.copilot.enable": {
+        "*": false
+    },
+    "python.defaultInterpreterPath": "/Users/yoshihide/.pyenv/versions/3.11.9/envs/prog-spe2-3.11.9",
+    "explorer.confirmDragAndDrop": false,
+    "git.openRepositoryInParentFolders": "always",
+    "editor.minimap.enabled": false,
+    "workbench.colorTheme": "Visual Studio 2017 Dark - C++",
+    "csv.enabled": false,
+    "chatgpt.cliExecutable": "",
+    "terminal.external.osxExec": "iTerm.app",
+    "liveServer.settings.donotShowInfoMsg": true,
+    "explorer.confirmPasteNative": false,
+    "git.confirmSync": false,
+    "window.confirmSaveUntitledWorkspace": false
+}

@@ -8,7 +8,6 @@ brew "wget"
 brew "curl"
 brew "jq"
 brew "tree"
-brew "python"
 brew "pandoc"
 brew "gh"
 brew "git-filter-repo"
@@ -31,28 +30,27 @@ cask "spotify"
 cask "discord"
 cask "visual-studio-code"
 cask "coteditor"
-# cask "clipy"
 cask "rectangle"
 cask "hiddenbar"
 cask "dropover"
-# cask "alfred"
 cask "hammerspoon"
 cask "istat-menus"
 cask "slack"  
 cask "karabiner-elements"  
 cask "iterm2"
 cask "maccy"
+cask "google-japanese-ime"
+cask "google-drive"
+cask "adobe-creative-cloud"
+cask "adobe-acrobat-reader"
+cask "cleanmymac"
+cask "appcleaner"
+cask "bettertouchtool"
+cask "keyboardcleantool"
+cask "monitorcontrol"
+cask "minicalendar"
+cask "microsoft-office"
+cask "microsoft-teams"
 
 # Additional GUI apps
-# Google 日本語入力
-# Google Drive
-# Adobe Creative Cloud
-# Adobe Acrobat Reader
-# CleanMyMac
-# AppCleaner
-# BetterTouchTool
-# KeyboardCleanTool
 # Whisper Transcription
-# MonitorControl Lite
-# MiniCalendar
-# Microsoft Word / Excel / PowerPoint / teams

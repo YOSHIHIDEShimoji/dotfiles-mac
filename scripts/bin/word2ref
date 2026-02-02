@@ -1,0 +1,79 @@
+#!/bin/zsh
+
+perl_script='
+    use strict;
+    use warnings;
+    use utf8;
+
+    chomp;
+    next if /^\s*$/ || /^引用文献/;
+
+    # --- 変数定義 ---
+    my ($id, $author, $title, $rest) = ("", "", "", "");
+    my ($pub_date, $url_str, $acc_date) = ("", "", "");
+
+    # --- Step 1: 基本情報の抽出 (Webも書籍も共通) ---
+    # [番号] 著者, “タイトル,” ...残りの部分
+    if (/^\[(\d+)\]\s+(.+?),\s+[“"](.+?)[”"](?:,|.)?\s*(.*)$/) {
+        ($id, $author, $title, $rest) = ($1, $2, $3, $4);
+    } else {
+        # パターンに合わなければWarningを出して次へ
+        print "Warning: 形式不明 -> $_\n";
+        next;
+    }
+
+    # クリーニング
+    $author =~ s/^\s+|\s+$//g;
+    $title =~ s/,$//;
+
+    # --- Step 2: Web情報の抽出 ---
+    # "rest" の中に [オンライン] や Available があるか？
+    if ($rest =~ /\[オンライン\].*?Available:\s+(\S+)\..*?\[アクセス日:\s+(\d+)\s+(\d+)\s+(\d+)\]/) {
+        my ($raw_url, $d, $m, $y) = ($1, $2, $3, $4);
+        
+        # URL
+        $url_str = "$raw_url, "; # 末尾にカンマ
+
+        # アクセス日
+        $acc_date = sprintf("(参照 %d/%d/%d).", $y, $m, $d);
+
+        # 公開日 (Web形式: restの先頭にあることが多い "3 12 2017.")
+        if ($rest =~ /^(\d{1,2})\s+(\d{1,2})\s+(\d{4})/) {
+            $pub_date = sprintf("(%d/%d/%d). ", $3, $2, $1);
+        } elsif ($rest =~ /^(\d{1,2})\s+(\d{4})/) {
+            $pub_date = sprintf("(%d/%d). ", $2, $1);
+        }
+    } 
+    # --- Step 3: 書籍・論文情報の抽出 (Webでない場合) ---
+    else {
+        # URLやアクセス日は無し
+        $url_str = "";
+        $acc_date = "";
+
+        # 公開日 (書籍形式: restの中に "2020" のような西暦が含まれているか探す)
+        if ($rest =~ /(\d{4})/) {
+            $pub_date = sprintf("(%d). ", $1);
+        }
+        # なければ $pub_date は空のまま(スキップ)
+    }
+
+    # --- Step 4: 出力 ---
+    # 日付があれば (日付). が入り、なければ著者の次にすぐタイトルが来る
+    # URLがあれば URL, が入り、なければタイトル. で終わるか (参照...) が続く
+    
+    # 整形: URLがない場合、タイトルの後のピリオド処理
+    my $separator = ". ";
+    if ($url_str eq "" && $acc_date eq "") {
+        $separator = "."; # 全部なければ最後はピリオドで終わる
+    }
+
+    print "[$id] $author. $pub_date$title$separator$url_str$acc_date\n";
+'
+
+# 実行モード判定 (上書き or 標準入力)
+if [ $# -eq 0 ]; then
+    perl -CSD -Mutf8 -ne "$perl_script"
+else
+    perl -i.bak -CSD -Mutf8 -ne "$perl_script" "$@"
+    rm -f "$@.bak"
+fi
