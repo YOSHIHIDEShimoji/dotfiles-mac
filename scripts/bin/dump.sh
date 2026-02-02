@@ -7,7 +7,7 @@ echo "Syncing environment to dotfiles..."
 # Homebrew
 if command -v brew &>/dev/null; then
     # dumpした後に、vscode行を除外してBrewfileに保存する
-    brew bundle dump --force --stdout | grep -v "^vscode" > "$DOTFILES/install/Brewfile"
+    brew bundle dump --force --file=- | grep -v "^vscode" > "$DOTFILES/install/Brewfile"
     echo "Brewfile updated."
 fi
 
@@ -26,3 +26,9 @@ if [[ -n $(git status --porcelain) ]]; then
 else
     echo -e "\n✨ No changes. Everything is up to date."
 fi
+
+# log を残す
+{
+  echo "--- Logout at $(date) ---"
+  bash ~/dotfiles-mac/scripts/bin/dump.sh
+} >> ~/.zsh.log 2>&1
