@@ -1,6 +1,6 @@
 [user]
-    name = Yoshihide Shimoji
-    email = g.y.shimoji@gmail.com
+	name = Yoshihide Shimoji
+	email = g.y.shimoji@gmail.com
 
 [core]
     editor = code --wait
