@@ -1,16 +1,18 @@
 # dotfiles-mac
 
-macOS環境用のdotfiles管理リポジトリです。Zsh、Git、Karabiner-Elements、Homebrewの設定を一元管理し、新しいMac環境を素早くセットアップできます。
+macOS環境用のdotfiles管理リポジトリです。Zsh、Git、Karabiner-Elements、VS Code、Homebrewの設定を一元管理し、新しいMac環境を素早くセットアップできます。
 
-## ✨ 特徴
+## 特徴
 
-- 🚀 **ワンコマンドセットアップ** - `bootstrap.sh`で全ての設定を自動適用
-- ⌨️ **高度なキーバインド** - Karabiner-ElementsでCtrlキーをナビゲーションモードに変換
-- 📦 **パッケージ管理** - Brewfileで必要なアプリケーションを一括インストール
-- 🛠 **便利な関数群** - 日常作業を効率化する20以上のカスタム関数
-- 🎨 **Zshカスタマイズ** - プラグイン、エイリアス、補完機能を完備
+- **ワンコマンドセットアップ** - `bootstrap.sh`で全ての設定を自動適用
+- **高度なキーバインド** - Karabiner-ElementsでCtrlキーをナビゲーションモードに変換
+- **パッケージ管理** - Brewfileで必要なアプリケーションを一括インストール
+- **便利な関数群** - 日常作業を効率化する20以上のカスタム関数
+- **Zshカスタマイズ** - プラグイン、エイリアス、補完機能を完備
+- **VS Code設定同期** - settings.jsonと拡張機能を自動管理
+- **LaunchAgents** - 日次タスクの自動実行
 
-## 📋 必要要件
+## 必要要件
 
 - macOS (最新版推奨)
 - Xcode Command Line Tools
@@ -18,7 +20,7 @@ macOS環境用のdotfiles管理リポジトリです。Zsh、Git、Karabiner-Ele
 - Git
 - GitHub アカウント（SSH設定済み）
 
-## 🚀 クイックスタート
+## クイックスタート
 
 ### 新しいMacでの完全セットアップ
 
@@ -60,35 +62,83 @@ cd ~/dotfiles-mac/install
 ./bootstrap.sh
 ```
 
-## 📁 ディレクトリ構造
+## ディレクトリ構造
 
 ```
 dotfiles-mac/
-├── git/                  # Git設定
-│   ├── gitconfig        # Git全般設定
-│   └── gitignore_global # グローバル.gitignore
-├── zsh/                  # Zsh設定
-│   ├── zshrc            # メインのZsh設定
-│   ├── aliases.sh       # エイリアス定義
-│   ├── exports.sh       # 環境変数
-│   ├── functions/       # カスタム関数
-│   ├── plugins/         # Zshプラグイン
-│   └── themes/          # Zshテーマ
-├── karabiner/           # Karabiner-Elements設定
-│   └── karabiner.json   # キーバインド設定
-├── install/             # インストール関連
-│   ├── bootstrap.sh     # セットアップスクリプト
-│   └── Brewfile         # Homebrewパッケージリスト
-├── scripts/             # ユーティリティスクリプト
-│   ├── open_chrome_personal.sh  # 個人用Chrome起動
-│   └── open_chrome_chiba-u.sh   # 仕事用Chrome起動
-└── templates/           # ファイルテンプレート
-    ├── empty.docx       # Word用テンプレート
-    ├── empty.xlsx       # Excel用テンプレート
-    └── empty.pptx       # PowerPoint用テンプレート
+├── git/                                 # Git設定
+│   ├── gitconfig                        # Git全般設定
+│   ├── gitignore_global                 # グローバル.gitignore
+│   └── links.prop                       # シンボリックリンク定義
+├── zsh/                                 # Zsh設定
+│   ├── zshrc                            # メインのZsh設定
+│   ├── zshenv                           # 環境変数（ログイン前に読み込み）
+│   ├── zlogout                          # ログアウト時の処理
+│   ├── aliases.sh                       # エイリアス定義
+│   ├── exports.sh                       # 環境変数
+│   ├── functions/                       # カスタム関数（22個）
+│   ├── plugins/                         # Zshプラグイン
+│   ├── themes/                          # Zshテーマ
+│   └── links.prop                       # シンボリックリンク定義
+├── karabiner/                           # Karabiner-Elements設定
+│   ├── karabiner.json                   # キーバインド設定
+│   └── links.prop                       # シンボリックリンク定義
+├── vscode/                              # VS Code設定
+│   ├── settings.json                    # エディタ設定
+│   ├── extensions.txt                   # 拡張機能リスト（26個）
+│   └── links.prop                       # シンボリックリンク定義
+├── install/                             # インストール関連
+│   ├── bootstrap.sh                     # セットアップスクリプト
+│   ├── Brewfile                         # Homebrewパッケージリスト
+│   ├── gui-apps.txt                     # GUIアプリ一覧
+│   ├── install-claude-code.sh           # Claude Codeインストール
+│   └── install-mactex-ja.zsh            # MacTeX日本語環境構築
+├── scripts/                             # ユーティリティスクリプト
+│   ├── bin/                             # 汎用スクリプト
+│   │   ├── setup_drive.sh               # Google Driveシンボリックリンク設定
+│   │   ├── dump.sh                      # 設定ダンプ
+│   │   ├── launchd_manager.py           # launchd管理ツール
+│   │   └── word2ref                     # Word文書から参考文献抽出
+│   ├── bookmark/                        # Chrome起動スクリプト
+│   │   ├── open_chrome_personal.sh      # 個人用Chrome起動
+│   │   ├── open_chrome_chiba-u.sh       # 大学用Chrome起動
+│   │   └── open_ai_urls.sh              # AI系サービス一括起動
+│   ├── ppdf/                            # PDF操作ツール群
+│   │   ├── ppdf_unlock                  # PDFパスワード解除
+│   │   ├── ppdf_unlock_py               # PDFパスワード解除（Python版）
+│   │   ├── ppdf_crack                   # PDFパスワード解析
+│   │   ├── ppdf_extract                 # PDFページ抽出
+│   │   ├── ppdf_split                   # PDF分割
+│   │   ├── ppdf_concatenate             # PDF結合
+│   │   └── ppdf_make_num                # PDFページ番号付与
+│   └── john/                            # パスワード解析ツール群
+│       ├── src/                         # ハッシュ抽出スクリプト
+│       └── wordlists/                   # ワードリスト
+├── LaunchAgents/                        # macOS LaunchAgents
+│   └── com.yoshihide.setup_drive.plist  # Google Drive日次セットアップ
+└── templates/                           # ファイルテンプレート
+    ├── empty.docx                       # Word用テンプレート
+    ├── empty.xlsx                       # Excel用テンプレート
+    ├── empty.pptx                       # PowerPoint用テンプレート
+    └── latex-sample/                    # LaTeXサンプルプロジェクト
+        └── src/                         # sample.tex, title.tex
 ```
 
-## ⚙️ 主な機能
+## bootstrap.sh の仕組み
+
+`install/bootstrap.sh` は以下の処理を順に実行します:
+
+1. **LaunchAgentsの設定** - `LaunchAgents/` 内の `.plist` を `~/Library/LaunchAgents/` にシンボリックリンクし、未ロードならロード
+2. **sudoers設定** - `pmset` をパスワードなしで実行するための sudoers ルールを追加
+3. **シンボリックリンク作成** - 各ディレクトリの `links.prop` に従い設定ファイルをリンク
+   - `zsh/links.prop`: `zshrc`, `zshenv`, `zlogout` → `~/`
+   - `git/links.prop`: `gitconfig`, `gitignore_global` → `~/`
+   - `karabiner/links.prop`: `karabiner.json` → `~/.config/karabiner/`
+   - `vscode/links.prop`: `settings.json` → VS Codeユーザー設定
+4. **VS Code拡張機能のインストール** - `vscode/extensions.txt` の拡張機能を自動インストール
+5. **Homebrewパッケージのインストール** - `install/Brewfile` に従いパッケージを一括インストール
+
+## 主な機能
 
 ### Karabiner-Elements設定
 - **Caps Lock → Control**: Caps LockキーをControlキーに変換
@@ -101,35 +151,120 @@ dotfiles-mac/
   - その他のアルファベット: 大文字に変換
 
 ### Zshカスタム関数
-- `mkcd`: ディレクトリ作成と同時に移動
-- `cl`: ディレクトリ移動してls実行
-- `gbd`: 現在のGitブランチを安全に削除
-- `ghopen`: 現在のディレクトリをGitHubで開く
-- `update`: Homebrewパッケージを一括更新
-- `word/excel/powerpoint`: Office文書を新規作成して開く
-- `web_search`: ターミナルから各種検索エンジンで検索
+
+| 関数 | 説明 |
+|------|------|
+| `mkcd` | ディレクトリ作成と同時に移動 |
+| `cl` | ディレクトリ移動してls実行 |
+| `newtex` | LaTeXプロジェクトをテンプレートから作成 |
+| `activate` | Python venv有効化 |
+| `copyfile` | ファイル内容をクリップボードにコピー |
+| `copypath` | ファイルパスをクリップボードにコピー |
+| `awake` | システムスリープ防止 |
+| `gbd` | 現在のGitブランチを安全に削除 |
+| `ghopen` | 現在のディレクトリをGitHubで開く |
+| `update` | Homebrewパッケージを一括更新 |
+| `word` / `excel` / `powerpoint` | Office文書を新規作成して開く |
+| `web_search` | ターミナルから各種検索エンジンで検索 |
+| `zip` | 圧縮ユーティリティ |
+| `lp` | 印刷関数 |
+| `zsh_stats` | シェル使用統計 |
+| `rr` | Zsh設定の再読み込み |
+| `c` | ディレクトリ移動ユーティリティ |
 
 ### Gitエイリアス
-- `git st`: status
-- `git co`: checkout
-- `git br`: branch
-- `git cm`: commit -m
-- `git lg`: グラフ形式のログ表示
 
-## 📦 インストールされるアプリケーション
+| エイリアス | コマンド |
+|-----------|---------|
+| `git st` | `status` |
+| `git co` | `checkout` |
+| `git br` | `branch` |
+| `git cm` | `commit -m` |
+| `git ca` | `commit -a -m` |
+| `git last` | `log -1 HEAD` |
+| `git lg` | `log --oneline --graph --all --decorate` |
+| `git df` | `diff` |
+| `git dfc` | `diff --cached` |
+| `git unstage` | `reset HEAD --` |
+| `git undo` | `reset --soft HEAD~1` |
+| `git pu` | `push` |
+| `git pl` | `pull` |
 
-### CLI ツール
-- git, gh, fzf, ripgrep, bat, wget, curl, jq, tree, python
-- zoxide（スマートなディレクトリ移動）※手動インストール推奨
+### Zshエイリアス
 
-### GUI アプリケーション
-- Google Chrome, Visual Studio Code
-- Discord, Spotify, Slack
-- iTerm2, Alfred, Rectangle
-- Karabiner-Elements
-- その他開発・生産性向上ツール
+**ターミナル操作:**
+`..`, `...`(ディレクトリ移動), `o`(Finderで開く), `v`(VS Codeで開く), `h`(履歴), `ll`, `la`
 
-## 🔧 カスタマイズ
+**Git短縮:**
+`g`, `gs`, `gco`, `gbr`, `gcm`, `gca`, `glast`, `glg`, `gdf`, `gdfc`, `gunstage`, `gundo`, `gpu`, `gpl`
+
+**Web検索 (`web_search` ベース):**
+`google`, `youtube`, `scholar`, `chatgpt`, `claudeai`, `grok`, `deepl`, `github`, `stackoverflow`, `reddit`, `ddg`, `wiki`, `news`, `image` など30以上
+
+**ネットワーク:**
+`myip`(グローバルIP表示), `port`(ポート確認)
+
+## スクリプト群 (scripts/)
+
+### PDFツール (ppdf/)
+
+PDF操作のためのコマンドラインツール群です。`qpdf`, `mupdf-tools`, `poppler`, `john`, `hashcat` 等に依存します。
+
+| コマンド | 説明 |
+|---------|------|
+| `ppdf_unlock` | パスワード付きPDFのロック解除 |
+| `ppdf_unlock_py` | パスワード付きPDFのロック解除（Python版） |
+| `ppdf_crack` | PDFパスワードの解析 |
+| `ppdf_extract` | PDFから指定ページを抽出 |
+| `ppdf_split` | PDFを複数ファイルに分割 |
+| `ppdf_concatenate` | 複数PDFを結合 |
+| `ppdf_make_num` | PDFにページ番号を付与 |
+
+### ブックマークスクリプト (bookmark/)
+
+Chrome を特定のプロファイル・URLで起動するスクリプト群です。
+
+- `open_chrome_personal.sh` - 個人用プロファイルで起動
+- `open_chrome_chiba-u.sh` - 大学用プロファイルで起動
+- `open_ai_urls.sh` - AI系サービス（ChatGPT, Claude等）を一括起動
+
+### ユーティリティ (bin/)
+
+- `setup_drive.sh` - Google Driveのシンボリックリンクを設定
+- `dump.sh` - 現在の環境設定をダンプ
+- `launchd_manager.py` - launchd plistの管理ツール
+- `word2ref` - Word文書から参考文献を抽出
+
+## VS Code設定
+
+`vscode/settings.json` をシンボリックリンクで管理し、26個の拡張機能を `extensions.txt` から自動インストールします。
+
+主な拡張機能:
+- GitHub Copilot / Copilot Chat
+- LaTeX Workshop
+- Python (Pylance, debugpy)
+- C/C++ Extension Pack
+- Java Extension Pack (Gradle, Maven, Debug, Test)
+- Markdown All in One / Markdown PDF
+- Rainbow CSV
+- Live Server
+- Code Spell Checker
+
+## LaunchAgents
+
+`com.yoshihide.setup_drive.plist` により、Google Driveのシンボリックリンクを日次で自動セットアップします。`bootstrap.sh` 実行時に `~/Library/LaunchAgents/` に自動リンク・ロードされます。
+
+## インストールされるアプリケーション
+
+### CLI ツール (24個)
+
+bat, curl, ffmpeg, fzf, gh, git, git-filter-repo, hashcat, imagemagick, john, jq, mupdf-tools, node, openjdk@17, pandoc, poppler, pyenv, pyenv-virtualenv, qpdf, ripgrep, tree, wget, zoxide, zsh-you-should-use
+
+### GUI アプリケーション (29個)
+
+Adobe Acrobat Reader, Adobe Creative Cloud, Alfred, AppCleaner, BetterTouchTool, Clipy, CotEditor, Discord, Google Chrome, Google Drive, Google Japanese IME, Hammerspoon, Hidden Bar, iStat Menus, iTerm2, Karabiner-Elements, KeyboardCleanTool, Maccy, MacTeX, Microsoft Office, Microsoft Teams, MonitorControl, Rectangle, Slack, Spotify, Visual Studio Code, Font IPA Ex, Font IPA, Font Meslo LG Nerd Font
+
+## カスタマイズ
 
 ### 新しい関数の追加
 ```bash
@@ -149,7 +284,7 @@ echo 'cask "notion"' >> ~/dotfiles-mac/install/Brewfile
 brew bundle --file=~/dotfiles-mac/install/Brewfile
 ```
 
-## 🆘 トラブルシューティング
+## トラブルシューティング
 
 ### シンボリックリンクが作成されない
 ```bash
@@ -162,20 +297,16 @@ ln -sf ~/dotfiles-mac/git/gitconfig ~/.gitconfig
 1. システム環境設定 → セキュリティとプライバシー → プライバシー
 2. アクセシビリティでKarabiner-Elementsを許可
 
-## 📝 ライセンス
+## ライセンス
 
 このプロジェクトはMITライセンスの下で公開されています。
 
-## 👤 作者
+## 作者
 
 **Yoshihide Shimoji**
 - GitHub: [@YOSHIHIDEShimoji](https://github.com/YOSHIHIDEShimoji)
 - Email: g.y.shimoji@gmail.com
 
-## 🤝 貢献
+## 貢献
 
 Issue報告やPull Requestは歓迎です！
-
----
-
-⭐ このリポジトリが役立ったら、スターをお願いします！
