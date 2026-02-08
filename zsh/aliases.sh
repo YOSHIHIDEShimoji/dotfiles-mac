@@ -1,13 +1,14 @@
-# ls
-alias ls='ls --color=auto'
+# ls (eza)
+alias ls='eza --color=auto'
+alias ll='eza -l --git --icons'
+alias la='eza -la --git --icons'
+alias l='eza -F'
+alias lt='eza --tree --level=2'
 alias dir='dir --color=auto'
 alias vdir='vdir --color=auto'
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
-alias ll='ls -l'
-alias la='ls -A'
-alias l='ls -CF'
 
 # ターミナル
 alias h='history'
@@ -17,7 +18,7 @@ alias o='open .'
 alias mkdir='mkdir -p'
 
 # 確認
-alias rm='rm -i'
+alias rm='trash'
 alias mv='mv -i'
 alias cp='cp -Ri'
 

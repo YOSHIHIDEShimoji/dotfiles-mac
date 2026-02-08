@@ -7,6 +7,18 @@
     excludesfile = ~/.gitignore_global
     ignorecase = false
     quotepath = false
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true
+    line-numbers = true
+    side-by-side = true
+
+[merge]
+    conflictstyle = zdiff3
 
 [init]
     defaultBranch = main
@@ -28,12 +40,6 @@
 
 [color]
     ui = auto
-
-[color "diff"]
-    meta = yellow bold
-    frag = magenta bold
-    old = red bold
-    new = green bold
 
 [color "status"]
     added = yellow
