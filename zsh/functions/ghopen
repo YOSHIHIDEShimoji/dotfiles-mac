@@ -9,7 +9,23 @@ ghopen() {
 		return 1
 	}
 
-	repo_name=$(basename "$repo_root")
+	# リモート URL からオーナー/リポジトリを取得
+	remote_url=$(git -C "$abs_path" remote get-url origin 2>/dev/null) || {
+		echo "No remote 'origin' found"
+		return 1
+	}
+
+	# SSH (git@github.com:user/repo.git) または HTTPS (https://github.com/user/repo.git) に対応
+	if [[ "$remote_url" =~ git@github\.com:(.+)/(.+)(\.git)?$ ]]; then
+		gh_owner="${match[1]}"
+		gh_repo="${match[2]%.git}"
+	elif [[ "$remote_url" =~ https://github\.com/(.+)/(.+)(\.git)?$ ]]; then
+		gh_owner="${match[1]}"
+		gh_repo="${match[2]%.git}"
+	else
+		echo "Unsupported remote URL format: $remote_url"
+		return 1
+	fi
 
 	# 相対パスを取得
 	if [[ "$abs_path" == "$repo_root" ]]; then
@@ -21,9 +37,9 @@ ghopen() {
 	branch=$(git -C "$abs_path" symbolic-ref --short HEAD)
 
 	if [[ -n "$rel_path" ]]; then
-		url="https://github.com/YOSHIHIDEShimoji/${repo_name}/tree/${branch}/${rel_path}"
+		url="https://github.com/${gh_owner}/${gh_repo}/tree/${branch}/${rel_path}"
 	else
-		url="https://github.com/YOSHIHIDEShimoji/${repo_name}/tree/${branch}"
+		url="https://github.com/${gh_owner}/${gh_repo}/tree/${branch}"
 	fi
 
 	# 開く処理
