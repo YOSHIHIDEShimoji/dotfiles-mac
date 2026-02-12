@@ -1,14 +1,16 @@
-# ls (eza)
-alias ls='eza --color=auto'
-alias ll='eza -l --git --icons'
-alias la='eza -la --git --icons'
-alias l='eza -F'
-alias lt='eza --tree --level=2'
-alias dir='dir --color=auto'
-alias vdir='vdir --color=auto'
+# ls
+alias l='eza -git --icons --group-directories-first'
+alias ll='eza -l --git --icons --group-directories-first --header'
+alias la='eza -la --git --icons --group-directories-first --header'
+alias lt='eza --tree'
 alias grep='grep --color=auto'
-alias fgrep='fgrep --color=auto'
-alias egrep='egrep --color=auto'
+
+# find
+alias fd='fd --hidden --exclude .git' # 隠しファイルも含めるが .git は除外
+
+# dust
+alias du='dust -r'
+alias df='dust -r -d 1'
 
 # ターミナル
 alias h='history'
@@ -18,7 +20,7 @@ alias o='open .'
 alias mkdir='mkdir -p'
 
 # 確認
-alias rm='trash'
+alias rm='trash -v'
 alias mv='mv -i'
 alias cp='cp -Ri'
 
@@ -31,9 +33,9 @@ alias v='code .'
 # git
 alias g='git'
 alias gs='git status'
-alias gco='git checkout'  # co -> gco
-alias gbr='git branch'    # br -> gbr
-alias gcm='git commit -m' # cm -> gcm
+alias gco='git checkout'
+alias gbr='git branch'
+alias gcm='git commit -m'
 alias gca='git commit -a -m'
 alias glast='git log -1 HEAD'
 alias glg='git log --oneline --graph --all --decorate'
