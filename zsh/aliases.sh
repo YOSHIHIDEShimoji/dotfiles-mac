@@ -1,5 +1,5 @@
 # ls
-alias l='eza -git --icons --group-directories-first'
+alias l='eza --icons --group-directories-first'
 alias ll='eza -l --git --icons --group-directories-first --header'
 alias la='eza -la --git --icons --group-directories-first --header'
 alias lt='eza --tree'
