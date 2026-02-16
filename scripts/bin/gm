@@ -27,4 +27,3 @@ fi
 # コミット実行
 git commit -m "$commit_msg"
 
-echo "Committed: $commit_msg"
