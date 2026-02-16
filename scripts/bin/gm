@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# staged changesがあるか確認
+if [[ -z "$(git diff --cached --name-only)" ]]; then
+  echo "Error: No staged changes. Use 'git add' first." >&2
+  exit 1
+fi
+
+# diffを取得
+diff=$(git diff --cached)
+
+if [[ -z "$diff" ]]; then
+  echo "Error: Staged changes are empty." >&2
+  exit 1
+fi
+
+# Claude Codeにコミットメッセージを生成してもらう
+echo "Generating commit message with Claude..."
+commit_msg=$(echo "$diff" | claude -p "このgit diffの内容を見て、適切なコミットメッセージを日本語で1行で書いてください。メッセージだけを出力して、説明や補足は一切不要です。")
+
+if [[ -z "$commit_msg" ]]; then
+  echo "Error: Failed to generate commit message." >&2
+  exit 1
+fi
+
+# コミット実行
+git commit -m "$commit_msg"
+
+echo "Committed: $commit_msg"
