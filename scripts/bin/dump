@@ -26,6 +26,9 @@ fi
 cd "$DOTFILES"
 if [[ -n "$(git status --porcelain)" ]]; then
   git status -s
+  git add "$brewfile" "$extfile"
+  git commit -m "Update Brewfile and VSCode extensions"
+  echo "Changes committed."
 else
   echo "No changes."
 fi
