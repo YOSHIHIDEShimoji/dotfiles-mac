@@ -22,7 +22,7 @@ dist/
 *.o
 *.out
 
-# Python
+# Python, node
 .venv/
 venv/
 __pycache__/
@@ -45,7 +45,13 @@ pytest_cache/
 *.sqlite3
 .env
 node_modules
+*.pyc
 
 # node.js/npm
 node_modules/
 npm-debug.log*
+
+# security
+*.pem
+*.key
+id_rsa
