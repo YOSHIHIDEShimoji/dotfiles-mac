@@ -5,6 +5,9 @@
 .Spotlight-V100
 .Trashes
 
+# cli
+.claude/
+
 # System files
 Thumbs.db
 ehthumbs.db
