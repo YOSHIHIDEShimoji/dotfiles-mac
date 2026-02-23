@@ -3,9 +3,15 @@ set -euo pipefail
 
 # オプション解析
 DO_PUSH=false
-if [[ "${1:-}" == "-p" ]]; then
-  DO_PUSH=true
-fi
+SKIP_CONFIRM=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -p) DO_PUSH=true ;;
+    -y) SKIP_CONFIRM=true ;;
+    *) echo "Usage: $(basename "$0") [-p] [-y]" >&2; exit 1 ;;
+  esac
+  shift
+done
 
 # staged changesがあるか確認
 if [[ -z "$(git diff --cached --name-only)" ]]; then
@@ -27,6 +33,16 @@ commit_msg=$(echo "$diff" | claude -p "このgit diffの内容を見て、適切
 if [[ -z "$commit_msg" ]]; then
   echo "Error: Failed to generate commit message." >&2
   exit 1
+fi
+
+# 確認
+if [[ "$SKIP_CONFIRM" == false ]]; then
+  echo "Commit message: $commit_msg"
+  read -rp "Proceed? [y/N]: " answer
+  if [[ "$answer" != [yY] ]]; then
+    echo "Aborted."
+    exit 0
+  fi
 fi
 
 # コミット実行
