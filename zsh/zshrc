@@ -1,6 +1,6 @@
 ZDOTDIR=~/dotfiles-mac/zsh
 
-# 基本設定
+# basic settings
 source $ZDOTDIR/exports.sh
 source $ZDOTDIR/aliases.sh
 
@@ -11,36 +11,44 @@ for f in $FUNCTIONS_DIR/*(.N); do
   autoload -Uz "${f:t}"
 done
 
-# プラグイン読み込み
-for plugin in $ZDOTDIR/plugins/*.zsh(N) $ZDOTDIR/plugins/*/*.zsh(N); do
-  source "$plugin"
-done
+# zsh-completions
+fpath=($(brew --prefix)/share/zsh-completions $fpath)
 
-# 補完 (compinit)
+# complement
 autoload -Uz compinit && compinit
 
-# zsh-syntax-highlighting
-source $ZDOTDIR/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# zsh-autosuggestions
+source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
-# テーマ
-source $ZDOTDIR/themes/my-zsh-theme
+# themes
+eval "$(starship init zsh)"
+
+# zsh-syntax-highlighting
+source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+# History search with arrow keys
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey "^[[A" up-line-or-beginning-search
+bindkey "^[[B" down-line-or-beginning-search
 
 # 挙動設定
 setopt interactive_comments
 setopt no_beep
 
-# iTerm2
-test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-
-# fzf (補完・キーバインド)
+# fzf
 if command -v fzf >/dev/null 2>&1; then
   source <(fzf --zsh)
 fi
 
-# zoxide (cd互換モード)
+# zoxide
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh --cmd cd)"
 fi
 
-# ログアウトスクリプトを有効にする
-setopt monitor
+# pyenv
+if command -v pyenv >/dev/null 2>&1; then
+  eval "$(pyenv init -)"
+  eval "$(pyenv virtualenv-init -)"
+fi

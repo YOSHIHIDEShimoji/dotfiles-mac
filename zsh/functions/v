@@ -1,0 +1,7 @@
+v() {
+  if [ $# -gt 0 ]; then
+    code "$@"
+  else
+    code .
+  fi
+}

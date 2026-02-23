@@ -17,6 +17,10 @@ link_from_prop() {
 		src=$(echo "$line" | awk -F'->' '{print $1}' | xargs)
 		dst=$(echo "$line" | awk -F'->' '{print $2}' | xargs | envsubst)
 
+		# 空文字チェック
+		[ -n "$dst" ] || { echo "Invalid dst in $prop: $line" >&2; continue; }
+		[ -n "$src" ] || { echo "Invalid src in $prop: $line" >&2; continue; }
+
 		src_path="$DOTFILES_DIR/$dir/$src"
 
 		# 既存ファイルがある場合はバックアップ
@@ -24,6 +28,9 @@ link_from_prop() {
 			echo "Backing up existing $dst to $dst.backup"
 			mv "$dst" "$dst.backup"
 		fi
+
+		# リンク先の親ディレクトリを作成
+		mkdir -p "$(dirname "$dst")"
 
 		# シンボリックリンク作成
 		echo "Linking $src_path -> $dst"
@@ -66,7 +73,7 @@ if [ ! -f "$SUDOERS_FILE" ]; then
 	# sudoの認証をキャッシュ更新（必要ならここでパスワードを聞かれる）
 	sudo -v
 	echo "${USER} ALL=(ALL) NOPASSWD: /usr/bin/pmset" | sudo tee "$SUDOERS_FILE" > /dev/null
-	# sudoersファイルの権限は440にするのが鉄則
+	# sudoersファイルの権限は440にする
 	sudo chmod 440 "$SUDOERS_FILE"
 else
 	echo "pmset sudoers rule already exists. Skipping."
@@ -74,14 +81,12 @@ fi
 
 echo "Linking dotfiles..."
 
-# 必要なディレクトリを用意
-mkdir -p "${HOME}/.config/karabiner"
-
 # シンボリックリンクを作成
 link_from_prop zsh
 link_from_prop git
 link_from_prop karabiner
 link_from_prop vscode
+link_from_prop ghostty
 
 echo "Dotfiles linking done."
 
@@ -90,6 +95,9 @@ if [ -f "$DOTFILES_DIR/vscode/extensions.txt" ] && command -v code &>/dev/null; 
     echo "Installing VS Code extensions..."
     cat "$DOTFILES_DIR/vscode/extensions.txt" | xargs -L 1 code --install-extension
 fi
+
+# 権限を追加
+chmod go-w /opt/homebrew/share || true
 
 # Homebrew パッケージのインストール
 BREWFILE="$DOTFILES_DIR/install/Brewfile"

@@ -1,0 +1,7 @@
+o() {
+  if [ $# -gt 0 ]; then
+    open "$@"
+  else
+    open .
+  fi
+}

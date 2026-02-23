@@ -1,2 +1,4 @@
 zshrc -> ${HOME}/.zshrc
 zshenv -> ${HOME}/.zshenv
+starship.toml -> ${HOME}/.config/starship.toml
+
