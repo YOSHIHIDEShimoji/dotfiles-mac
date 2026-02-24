@@ -43,8 +43,8 @@ cat ~/.ssh/id_ed25519.pub
 # 5. 接続確認
 ssh -T git@github.com
 
-# 6. dotfilesリポジトリをクローン（サブモジュール付き）
-git clone --recursive git@github.com:YOSHIHIDEShimoji/dotfiles-mac.git ~/dotfiles-mac
+# 6. dotfilesリポジトリをクローン
+git clone git@github.com:YOSHIHIDEShimoji/dotfiles-mac.git ~/dotfiles-mac
 
 # 7. 自動セットアップ実行
 cd ~/dotfiles-mac
@@ -55,7 +55,7 @@ cd ~/dotfiles-mac
 
 ```bash
 # リポジトリをクローン
-git clone --recursive git@github.com:YOSHIHIDEShimoji/dotfiles-mac.git ~/dotfiles-mac
+git clone git@github.com:YOSHIHIDEShimoji/dotfiles-mac.git ~/dotfiles-mac
 
 # セットアップスクリプトを実行
 cd ~/dotfiles-mac/install
@@ -70,15 +70,16 @@ dotfiles-mac/
 │   ├── gitconfig                        # Git全般設定
 │   ├── gitignore_global                 # グローバル.gitignore
 │   └── links.prop                       # シンボリックリンク定義
+├── ghostty/                             # Ghostty設定
+│   ├── config                           # Ghostty設定ファイル
+│   └── links.prop                       # シンボリックリンク定義
 ├── zsh/                                 # Zsh設定
 │   ├── zshrc                            # メインのZsh設定
 │   ├── zshenv                           # 環境変数（ログイン前に読み込み）
-│   ├── zlogout                          # ログアウト時の処理
 │   ├── aliases.sh                       # エイリアス定義
 │   ├── exports.sh                       # 環境変数
+│   ├── starship.toml                    # Starshipプロンプト設定
 │   ├── functions/                       # カスタム関数（22個）
-│   ├── plugins/                         # Zshプラグイン
-│   ├── themes/                          # Zshテーマ
 │   └── links.prop                       # シンボリックリンク定義
 ├── karabiner/                           # Karabiner-Elements設定
 │   ├── karabiner.json                   # キーバインド設定
@@ -131,14 +132,22 @@ dotfiles-mac/
 1. **LaunchAgentsの設定** - `LaunchAgents/` 内の `.plist` を `~/Library/LaunchAgents/` にシンボリックリンクし、未ロードならロード
 2. **sudoers設定** - `pmset` をパスワードなしで実行するための sudoers ルールを追加
 3. **シンボリックリンク作成** - 各ディレクトリの `links.prop` に従い設定ファイルをリンク
-   - `zsh/links.prop`: `zshrc`, `zshenv`, `zlogout` → `~/`
+   - `zsh/links.prop`: `zshrc`, `zshenv` → `~/`、`starship.toml` → `~/.config/`
    - `git/links.prop`: `gitconfig`, `gitignore_global` → `~/`
    - `karabiner/links.prop`: `karabiner.json` → `~/.config/karabiner/`
    - `vscode/links.prop`: `settings.json` → VS Codeユーザー設定
+   - `ghostty/links.prop`: `config` → `~/Library/Application Support/com.mitchellh.ghostty/`
 4. **VS Code拡張機能のインストール** - `vscode/extensions.txt` の拡張機能を自動インストール
 5. **Homebrewパッケージのインストール** - `install/Brewfile` に従いパッケージを一括インストール
 
 ## 主な機能
+
+### Ghostty設定
+
+- **フォント・外観**: フォントサイズ12、Bluloco Darkテーマ、バースタイルカーソル
+- **ペインナビゲーション**: `Ctrl+Option+i/j/k/l`（上/左/下/右）
+- **ペイン分割**: `Ctrl+Shift+v`（右に分割）、`Ctrl+Shift+h`（下に分割）
+- **ペインを閉じる**: `Ctrl+x`
 
 ### Karabiner-Elements設定
 - **Caps Lock → Control**: Caps LockキーをControlキーに変換
@@ -260,9 +269,9 @@ Chrome を特定のプロファイル・URLで起動するスクリプト群で�
 
 bat, curl, ffmpeg, fzf, gh, git, git-filter-repo, hashcat, imagemagick, john, jq, mupdf-tools, node, openjdk@17, pandoc, poppler, pyenv, pyenv-virtualenv, qpdf, ripgrep, tree, wget, zoxide, zsh-you-should-use
 
-### GUI アプリケーション (29個)
+### GUI アプリケーション (30個)
 
-Adobe Acrobat Reader, Adobe Creative Cloud, Alfred, AppCleaner, BetterTouchTool, Clipy, CotEditor, Discord, Google Chrome, Google Drive, Google Japanese IME, Hammerspoon, Hidden Bar, iStat Menus, iTerm2, Karabiner-Elements, KeyboardCleanTool, Maccy, MacTeX, Microsoft Office, Microsoft Teams, MonitorControl, Rectangle, Slack, Spotify, Visual Studio Code, Font IPA Ex, Font IPA, Font Meslo LG Nerd Font
+Adobe Acrobat Reader, Adobe Creative Cloud, Alfred, AppCleaner, BetterTouchTool, Clipy, CotEditor, Discord, Ghostty, Google Chrome, Google Drive, Google Japanese IME, Hammerspoon, Hidden Bar, iStat Menus, iTerm2, Karabiner-Elements, KeyboardCleanTool, Maccy, MacTeX, Microsoft Office, Microsoft Teams, MonitorControl, Rectangle, Slack, Spotify, Visual Studio Code, Font IPA Ex, Font IPA, Font Meslo LG Nerd Font
 
 ## カスタマイズ
 

@@ -21,10 +21,11 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 
 | ディレクトリ | リンク先 |
 |-----------|----------|
-| `zsh/links.prop` | `~/.zshrc`, `~/.zshenv`, `~/.zlogout` |
+| `zsh/links.prop` | `~/.zshrc`, `~/.zshenv`, `~/.config/starship.toml` |
 | `git/links.prop` | `~/.gitconfig`, `~/.gitignore_global` |
 | `karabiner/links.prop` | `~/.config/karabiner/karabiner.json` |
 | `vscode/links.prop` | VS Code User `settings.json` |
+| `ghostty/links.prop` | `~/Library/Application Support/com.mitchellh.ghostty/config` |
 
 ### Zsh の読み込み順序
 
@@ -33,10 +34,9 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
    - `exports.sh` — PATH と環境変数
    - `aliases.sh` — シェルおよび Git のエイリアス
    - `functions/*` — `fpath` 経由で自動読み込み（1ファイル1関数、拡張子なし）
-   - `plugins/*` — Git サブモジュール（zsh-autosuggestions, zsh-completions, zsh-syntax-highlighting, ohmyzsh-web-search）
-   - `themes/my-zsh-theme` — プロンプトテーマ
+   - `plugins/*` — Homebrewインストール済みプラグイン（zsh-autosuggestions, zsh-completions, zsh-syntax-highlighting）をsource
+   - Starshipプロンプト（`starship.toml`）
    - fzf および zoxide の統合
-3. `zlogout` — ログアウト時に `scripts/bin/dump.sh` を実行
 
 ### スクリプト PATH
 
@@ -46,7 +46,7 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 
 - **言語**: README やコメントは日本語で記述する。同じ規約に従うこと。
 - **Zsh 関数**: `zsh/functions/` に1ファイル1関数、ファイル名 = 関数名、拡張子なし。
-- **プラグイン**: `zsh/plugins/` 配下の Git サブモジュールとして管理。
+- **プラグイン**: Homebrewでインストール・管理（zsh-autosuggestions, zsh-completions, zsh-syntax-highlighting）。
 - **新しいシンボリックリンク**: 該当する `links.prop` ファイルにエントリを追加。`bootstrap.sh` が残りを処理する。
 - **新しい Homebrew パッケージ**: `install/Brewfile` に追加（CLI は `brew "name"`、GUI は `cask "name"`）。
 - **Git デフォルトブランチ**: `main`。push 時に自動で upstream を設定（`push.autoSetupRemote = true`）。
