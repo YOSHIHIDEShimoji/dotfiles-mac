@@ -6,25 +6,29 @@ alias lt='eza --tree'
 alias grep='grep --color=auto'
 
 # find
-alias fd='fd --hidden --exclude .git' # 隠しファイルも含めるが .git は除外
+alias f='fd'
+alias fh='fd --hidden --exclude .git --exclude node_modules --exclude .venv --exclude .cache'
 
 # dust
-alias du='dust -r'
-alias df='dust -r -d 1'
+alias d='dust -r'
+
+# rg
+alias r='rg'
+
+# procs
+alias p='procs'
 
 # ターミナル
 alias h='history'
 alias ..='cd ..'
 alias ...='cd ../..'
+alias ....='cd ../../..'
 alias mkdir='mkdir -p'
 
 # 確認
 alias rm='trash -v'
 alias mv='mv -i'
-alias cp='cp -Ri'
-
-# clear 一発できれいにする
-alias clear='clear; clear'
+alias cp='cp -i'
 
 # git
 alias g='git'
@@ -44,7 +48,7 @@ alias gpl='git pull'
 
 # ネットワーク・システム
 alias myip='curl ifconfig.me'
-alias port='lsof -i -P'
+alias port='lsof -i -P -n'
 
 # リンク
 alias moodle='open -na "Google Chrome" --args --profile-directory="Profile 1" "https://moodle.gs.chiba-u.jp/moodle/my/"'
