@@ -7,3 +7,5 @@
 .venv
 
 .claude/
+
+scripts/john/wordlists/rockyou.txt

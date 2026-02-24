@@ -108,3 +108,19 @@ if command -v brew &>/dev/null && [ -f "$BREWFILE" ]; then
 else
 	echo "Homebrew not found or Brewfile missing. Skipping package install."
 fi
+
+echo ""
+echo "════════════════════════════════════════════════"
+echo " オプションのインストール（必要な場合のみ実行）"
+echo "════════════════════════════════════════════════"
+echo " MacTeX 日本語環境:"
+echo "   zsh install/install-mactex-ja.zsh"
+echo ""
+echo " CLIツール (Claude Code / Gemini CLI / Codex):"
+echo "   bash install/cli-tools/install-claude-code.sh"
+echo "   bash install/cli-tools/install-gemini-cli.sh"
+echo "   bash install/cli-tools/install-codex.sh"
+echo ""
+echo " John/Hashcat ワードリスト (rockyou.txt, 約140MB):"
+echo "   bash install/setup-john-wordlists.sh"
+echo "════════════════════════════════════════════════"

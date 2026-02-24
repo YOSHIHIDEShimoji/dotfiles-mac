@@ -62,6 +62,34 @@ cd ~/dotfiles-mac/install
 ./bootstrap.sh
 ```
 
+## オプションのインストール
+
+`bootstrap.sh` に含まれない追加環境は必要に応じて個別に実行します。
+
+### MacTeX 日本語環境
+
+```bash
+zsh install/install-mactex-ja.zsh
+```
+
+MacTeX と日本語フォント環境を構築します。
+
+### CLIツール
+
+```bash
+bash install/cli-tools/install-claude-code.sh   # Claude Code
+bash install/cli-tools/install-gemini-cli.sh    # Gemini CLI
+bash install/cli-tools/install-codex.sh         # OpenAI Codex
+```
+
+### John/Hashcat ワードリスト
+
+```bash
+bash install/setup-john-wordlists.sh
+```
+
+`scripts/john/wordlists/rockyou.txt`（約140MB）をダウンロードします。rockyou.txtは2009年のRockYou.comデータ漏洩で流出した実際のパスワード約1,400万件のリストで、パスワード解析ツールの定番ワードリストです。`.gitignore` 対象のためリポジトリには含まれません。
+
 ## ディレクトリ構造
 
 ```
@@ -92,8 +120,12 @@ dotfiles-mac/
 │   ├── bootstrap.sh                     # セットアップスクリプト
 │   ├── Brewfile                         # Homebrewパッケージリスト
 │   ├── gui-apps.txt                     # GUIアプリ一覧
-│   ├── install-claude-code.sh           # Claude Codeインストール
-│   └── install-mactex-ja.zsh            # MacTeX日本語環境構築
+│   ├── install-mactex-ja.zsh            # MacTeX日本語環境構築
+│   ├── setup-john-wordlists.sh          # rockyou.txtワードリスト取得
+│   └── cli-tools/                       # CLIツールインストールスクリプト
+│       ├── install-claude-code.sh       # Claude Codeインストール
+│       ├── install-gemini-cli.sh        # Gemini CLIインストール
+│       └── install-codex.sh             # OpenAI Codexインストール
 ├── scripts/                             # ユーティリティスクリプト
 │   ├── bin/                             # 汎用スクリプト
 │   │   ├── setup_drive.sh               # Google Driveシンボリックリンク設定
@@ -106,7 +138,6 @@ dotfiles-mac/
 │   │   └── open_ai_urls.sh              # AI系サービス一括起動
 │   ├── ppdf/                            # PDF操作ツール群
 │   │   ├── ppdf_unlock                  # PDFパスワード解除
-│   │   ├── ppdf_unlock_py               # PDFパスワード解除（Python版）
 │   │   ├── ppdf_crack                   # PDFパスワード解析
 │   │   ├── ppdf_extract                 # PDFページ抽出
 │   │   ├── ppdf_split                   # PDF分割
@@ -114,7 +145,7 @@ dotfiles-mac/
 │   │   └── ppdf_make_num                # PDFページ番号付与
 │   └── john/                            # パスワード解析ツール群
 │       ├── src/                         # ハッシュ抽出スクリプト
-│       └── wordlists/                   # ワードリスト
+│       └── wordlists/                   # ワードリスト（rockyou.txtは.gitignore対象）
 ├── LaunchAgents/                        # macOS LaunchAgents
 │   └── com.yoshihide.setup_drive.plist  # Google Drive日次セットアップ
 └── templates/                           # ファイルテンプレート
@@ -222,7 +253,6 @@ PDF操作のためのコマンドラインツール群です。`qpdf`, `mupdf-to
 | コマンド | 説明 |
 |---------|------|
 | `ppdf_unlock` | パスワード付きPDFのロック解除 |
-| `ppdf_unlock_py` | パスワード付きPDFのロック解除（Python版） |
 | `ppdf_crack` | PDFパスワードの解析 |
 | `ppdf_extract` | PDFから指定ページを抽出 |
 | `ppdf_split` | PDFを複数ファイルに分割 |
@@ -243,6 +273,26 @@ Chrome を特定のプロファイル・URLで起動するスクリプト群で�
 - `dump.sh` - 現在の環境設定をダンプ
 - `launchd_manager.py` - launchd plistの管理ツール
 - `word2ref` - Word文書から参考文献を抽出
+
+### パスワード解析ツール (john/)
+
+`john`（John the Ripper）と `hashcat` を使ったパスワード解析ウィザードです。PDFのハッシュ抽出からHashcatによるクラックまでをウィザード形式でサポートします。M4チップに最適化されています。
+
+**環境情報:**
+- Python venv: `scripts/.venv`
+- Hashcat Rules: `/opt/homebrew/opt/hashcat/share/doc/hashcat/rules/`
+- Wordlist: `scripts/john/wordlists/rockyou.txt`
+
+**セットアップ:**
+```bash
+# Python venvのセットアップ
+python3 -m venv scripts/.venv
+source scripts/.venv/bin/activate
+pip install inquirer
+
+# ワードリストの取得（約140MB、.gitignore対象）
+bash install/setup-john-wordlists.sh
+```
 
 ## VS Code設定
 
@@ -285,37 +335,16 @@ rr
 ```
 
 ### Brewfileの編集
-```bash
-# 新しいアプリケーションを追加
-echo 'cask "notion"' >> ~/dotfiles-mac/install/Brewfile
 
-# インストール実行
-brew bundle --file=~/dotfiles-mac/install/Brewfile
+```bash
+# 現在の Homebrew パッケージと VS Code 拡張機能をダンプしてコミット
+dump
 ```
 
-## トラブルシューティング
-
-### シンボリックリンクが作成されない
-```bash
-# 手動でリンクを作成
-ln -sf ~/dotfiles-mac/zsh/zshrc ~/.zshrc
-ln -sf ~/dotfiles-mac/git/gitconfig ~/.gitconfig
-```
-
-### Karabiner-Elementsが動作しない
-1. システム環境設定 → セキュリティとプライバシー → プライバシー
-2. アクセシビリティでKarabiner-Elementsを許可
-
-## ライセンス
-
-このプロジェクトはMITライセンスの下で公開されています。
+`dump` コマンドは `install/Brewfile` と `vscode/extensions.txt` を現在の環境から自動更新し、コミットまで行います。
 
 ## 作者
 
 **Yoshihide Shimoji**
 - GitHub: [@YOSHIHIDEShimoji](https://github.com/YOSHIHIDEShimoji)
 - Email: g.y.shimoji@gmail.com
-
-## 貢献
-
-Issue報告やPull Requestは歓迎です！
