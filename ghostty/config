@@ -15,18 +15,18 @@ window-colorspace = "display-p3"
 # =========================
 # Pane navigation
 # =========================
-keybind = ctrl+option+i=goto_split:up
-keybind = ctrl+option+j=goto_split:left
-keybind = ctrl+option+k=goto_split:down
-keybind = ctrl+option+l=goto_split:right
+keybind = ctrl+shift+i=goto_split:up
+keybind = ctrl+shift+j=goto_split:left
+keybind = ctrl+shift+k=goto_split:down
+keybind = ctrl+shift+l=goto_split:right
 
 # =========================
 # Pane splitting
 # =========================
-keybind = ctrl+shift+v=new_split:right
-keybind = ctrl+shift+h=new_split:down
+keybind = ctrl+shift+h=new_split:right
+keybind = ctrl+shift+n=new_split:down
 
 # =========================
 # Close pane
 # =========================
-keybind = ctrl+x=close_surface
+keybind = ctrl+shift+x=close_surface
