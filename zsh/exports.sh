@@ -30,4 +30,3 @@ typeset -U path PATH
 
 # 変数設定
 export DOTFILES="$HOME/dotfiles-mac"
-export SEM="$HOME/Library/CloudStorage/GoogleDrive-g.y.shimoji@gmail.com/マイドライブ/chiba-u-drive/2nd/sem2"

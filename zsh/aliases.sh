@@ -12,11 +12,14 @@ alias fh='fd --hidden --exclude .git --exclude node_modules --exclude .venv --ex
 # dust
 alias d='dust -r'
 
-# rg
-alias r='rg'
+# trash
+alias r='trash -v'
 
 # procs
 alias p='procs'
+
+# tldr
+alias t='tldr'
 
 # ターミナル
 alias h='history'
@@ -26,7 +29,7 @@ alias ....='cd ../../..'
 alias mkdir='mkdir -p'
 
 # 確認
-alias rm='trash -v'
+alias rm='rm -i'
 alias mv='mv -i'
 alias cp='cp -i'
 
