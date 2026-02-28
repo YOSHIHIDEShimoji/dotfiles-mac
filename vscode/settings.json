@@ -22,5 +22,6 @@
     "liveServer.settings.donotShowInfoMsg": true,
     "explorer.confirmPasteNative": false,
     "git.confirmSync": false,
-    "window.confirmSaveUntitledWorkspace": false
+    "window.confirmSaveUntitledWorkspace": false,
+    "claudeCode.preferredLocation": "panel"
 }

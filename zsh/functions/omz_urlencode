@@ -1,4 +1,0 @@
-# URLエンコード
-omz_urlencode() {
-	python3 -c "import sys, urllib.parse; print(urllib.parse.quote(' '.join(sys.argv[1:])))" "$@"
-}
