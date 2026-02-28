@@ -28,21 +28,59 @@ if [[ -z "$diff" ]]; then
 fi
 
 # Claude Codeにコミットメッセージを生成してもらう
-commit_msg=$(echo "$diff" | claude -p "このgit diffの内容を見て、適切なコミットメッセージを日本語で1行で書いてください。メッセージだけを出力して、説明や補足は一切不要です。")
+BASE_PROMPT=$'このgit diffの内容を見て、適切なコミットメッセージを日本語で1行で書いてください。メッセージだけを出力して、説明や補足は一切不要です。'
 
-if [[ -z "$commit_msg" ]]; then
-  echo "Error: Failed to generate commit message." >&2
-  exit 1
-fi
+build_prompt() {
+  local extra_request="$1"
+  if [[ -n "$extra_request" ]]; then
+    printf '%s\n\nユーザーからの追加リクエスト: %s\n' "$BASE_PROMPT" "$extra_request"
+  else
+    printf '%s\n' "$BASE_PROMPT"
+  fi
+}
+
+generate_commit_msg() {
+  local extra_request="${1:-}"
+  local prompt
+  prompt=$(build_prompt "$extra_request")
+  local msg
+  msg=$(echo "$diff" | claude -p "$prompt")
+  msg=${msg//$'\r'/}
+  if [[ -z "$msg" ]]; then
+    echo "Error: Failed to generate commit message." >&2
+    exit 1
+  fi
+  printf '%s' "$msg"
+}
+
+commit_msg=$(generate_commit_msg)
 
 # 確認
 if [[ "$SKIP_CONFIRM" == false ]]; then
-  echo "Commit message: $commit_msg"
-  read -rp "Proceed? [y/N]: " answer
-  if [[ "$answer" != [yY] ]]; then
-    echo "Aborted."
-    exit 0
-  fi
+  while true; do
+    echo "Commit message: $commit_msg"
+    read -rp "Proceed? [y/N]: " answer
+    case "$answer" in
+      [yY])
+        break
+        ;;
+      [nN])
+        if ! read -rp "Claudeにどう調整してほしいか入力してください: " feedback; then
+          echo "Aborted."
+          exit 1
+        fi
+        if [[ -z "$feedback" ]]; then
+          echo "フィードバックが空です。"
+          continue
+        fi
+        commit_msg=$(generate_commit_msg "$feedback")
+        ;;
+      *)
+        echo "Aborted."
+        exit 0
+        ;;
+    esac
+  done
 fi
 
 # コミット実行

@@ -205,9 +205,7 @@ dotfiles-mac/
 | `ghopen` | 現在のディレクトリをGitHubで開く |
 | `update` | Homebrewパッケージを一括更新 |
 | `word` / `excel` / `powerpoint` | Office文書を新規作成して開く |
-| `web_search` | ターミナルから各種検索エンジンで検索 |
-| `zip` | 圧縮ユーティリティ |
-| `lp` | 印刷関数 |
+| `lp` | 低電力モードを切り替える |
 | `zsh_stats` | シェル使用統計 |
 | `rr` | Zsh設定の再読み込み |
 | `c` | ディレクトリ移動ユーティリティ |
