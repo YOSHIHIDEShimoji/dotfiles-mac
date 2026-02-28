@@ -1,6 +1,5 @@
-#!/bin/zsh
-
-perl_script='
+word2ref() {
+    local perl_script='
     use strict;
     use warnings;
     use utf8;
@@ -13,8 +12,8 @@ perl_script='
     my ($pub_date, $url_str, $acc_date) = ("", "", "");
 
     # --- Step 1: 基本情報の抽出 (Webも書籍も共通) ---
-    # [番号] 著者, “タイトル,” ...残りの部分
-    if (/^\[(\d+)\]\s+(.+?),\s+[“"](.+?)[”"](?:,|.)?\s*(.*)$/) {
+    # [番号] 著者, "タイトル," ...残りの部分
+    if (/^\[(\d+)\]\s+(.+?),\s+[""](.+?)[""](?:,|.)?\s*(.*)$/) {
         ($id, $author, $title, $rest) = ($1, $2, $3, $4);
     } else {
         # パターンに合わなければWarningを出して次へ
@@ -30,7 +29,7 @@ perl_script='
     # "rest" の中に [オンライン] や Available があるか？
     if ($rest =~ /\[オンライン\].*?Available:\s+(\S+)\..*?\[アクセス日:\s+(\d+)\s+(\d+)\s+(\d+)\]/) {
         my ($raw_url, $d, $m, $y) = ($1, $2, $3, $4);
-        
+
         # URL
         $url_str = "$raw_url, "; # 末尾にカンマ
 
@@ -43,7 +42,7 @@ perl_script='
         } elsif ($rest =~ /^(\d{1,2})\s+(\d{4})/) {
             $pub_date = sprintf("(%d/%d). ", $2, $1);
         }
-    } 
+    }
     # --- Step 3: 書籍・論文情報の抽出 (Webでない場合) ---
     else {
         # URLやアクセス日は無し
@@ -58,22 +57,18 @@ perl_script='
     }
 
     # --- Step 4: 出力 ---
-    # 日付があれば (日付). が入り、なければ著者の次にすぐタイトルが来る
-    # URLがあれば URL, が入り、なければタイトル. で終わるか (参照...) が続く
-    
-    # 整形: URLがない場合、タイトルの後のピリオド処理
     my $separator = ". ";
     if ($url_str eq "" && $acc_date eq "") {
-        $separator = "."; # 全部なければ最後はピリオドで終わる
+        $separator = ".";
     }
 
     print "[$id] $author. $pub_date$title$separator$url_str$acc_date\n";
 '
 
-# 実行モード判定 (上書き or 標準入力)
-if [ $# -eq 0 ]; then
-    perl -CSD -Mutf8 -ne "$perl_script"
-else
-    perl -i.bak -CSD -Mutf8 -ne "$perl_script" "$@"
-    rm -f "$@.bak"
-fi
+    if [ $# -eq 0 ]; then
+        perl -CSD -Mutf8 -ne "$perl_script"
+    else
+        perl -i.bak -CSD -Mutf8 -ne "$perl_script" "$@"
+        rm -f "$@.bak"
+    fi
+}

@@ -1,0 +1,23 @@
+cc-skills-sync() {
+  local SRC_DIR="$HOME/.agents/skills"
+  local DST_DIR="$HOME/.claude/skills"
+
+  mkdir -p "$DST_DIR"
+
+  for dir in "$SRC_DIR"/*; do
+    if [[ -d "$dir" ]]; then
+      local name
+      name=$(basename "$dir")
+      local target="$DST_DIR/$name"
+
+      if [[ -L "$target" || -e "$target" ]]; then
+        rm -rf "$target"
+      fi
+
+      ln -s "$dir" "$target"
+      echo "linked: $name"
+    fi
+  done
+
+  echo "done."
+}

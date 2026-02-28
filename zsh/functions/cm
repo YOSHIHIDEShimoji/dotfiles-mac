@@ -1,0 +1,84 @@
+cm() {
+  local DO_PUSH=false
+  local SKIP_CONFIRM=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p) DO_PUSH=true ;;
+      -y) SKIP_CONFIRM=true ;;
+      *) echo "Usage: cm [-p] [-y]" >&2; return 1 ;;
+    esac
+    shift
+  done
+
+  if [[ -z "$(git diff --cached --name-only)" ]]; then
+    echo "Error: No staged changes. Use 'git add' first." >&2
+    return 1
+  fi
+
+  local diff
+  diff=$(git diff --cached)
+
+  if [[ -z "$diff" ]]; then
+    echo "Error: Staged changes are empty." >&2
+    return 1
+  fi
+
+  local BASE_PROMPT=$'このgit diffの内容を見て、適切なコミットメッセージを日本語で1行で書いてください。メッセージだけを出力して、説明や補足は一切不要です。'
+
+  build_prompt() {
+    local extra_request="$1"
+    if [[ -n "$extra_request" ]]; then
+      printf '%s\n\nユーザーからの追加リクエスト: %s\n' "$BASE_PROMPT" "$extra_request"
+    else
+      printf '%s\n' "$BASE_PROMPT"
+    fi
+  }
+
+  generate_commit_msg() {
+    local extra_request="${1:-}"
+    local prompt msg
+    prompt=$(build_prompt "$extra_request")
+    msg=$(echo "$diff" | claude -p "$prompt")
+    msg=${msg//$'\r'/}
+    if [[ -z "$msg" ]]; then
+      echo "Error: Failed to generate commit message." >&2
+      return 1
+    fi
+    printf '%s' "$msg"
+  }
+
+  local commit_msg
+  commit_msg=$(generate_commit_msg)
+
+  if [[ "$SKIP_CONFIRM" == false ]]; then
+    local answer feedback
+    while true; do
+      echo "Commit message: $commit_msg"
+      read "answer?Proceed? [y/N]: "
+      case "$answer" in
+        [yY])
+          break
+          ;;
+        [nN])
+          read "feedback?Claudeにどう調整してほしいか入力してください: "
+          if [[ -z "$feedback" ]]; then
+            echo "フィードバックが空です。"
+            continue
+          fi
+          commit_msg=$(generate_commit_msg "$feedback")
+          ;;
+        *)
+          echo "Aborted."
+          return 0
+          ;;
+      esac
+    done
+  fi
+
+  git commit -m "$commit_msg"
+
+  if [[ "$DO_PUSH" == true ]]; then
+    git push
+  fi
+}
