@@ -66,6 +66,7 @@ cask "monitorcontrol"
 cask "rectangle"
 cask "slack"
 cask "spotify"
+cask "tailscale-app"
 cask "visual-studio-code"
 mas "Brother iPrint&Scan", id: 1193539993
 mas "CleanMyMac", id: 1339170533
