@@ -187,15 +187,15 @@ if ! command -v zoxide &>/dev/null; then
     curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 fi
 
-# ─── 10. git worktree で dotfiles-mac (main ブランチ) を追加 ─────────────────
-# ~/dotfiles-mac を worktree として追加することで、Linux/WSL からも
-# Mac 側の設定ファイルを直接編集できるようにする
-if [ ! -d "$HOME/dotfiles-mac" ]; then
-    info "~/dotfiles-mac worktree を追加します（main ブランチ）..."
-    git -C "$DOTFILES_DIR" worktree add "$HOME/dotfiles-mac" main
-    info "~/dotfiles-mac worktree を作成しました。"
+# ─── 10. git worktree で .dotfiles-mac (main ブランチ) を追加 ────────────────
+# ~/.dotfiles-mac を worktree として追加することで、Linux/WSL からも
+# Mac 側の設定ファイルを直接編集できるようにする（隠しディレクトリ）
+if [ ! -d "$HOME/.dotfiles-mac" ]; then
+    info "~/.dotfiles-mac worktree を追加します（main ブランチ）..."
+    git -C "$DOTFILES_DIR" worktree add "$HOME/.dotfiles-mac" main
+    info "~/.dotfiles-mac worktree を作成しました。"
 else
-    info "~/dotfiles-mac は既に存在します。worktree の追加をスキップします。"
+    info "~/.dotfiles-mac は既に存在します。worktree の追加をスキップします。"
 fi
 
 # ─── 11. pyenv のセットアップ ───────────────────────────────
