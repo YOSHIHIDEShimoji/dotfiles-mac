@@ -1,3 +1,4 @@
+ms-vscode-remote.remote-wsl
 anthropic.claude-code
 github.copilot
 github.copilot-chat

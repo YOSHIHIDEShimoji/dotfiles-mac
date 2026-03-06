@@ -163,15 +163,34 @@ else
     git -C "$HOME/.pyenv/plugins/python-build" pull --ff-only 2>/dev/null || true
 fi
 
-# ─── 9. VSCode 拡張機能（オプション）─────────────────────
-if command -v code &>/dev/null; then
-    EXTFILE="$DOTFILES_DIR/vscode/extensions.txt"
+# ─── 9. VS Code（純 Linux のみインストール。WSL は Windows 側の VS Code を使用）──
+EXTFILE="$DOTFILES_DIR/vscode/extensions.txt"
+
+if [[ "$IS_WSL" == false ]]; then
+    if ! command -v code &>/dev/null; then
+        info "VS Code をインストールします..."
+        sudo mkdir -p /etc/apt/keyrings
+        wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
+            | sudo gpg --dearmor -o /etc/apt/keyrings/packages.microsoft.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
+            | sudo tee /etc/apt/sources.list.d/vscode.list
+        sudo apt-get update -y
+        sudo apt-get install -y code
+    fi
     if [ -f "$EXTFILE" ]; then
         info "VS Code 拡張機能をインストールします..."
-        xargs -L 1 code --install-extension < "$EXTFILE"
+        # WSL 拡張機能は純 Linux では不要のためスキップ
+        grep -v '^ms-vscode-remote.remote-wsl$' "$EXTFILE" \
+            | xargs -L 1 code --install-extension
     fi
 else
-    info "code コマンドが見つかりません。VS Code 拡張機能のインストールをスキップします。"
+    # WSL: Windows 側の VS Code から接続する運用。code が使えるときのみ拡張機能をインストール
+    if command -v code &>/dev/null && [ -f "$EXTFILE" ]; then
+        info "VS Code 拡張機能をインストールします（WSL モード）..."
+        xargs -L 1 code --install-extension < "$EXTFILE"
+    else
+        info "code コマンドが見つかりません。VS Code 拡張機能のインストールをスキップします。"
+    fi
 fi
 
 # ─── 完了 ──────────────────────────────────────────────
