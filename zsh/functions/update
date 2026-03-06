@@ -1,17 +1,5 @@
-# Homebrew パッケージを更新
-# オプション:
-#   -u, --upgrade  brew upgrade && cleanup && doctor まで実行
+# Homebrew パッケージを更新・アップグレード
 update() {
-	local do_upgrade=false
-	for arg in "$@"; do
-		[[ "$arg" == "-u" || "$arg" == "--upgrade" ]] && do_upgrade=true
-	done
-
-	brew update
-	if $do_upgrade; then
-		brew upgrade && brew cleanup && brew doctor
-		echo "Homebrew packages updated and upgraded."
-	else
-		echo "Homebrew package list updated. Run 'update -u' to upgrade."
-	fi
+	brew update && brew upgrade && brew cleanup && brew doctor
+	echo "Homebrew packages updated."
 }
