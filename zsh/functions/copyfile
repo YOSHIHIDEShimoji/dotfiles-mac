@@ -1,6 +1,10 @@
 # ファイルをクリップボードにコピー
 copyfile() {
 	emulate -L zsh
-	cat "$1" | pbcopy
+	if [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+		cat "$1" | /mnt/c/Windows/System32/clip.exe
+	else
+		cat "$1" | xclip -selection clipboard
+	fi
 	echo ${(%):-"%B$1%b copied to clipboard."}
 }

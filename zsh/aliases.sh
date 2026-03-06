@@ -9,14 +9,8 @@ alias grep='grep --color=auto'
 alias f='fd'
 alias fh='fd --hidden --exclude .git --exclude node_modules --exclude .venv --exclude .cache'
 
-# dust
-alias d='dust -r'
-
 # trash
 alias r='trash -v'
-
-# procs
-alias p='procs'
 
 # tldr
 alias t='tldr'
@@ -51,8 +45,8 @@ alias gpl='git pull'
 
 # クリップボード
 if [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-  alias copy='clip.exe'
-  alias paste='powershell.exe -command "Get-Clipboard"'
+  alias copy='/mnt/c/Windows/System32/clip.exe'
+  alias paste='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -command "Get-Clipboard"'
 else
   alias copy='xclip -selection clipboard'
   alias paste='xclip -selection clipboard -o'

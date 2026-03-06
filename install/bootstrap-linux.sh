@@ -55,8 +55,15 @@ sudo apt-get install -y \
     bat \
     zsh-autosuggestions \
     zsh-syntax-highlighting \
+    trash-cli \
     nodejs \
     npm
+
+# tldr（npm 経由）
+if ! command -v tldr &>/dev/null; then
+    info "tldr をインストールします..."
+    sudo npm install -g tldr
+fi
 
 # fd は fd-find としてインストールされるため、fd としてリンクを張る
 if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then

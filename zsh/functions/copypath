@@ -2,6 +2,10 @@
 copypath () {
 	local file="${1:-.}"
 	[[ $file = /* ]] || file="$PWD/$file"
-	print -n "${file:a}" | pbcopy || return 1
+	if [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+		print -n "${file:a}" | /mnt/c/Windows/System32/clip.exe || return 1
+	else
+		print -n "${file:a}" | xclip -selection clipboard || return 1
+	fi
 	echo ${(%):-"%B${file:a}%b copied to clipboard."}
 }

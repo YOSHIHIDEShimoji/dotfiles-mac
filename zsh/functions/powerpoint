@@ -18,5 +18,5 @@ powerpoint() {
 
 	local winpath
 	winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
-	powershell.exe -c "Start-Process '$winpath'"
+	/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c "Start-Process '$winpath'"
 }
