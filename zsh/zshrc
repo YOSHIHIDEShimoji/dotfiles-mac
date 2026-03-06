@@ -59,3 +59,17 @@ if command -v pyenv >/dev/null 2>&1; then
   eval "$(pyenv init -)"
   eval "$(pyenv virtualenv-init -)"
 fi
+
+# dotfiles-linux で main ブランチへの checkout をブロック
+git() {
+  if [[ "$1" == "checkout" || "$1" == "co" ]] && [[ "$2" == "main" ]]; then
+    local toplevel
+    toplevel=$(command git rev-parse --show-toplevel 2>/dev/null)
+    if [[ "$toplevel" == "$HOME/dotfiles-linux" ]]; then
+      echo "ERROR: dotfiles-linux は linux ブランチで作業してください。"
+      echo "  main ブランチの編集は ~/dotfiles-mac で行います。"
+      return 1
+    fi
+  fi
+  command git "$@"
+}
