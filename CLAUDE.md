@@ -64,6 +64,9 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 
 `git worktree` で物理的に分離済み。ブランチ切り替えは不要。
 
+- macOS 上での linux ブランチ worktree: `~/.dotfiles-linux`（隠しディレクトリ）
+- Linux/WSL 上での main ブランチ worktree: `~/.dotfiles-mac`（隠しディレクトリ）
+
 ### 移植ルール
 
 `platform-notes.md`（リポジトリルート）が移植の除外ルールを定義している。
