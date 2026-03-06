@@ -45,12 +45,8 @@ sudo apt-get install -y \
     fd-find \
     fzf \
     bat \
-    eza \
-    zoxide \
-    starship \
     zsh-autosuggestions \
     zsh-syntax-highlighting \
-    pyenv \
     nodejs \
     npm
 
@@ -66,6 +62,23 @@ if command -v batcat &>/dev/null && ! command -v bat &>/dev/null; then
     mkdir -p "$HOME/.local/bin"
     ln -sf "$(which batcat)" "$HOME/.local/bin/bat"
     info "bat -> batcat のシンボリックリンクを作成しました。"
+fi
+
+# ─── 3b. eza のインストール（apt未収録の場合は公式 deb リポジトリを追加）──────
+if ! command -v eza &>/dev/null; then
+    if apt-cache show eza &>/dev/null 2>&1; then
+        sudo apt-get install -y eza
+    else
+        info "eza を公式リポジトリ経由でインストールします..."
+        sudo mkdir -p /etc/apt/keyrings
+        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
+            | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" \
+            | sudo tee /etc/apt/sources.list.d/gierens.list
+        sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+        sudo apt-get update -y
+        sudo apt-get install -y eza
+    fi
 fi
 
 # ─── 4. シンボリックリンクの作成 ─────────────────────────
