@@ -1,4 +1,4 @@
-ZDOTDIR=~/dotfiles-mac/zsh
+ZDOTDIR=~/dotfiles-linux/zsh
 
 # basic settings
 source $ZDOTDIR/exports.sh
@@ -12,19 +12,21 @@ for f in $FUNCTIONS_DIR/*(.N); do
 done
 
 # zsh-completions
-fpath=($(brew --prefix)/share/zsh-completions $fpath)
+fpath=(/usr/share/zsh/vendor-completions $fpath)
 
 # complement
 autoload -Uz compinit && compinit
 
 # zsh-autosuggestions
-source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+  source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # themes
 eval "$(starship init zsh)"
 
 # zsh-syntax-highlighting
-source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+[[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
+  source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # History search with arrow keys
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search

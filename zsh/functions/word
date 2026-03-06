@@ -1,7 +1,12 @@
-# Word で開く
+# Word で開く（WSL専用）
 word() {
+	if [[ -z "$WSL_DISTRO_NAME" ]] && ! grep -qi microsoft /proc/version 2>/dev/null; then
+		echo "word: WSL環境でのみ使用可能です。"
+		return 1
+	fi
+
 	local filepath="$1"
-	local template="$HOME/dotfiles-mac/templates/empty.docx"
+	local template="$DOTFILES/templates/empty.docx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: word [path]"
@@ -10,5 +15,8 @@ word() {
 
 	[[ "$filepath" != *.docx ]] && filepath="${filepath}.docx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
-	open -a "Microsoft Word" "$filepath"
+
+	local winpath
+	winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
+	powershell.exe -c "Start-Process '$winpath'"
 }

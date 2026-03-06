@@ -1,7 +1,12 @@
-# PowerPoint で開く
+# PowerPoint で開く（WSL専用）
 powerpoint() {
+	if [[ -z "$WSL_DISTRO_NAME" ]] && ! grep -qi microsoft /proc/version 2>/dev/null; then
+		echo "powerpoint: WSL環境でのみ使用可能です。"
+		return 1
+	fi
+
 	local filepath="$1"
-	local template="$HOME/dotfiles-mac/templates/empty.pptx"
+	local template="$DOTFILES/templates/empty.pptx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: powerpoint [path]"
@@ -10,5 +15,8 @@ powerpoint() {
 
 	[[ "$filepath" != *.pptx ]] && filepath="${filepath}.pptx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
-	open -a "Microsoft PowerPoint" "$filepath"
+
+	local winpath
+	winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
+	powershell.exe -c "Start-Process '$winpath'"
 }

@@ -1,7 +1,12 @@
-# Excel で開く
+# Excel で開く（WSL専用）
 excel() {
+	if [[ -z "$WSL_DISTRO_NAME" ]] && ! grep -qi microsoft /proc/version 2>/dev/null; then
+		echo "excel: WSL環境でのみ使用可能です。"
+		return 1
+	fi
+
 	local filepath="$1"
-	local template="$HOME/dotfiles-mac/templates/empty.xlsx"
+	local template="$DOTFILES/templates/empty.xlsx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: excel [path]"
@@ -10,5 +15,8 @@ excel() {
 
 	[[ "$filepath" != *.xlsx ]] && filepath="${filepath}.xlsx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
-	open -a "Microsoft Excel" "$filepath"
+
+	local winpath
+	winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
+	powershell.exe -c "Start-Process '$winpath'"
 }

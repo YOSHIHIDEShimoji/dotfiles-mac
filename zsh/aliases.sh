@@ -49,9 +49,15 @@ alias gundo='git reset --soft HEAD~1'
 alias gpu='git push'
 alias gpl='git pull'
 
+# クリップボード
+if [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+  alias copy='clip.exe'
+  alias paste='powershell.exe -command "Get-Clipboard"'
+else
+  alias copy='xclip -selection clipboard'
+  alias paste='xclip -selection clipboard -o'
+fi
+
 # ネットワーク・システム
 alias myip='curl ifconfig.me'
 alias port='lsof -i -P -n'
-
-# リンク
-alias moodle='open -na "Google Chrome" --args --profile-directory="Profile 1" "https://moodle.gs.chiba-u.jp/moodle/my/"'
