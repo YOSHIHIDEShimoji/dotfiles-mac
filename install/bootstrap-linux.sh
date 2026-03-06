@@ -168,6 +168,7 @@ link_from_prop() {
 info "シンボリックリンクを作成します..."
 link_from_prop zsh
 link_from_prop git
+link_from_prop tmux
 
 # Ghostty は純 Linux のみリンク（WSL はデスクトップ環境がないため不要）
 if [[ "$IS_WSL" == false ]]; then

@@ -33,6 +33,7 @@ zsh-syntax-highlighting
 trash-cli
 nodejs
 npm
+tmux
 # eza: 公式 deb リポジトリ経由（bootstrap が自動追加）
 eza
 
