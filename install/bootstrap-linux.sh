@@ -37,13 +37,13 @@ get_packages() {
     done < "$aptfile"
 }
 
-mapfile -t common_pkgs   < <(get_packages "common")
-if [[ "$IS_WSL" == true ]]; then
-    mapfile -t platform_pkgs < <(get_packages "wsl")
+mapfile -t wsl_pkgs < <(get_packages "wsl")
+if [[ "$IS_WSL" == false ]]; then
+    mapfile -t linux_pkgs < <(get_packages "linux")
+    all_pkgs=("${wsl_pkgs[@]}" "${linux_pkgs[@]}")
 else
-    mapfile -t platform_pkgs < <(get_packages "linux")
+    all_pkgs=("${wsl_pkgs[@]}")
 fi
-all_pkgs=("${common_pkgs[@]}" "${platform_pkgs[@]}")
 
 # ─── 1. 特殊リポジトリのセットアップ ────────────────────
 # Aptfile に記載されたパッケージのうち公式 apt に含まれないものはリポジトリを事前追加する

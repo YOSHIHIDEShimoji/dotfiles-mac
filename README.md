@@ -218,17 +218,20 @@ bash install/setup-john-wordlists.sh
 `install/Aptfile` が apt でインストールするパッケージを管理します（macOS の `Brewfile` に相当）。
 
 ```
-[common]   — WSL・純 Linux 両方にインストール
-[linux]    — 純 Linux のみ（GUI アプリ等）
-[wsl]      — WSL のみ
+[wsl]      — WSL・純 Linux 共通（CLI ツール等）
+[linux]    — 純 Linux のみ（[wsl] に加えてインストール）: GUI アプリ等
 ```
+
+- **WSL**: `[wsl]` のみインストール
+- **純 Linux**: `[wsl]` + `[linux]` の両方をインストール
 
 ### パッケージを追加する
 
 ```bash
-# 例: pure Linux に vlc を追加したい場合
-# install/Aptfile の [linux] セクションに追記
-vlc
+# 例: pure Linux に vlc を追加したい場合 → [linux] セクションに追記
+# 例: WSL・純 Linux 両方に入れたい CLI ツール → [wsl] セクションに追記
+# install/Aptfile を編集:
+vlc   # [linux] セクションに追加
 
 # 再実行（冪等性あり、インストール済みはスキップ）
 bash install/bootstrap-linux.sh

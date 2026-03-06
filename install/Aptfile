@@ -3,17 +3,20 @@
 # macOS の Brewfile に相当する Linux/WSL 版パッケージ定義
 #
 # セクション:
-#   [common] — WSL・純 Linux 両方にインストール
-#   [linux]  — 純 Linux にのみインストール（GUI アプリ等）
-#   [wsl]    — WSL にのみインストール
+#   [wsl]   — WSL・純 Linux 共通（CLI ツール等）
+#   [linux] — 純 Linux のみ（[wsl] に加えてインストール）: GUI アプリ等
+#
+# インストール対象:
+#   WSL       → [wsl] のみ
+#   純 Linux  → [wsl] + [linux]
 #
 # 特殊リポジトリが必要なパッケージは bootstrap-linux.sh がリポジトリを自動追加する:
-#   eza          → deb.gierens.de
-#   ghostty      → apt.ghostty.org
-#   code         → packages.microsoft.com
+#   eza                  → deb.gierens.de
+#   ghostty              → apt.ghostty.org
+#   code                 → packages.microsoft.com
 #   google-chrome-stable → dl.google.com
 
-[common]
+[wsl]
 git
 curl
 wget
@@ -40,6 +43,3 @@ ghostty
 code
 # Google Chrome: dl.google.com リポジトリ経由（bootstrap が自動追加）
 google-chrome-stable
-
-[wsl]
-# WSL 専用パッケージ（現時点では不要 — GUI アプリは Windows 側で管理）
