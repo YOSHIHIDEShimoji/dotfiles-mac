@@ -14,6 +14,10 @@ info()  { echo "[INFO]  $*"; }
 warn()  { echo "[WARN]  $*"; }
 error() { echo "[ERROR] $*" >&2; exit 1; }
 
+# WSL 判定（スクリプト全体で使用）
+IS_WSL=false
+[[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=true
+
 # ─── 1. zsh のインストール確認 ───────────────────────────
 info "zsh の確認..."
 if ! command -v zsh &>/dev/null; then
@@ -81,6 +85,20 @@ if ! command -v eza &>/dev/null; then
     fi
 fi
 
+# ─── 3c. ghostty のインストール（純 Linux のみ）─────────────────────────────
+if [[ "$IS_WSL" == false ]]; then
+    if ! command -v ghostty &>/dev/null; then
+        info "ghostty をインストールします..."
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://apt.ghostty.org/gpg.key \
+            | sudo gpg --dearmor -o /etc/apt/keyrings/ghostty-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/ghostty-archive-keyring.gpg] https://apt.ghostty.org/ any main" \
+            | sudo tee /etc/apt/sources.list.d/ghostty.list
+        sudo apt-get update -y
+        sudo apt-get install -y ghostty
+    fi
+fi
+
 # ─── 4. シンボリックリンクの作成 ─────────────────────────
 link_from_prop() {
     dir="$1"
@@ -114,6 +132,11 @@ link_from_prop() {
 info "シンボリックリンクを作成します..."
 link_from_prop zsh
 link_from_prop git
+
+# Ghostty は純 Linux のみリンク（WSL はデスクトップ環境がないため不要）
+if [[ "$IS_WSL" == false ]]; then
+    link_from_prop ghostty
+fi
 
 # ─── 5. zshenv のリンク（ZDOTDIR の設定）─────────────────
 # dotfiles-linux に clone した場合にパスが変わるため上書き
