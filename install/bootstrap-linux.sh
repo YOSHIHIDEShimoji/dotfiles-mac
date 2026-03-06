@@ -46,6 +46,7 @@ sudo apt-get install -y \
     git \
     curl \
     wget \
+    ca-certificates \
     jq \
     tree \
     ripgrep \
@@ -163,10 +164,15 @@ else
     git -C "$HOME/.pyenv/plugins/python-build" pull --ff-only 2>/dev/null || true
 fi
 
-# ─── 9. VS Code（純 Linux のみインストール。WSL は Windows 側の VS Code を使用）──
+# ─── 9. VS Code ──────────────────────────────────────────
+# 純 Linux: apt でインストールし、拡張機能を一括導入
+# WSL:      VS Code は Windows 側にインストールする運用のため apt インストールしない
+#           WSL 拡張機能（Remote Development）は Windows の VS Code に手動インストールが必要
+#           参考: https://learn.microsoft.com/ja-jp/windows/wsl/tutorials/wsl-vscode
 EXTFILE="$DOTFILES_DIR/vscode/extensions.txt"
 
 if [[ "$IS_WSL" == false ]]; then
+    # 純 Linux: VS Code をインストール
     if ! command -v code &>/dev/null; then
         info "VS Code をインストールします..."
         sudo mkdir -p /etc/apt/keyrings
@@ -179,18 +185,13 @@ if [[ "$IS_WSL" == false ]]; then
     fi
     if [ -f "$EXTFILE" ]; then
         info "VS Code 拡張機能をインストールします..."
-        # WSL 拡張機能は純 Linux では不要のためスキップ
-        grep -v '^ms-vscode-remote.remote-wsl$' "$EXTFILE" \
+        # ms-vscode-remote.vscode-remote-extensionpack は純 Linux では不要のためスキップ
+        grep -v '^ms-vscode-remote\.vscode-remote-extensionpack$' "$EXTFILE" \
             | xargs -L 1 code --install-extension
     fi
 else
-    # WSL: Windows 側の VS Code から接続する運用。code が使えるときのみ拡張機能をインストール
-    if command -v code &>/dev/null && [ -f "$EXTFILE" ]; then
-        info "VS Code 拡張機能をインストールします（WSL モード）..."
-        xargs -L 1 code --install-extension < "$EXTFILE"
-    else
-        info "code コマンドが見つかりません。VS Code 拡張機能のインストールをスキップします。"
-    fi
+    info "WSL 環境のため VS Code インストールをスキップします。"
+    info "Windows 側の VS Code に Remote Development 拡張機能パックをインストールしてください。"
 fi
 
 # ─── 完了 ──────────────────────────────────────────────
@@ -205,4 +206,13 @@ echo ""
 echo " オプション（必要に応じて）:"
 echo "   bash install/cli-tools/install-claude-code.sh  # Claude Code"
 echo "   bash install/cli-tools/install-gemini-cli.sh   # Gemini CLI"
+echo ""
+if [[ "$IS_WSL" == true ]]; then
+echo " WSL 向け VS Code セットアップ（Windows 側で実施）:"
+echo "   1. VS Code for Windows をインストール"
+echo "      https://code.visualstudio.com/download"
+echo "   2. Remote Development 拡張機能パックをインストール"
+echo "      ms-vscode-remote.vscode-remote-extensionpack"
+echo "   3. WSL ターミナルで 'code .' を実行して接続"
+fi
 echo "════════════════════════════════════════════════"

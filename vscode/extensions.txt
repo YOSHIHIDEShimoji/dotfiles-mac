@@ -1,4 +1,4 @@
-ms-vscode-remote.remote-wsl
+ms-vscode-remote.vscode-remote-extensionpack
 anthropic.claude-code
 github.copilot
 github.copilot-chat
