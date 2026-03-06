@@ -1,0 +1,45 @@
+# Aptfile
+# apt でインストールするパッケージリスト
+# macOS の Brewfile に相当する Linux/WSL 版パッケージ定義
+#
+# セクション:
+#   [common] — WSL・純 Linux 両方にインストール
+#   [linux]  — 純 Linux にのみインストール（GUI アプリ等）
+#   [wsl]    — WSL にのみインストール
+#
+# 特殊リポジトリが必要なパッケージは bootstrap-linux.sh がリポジトリを自動追加する:
+#   eza          → deb.gierens.de
+#   ghostty      → apt.ghostty.org
+#   code         → packages.microsoft.com
+#   google-chrome-stable → dl.google.com
+
+[common]
+git
+curl
+wget
+ca-certificates
+jq
+tree
+ripgrep
+fd-find
+fzf
+bat
+zsh
+zsh-autosuggestions
+zsh-syntax-highlighting
+trash-cli
+nodejs
+npm
+# eza: 公式 deb リポジトリ経由（bootstrap が自動追加）
+eza
+
+[linux]
+# ghostty: apt.ghostty.org リポジトリ経由（bootstrap が自動追加）
+ghostty
+# VS Code: packages.microsoft.com リポジトリ経由（bootstrap が自動追加）
+code
+# Google Chrome: dl.google.com リポジトリ経由（bootstrap が自動追加）
+google-chrome-stable
+
+[wsl]
+# WSL 専用パッケージ（現時点では不要 — GUI アプリは Windows 側で管理）

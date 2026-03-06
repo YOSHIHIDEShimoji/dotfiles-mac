@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # bootstrap-linux.sh
 # Linux / WSL 向けセットアップスクリプト
-# macOS の bootstrap.sh をベースに、apt 対応・Linux パス構成に書き換えた専用版。
-# 前提: デフォルトシェルが zsh に変更済みであること。
-# 実行前に: sudo chsh -s $(which zsh) $USER
+# インストール対象パッケージは install/Aptfile で管理（macOS の Brewfile に相当）
 
 set -e
 
@@ -21,15 +19,88 @@ error() { echo "[ERROR] $*" >&2; exit 1; }
 IS_WSL=false
 [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=true
 
-# ─── 1. zsh のインストール確認 ───────────────────────────
-info "zsh の確認..."
+# ─── Aptfile 読み込み ────────────────────────────────────
+# [common], [linux], [wsl] セクションから対応プラットフォームのパッケージを取得する
+get_packages() {
+    local target="$1"
+    local section="" line
+    local aptfile="$DOTFILES_DIR/install/Aptfile"
+    [[ -f "$aptfile" ]] || return
+
+    while IFS= read -r line; do
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+        if [[ "$line" =~ ^\[([a-z-]+)\]$ ]]; then
+            section="${BASH_REMATCH[1]}"
+            continue
+        fi
+        [[ "$section" == "$target" ]] && echo "$line"
+    done < "$aptfile"
+}
+
+mapfile -t common_pkgs   < <(get_packages "common")
+if [[ "$IS_WSL" == true ]]; then
+    mapfile -t platform_pkgs < <(get_packages "wsl")
+else
+    mapfile -t platform_pkgs < <(get_packages "linux")
+fi
+all_pkgs=("${common_pkgs[@]}" "${platform_pkgs[@]}")
+
+# ─── 1. 特殊リポジトリのセットアップ ────────────────────
+# Aptfile に記載されたパッケージのうち公式 apt に含まれないものはリポジトリを事前追加する
+info "追加リポジトリを確認します..."
+sudo mkdir -p /etc/apt/keyrings
+
+for pkg in "${all_pkgs[@]}"; do
+    case "$pkg" in
+        eza)
+            if ! apt-cache show eza &>/dev/null 2>&1; then
+                info "eza: 公式 deb リポジトリを追加します..."
+                wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
+                    | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+                echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" \
+                    | sudo tee /etc/apt/sources.list.d/gierens.list
+                sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+            fi
+            ;;
+        ghostty)
+            if ! apt-cache show ghostty &>/dev/null 2>&1; then
+                info "ghostty: apt.ghostty.org リポジトリを追加します..."
+                curl -fsSL https://apt.ghostty.org/gpg.key \
+                    | sudo gpg --dearmor -o /etc/apt/keyrings/ghostty-archive-keyring.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/ghostty-archive-keyring.gpg] https://apt.ghostty.org/ any main" \
+                    | sudo tee /etc/apt/sources.list.d/ghostty.list
+            fi
+            ;;
+        code)
+            if ! apt-cache show code &>/dev/null 2>&1; then
+                info "VS Code: packages.microsoft.com リポジトリを追加します..."
+                wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
+                    | sudo gpg --dearmor -o /etc/apt/keyrings/packages.microsoft.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
+                    | sudo tee /etc/apt/sources.list.d/vscode.list
+            fi
+            ;;
+        google-chrome-stable)
+            if ! apt-cache show google-chrome-stable &>/dev/null 2>&1; then
+                info "Google Chrome: dl.google.com リポジトリを追加します..."
+                wget -qO- https://dl.google.com/linux/linux_signing_key.pub \
+                    | sudo gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" \
+                    | sudo tee /etc/apt/sources.list.d/google-chrome.list
+            fi
+            ;;
+    esac
+done
+
+# ─── 2. zsh の確認（chsh 前に確保）─────────────────────────
+# zsh は [common] に含まれるが、chsh より前に確実に入れる
 if ! command -v zsh &>/dev/null; then
-    info "zsh が見つかりません。インストールします..."
+    info "zsh が見つかりません。事前にインストールします..."
     sudo apt-get update -y
     sudo apt-get install -y zsh
 fi
 
-# ─── 2. デフォルトシェルを zsh に変更 ─────────────────────
+# ─── 3. デフォルトシェルを zsh に変更 ───────────────────────
 ZSH_PATH="$(which zsh)"
 if [ "$SHELL" != "$ZSH_PATH" ]; then
     info "デフォルトシェルを zsh に変更します: $ZSH_PATH"
@@ -39,32 +110,12 @@ else
     info "デフォルトシェルはすでに zsh です。"
 fi
 
-# ─── 3. 必須パッケージのインストール ────────────────────────
-info "必須パッケージをインストールします..."
+# ─── 4. Aptfile のパッケージを一括インストール ────────────────
+info "パッケージをインストールします: ${all_pkgs[*]}"
 sudo apt-get update -y
-sudo apt-get install -y \
-    git \
-    curl \
-    wget \
-    ca-certificates \
-    jq \
-    tree \
-    ripgrep \
-    fd-find \
-    fzf \
-    bat \
-    zsh-autosuggestions \
-    zsh-syntax-highlighting \
-    trash-cli \
-    nodejs \
-    npm
+sudo apt-get install -y "${all_pkgs[@]}"
 
-# tldr（npm 経由）
-if ! command -v tldr &>/dev/null; then
-    info "tldr をインストールします..."
-    sudo npm install -g tldr
-fi
-
+# ─── 5. インストール後のシンボリックリンク補完 ───────────────
 # fd は fd-find としてインストールされるため、fd としてリンクを張る
 if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
     mkdir -p "$HOME/.local/bin"
@@ -79,38 +130,13 @@ if command -v batcat &>/dev/null && ! command -v bat &>/dev/null; then
     info "bat -> batcat のシンボリックリンクを作成しました。"
 fi
 
-# ─── 3b. eza のインストール（apt未収録の場合は公式 deb リポジトリを追加）──────
-if ! command -v eza &>/dev/null; then
-    if apt-cache show eza &>/dev/null 2>&1; then
-        sudo apt-get install -y eza
-    else
-        info "eza を公式リポジトリ経由でインストールします..."
-        sudo mkdir -p /etc/apt/keyrings
-        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
-            | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" \
-            | sudo tee /etc/apt/sources.list.d/gierens.list
-        sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
-        sudo apt-get update -y
-        sudo apt-get install -y eza
-    fi
+# ─── 6. npm パッケージ ──────────────────────────────────────
+if ! command -v tldr &>/dev/null; then
+    info "tldr をインストールします..."
+    sudo npm install -g tldr
 fi
 
-# ─── 3c. ghostty のインストール（純 Linux のみ）─────────────────────────────
-if [[ "$IS_WSL" == false ]]; then
-    if ! command -v ghostty &>/dev/null; then
-        info "ghostty をインストールします..."
-        sudo mkdir -p /etc/apt/keyrings
-        curl -fsSL https://apt.ghostty.org/gpg.key \
-            | sudo gpg --dearmor -o /etc/apt/keyrings/ghostty-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/ghostty-archive-keyring.gpg] https://apt.ghostty.org/ any main" \
-            | sudo tee /etc/apt/sources.list.d/ghostty.list
-        sudo apt-get update -y
-        sudo apt-get install -y ghostty
-    fi
-fi
-
-# ─── 4. シンボリックリンクの作成 ─────────────────────────
+# ─── 7. シンボリックリンクの作成 ─────────────────────────
 link_from_prop() {
     dir="$1"
     prop="$DOTFILES_DIR/$dir/links.prop"
@@ -118,7 +144,6 @@ link_from_prop() {
     [ -f "$prop" ] || return
 
     while IFS= read -r line; do
-        # 空行・コメントをスキップ
         [[ -z "$line" || "$line" =~ ^# ]] && continue
 
         src=$(echo "$line" | awk -F'->' '{print $1}' | xargs)
@@ -149,19 +174,19 @@ if [[ "$IS_WSL" == false ]]; then
     link_from_prop ghostty
 fi
 
-# ─── 6. starship の設定 ──────────────────────────────────
+# ─── 8. starship のインストール ─────────────────────────────
 if ! command -v starship &>/dev/null; then
-    info "starship を手動インストールします..."
+    info "starship をインストールします..."
     curl -sS https://starship.rs/install.sh | sh -s -- --yes
 fi
 
-# ─── 7. zoxide のインストール確認 ────────────────────────
+# ─── 9. zoxide のインストール ───────────────────────────────
 if ! command -v zoxide &>/dev/null; then
-    info "zoxide を手動インストールします..."
+    info "zoxide をインストールします..."
     curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 fi
 
-# ─── 8. pyenv のセットアップ ─────────────────────────────
+# ─── 10. pyenv のセットアップ ───────────────────────────────
 if [ ! -d "$HOME/.pyenv" ]; then
     info "pyenv をインストールします..."
     curl https://pyenv.run | bash
@@ -171,26 +196,14 @@ else
     git -C "$HOME/.pyenv/plugins/python-build" pull --ff-only 2>/dev/null || true
 fi
 
-# ─── 9. VS Code ──────────────────────────────────────────
-# 純 Linux: apt でインストールし、拡張機能を一括導入
+# ─── 11. VS Code 拡張機能（純 Linux のみ）──────────────────
+# 純 Linux: Aptfile の [linux] に code を追加すれば apt でインストール済み
 # WSL:      VS Code は Windows 側にインストールする運用のため apt インストールしない
-#           WSL 拡張機能（Remote Development）は Windows の VS Code に手動インストールが必要
 #           参考: https://learn.microsoft.com/ja-jp/windows/wsl/tutorials/wsl-vscode
 EXTFILE="$DOTFILES_DIR/vscode/extensions.txt"
 
 if [[ "$IS_WSL" == false ]]; then
-    # 純 Linux: VS Code をインストール
-    if ! command -v code &>/dev/null; then
-        info "VS Code をインストールします..."
-        sudo mkdir -p /etc/apt/keyrings
-        wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
-            | sudo gpg --dearmor -o /etc/apt/keyrings/packages.microsoft.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
-            | sudo tee /etc/apt/sources.list.d/vscode.list
-        sudo apt-get update -y
-        sudo apt-get install -y code
-    fi
-    if [ -f "$EXTFILE" ]; then
+    if command -v code &>/dev/null && [ -f "$EXTFILE" ]; then
         info "VS Code 拡張機能をインストールします..."
         # ms-vscode-remote.vscode-remote-extensionpack は純 Linux では不要のためスキップ
         grep -v '^ms-vscode-remote\.vscode-remote-extensionpack$' "$EXTFILE" \

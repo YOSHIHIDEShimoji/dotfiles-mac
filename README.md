@@ -77,6 +77,7 @@ dotfiles-linux/
 │   └── links.prop            # シンボリックリンク定義
 ├── install/                  # インストール関連
 │   ├── bootstrap-linux.sh    # Linux/WSL セットアップスクリプト
+│   ├── Aptfile               # apt パッケージリスト（macOS の Brewfile に相当）
 │   └── cli-tools/            # CLI ツールインストールスクリプト
 │       ├── install-claude-code.sh
 │       ├── install-gemini-cli.sh
@@ -94,16 +95,16 @@ dotfiles-linux/
 
 `install/bootstrap-linux.sh` は以下の処理を順に実行します:
 
-1. **zsh のインストール確認** — 未インストールの場合 `apt` でインストール
-2. **デフォルトシェルの変更** — `chsh -s $(which zsh)` でシェルを変更
-3. **必須パッケージのインストール** — git, curl, fzf, bat, zsh-autosuggestions, zsh-syntax-highlighting, trash-cli 等を `apt` でインストール
-   - `eza` — 公式 deb リポジトリ経由でインストール
-   - `ghostty` — 純 Linux のみ、公式リポジトリ経由でインストール
-4. **シンボリックリンク作成** — `zsh/links.prop`, `git/links.prop`（純 Linux は `ghostty/links.prop` も）に従いリンク
-5. **starship** — curl スクリプトでインストール
-6. **zoxide** — curl スクリプトでインストール
-7. **pyenv** — curl スクリプトでインストール
-8. **VS Code** — 純 Linux: `apt` でインストール後に拡張機能を一括導入 / WSL: Windows 側に手動インストール
+1. **`Aptfile` 読み込み** — `[common]` + `[linux]` or `[wsl]` のパッケージリストを構築
+2. **特殊リポジトリのセットアップ** — eza / ghostty / VS Code / Chrome など公式 apt 未収録のものはリポジトリを自動追加
+3. **zsh 確認** — 未インストールの場合 `apt` で先行インストール
+4. **デフォルトシェルの変更** — `chsh -s $(which zsh)`
+5. **パッケージ一括インストール** — `apt-get install -y` で Aptfile のパッケージを全件インストール
+6. **シンボリックリンク補完** — `fd`（fd-find）、`bat`（batcat）のエイリアスリンク作成
+7. **npm パッケージ** — `tldr`
+8. **dotfiles シンボリックリンク作成** — `zsh/links.prop`, `git/links.prop`（純 Linux は `ghostty/links.prop` も）
+9. **starship / zoxide / pyenv** — 各 curl スクリプトでインストール
+10. **VS Code 拡張機能** — 純 Linux: `vscode/extensions.txt` から一括インストール / WSL: スキップ
 
 ## OS 判定の仕組み
 
@@ -211,6 +212,40 @@ pip install inquirer
 # ワードリストの取得（約140MB、.gitignore対象）
 bash install/setup-john-wordlists.sh
 ```
+
+## Aptfile のカスタマイズ
+
+`install/Aptfile` が apt でインストールするパッケージを管理します（macOS の `Brewfile` に相当）。
+
+```
+[common]   — WSL・純 Linux 両方にインストール
+[linux]    — 純 Linux のみ（GUI アプリ等）
+[wsl]      — WSL のみ
+```
+
+### パッケージを追加する
+
+```bash
+# 例: pure Linux に vlc を追加したい場合
+# install/Aptfile の [linux] セクションに追記
+vlc
+
+# 再実行（冪等性あり、インストール済みはスキップ）
+bash install/bootstrap-linux.sh
+```
+
+### 特殊リポジトリが必要なパッケージを追加する
+
+以下のパッケージは `bootstrap-linux.sh` がリポジトリを自動追加します:
+
+| パッケージ | リポジトリ |
+|-----------|-----------|
+| `eza` | deb.gierens.de |
+| `ghostty` | apt.ghostty.org |
+| `code` | packages.microsoft.com |
+| `google-chrome-stable` | dl.google.com |
+
+それ以外の特殊リポジトリが必要なパッケージは `bootstrap-linux.sh` の `case "$pkg"` に追記してください。
 
 ## VS Code 設定
 
