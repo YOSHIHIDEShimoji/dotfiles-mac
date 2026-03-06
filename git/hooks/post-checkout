@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# post-checkout hook: linux ブランチで作業中に main ブランチへの切り替えを警告
+
+# $3 = 1 はブランチの切り替え、0 はファイルの復元
+[[ "$3" != "1" ]] && exit 0
+
+new_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+if [[ "$new_branch" == "main" ]]; then
+    echo ""
+    echo "WARNING: dotfiles-linux は linux ブランチで作業してください。"
+    echo "  main ブランチの編集は ~/dotfiles-mac で行います。"
+    echo "  git checkout linux で戻ってください。"
+    echo ""
+fi

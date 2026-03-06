@@ -165,6 +165,11 @@ link_from_prop() {
     done < "$prop"
 }
 
+# ─── git フックの設定 ────────────────────────────────────────
+# main ブランチへの誤 checkout を警告する post-checkout フック
+git -C "$DOTFILES_DIR" config --local core.hooksPath "$DOTFILES_DIR/git/hooks"
+info "Git hooks を設定しました。"
+
 info "シンボリックリンクを作成します..."
 link_from_prop zsh
 link_from_prop git
