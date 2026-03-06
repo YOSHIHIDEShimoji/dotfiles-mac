@@ -165,11 +165,6 @@ link_from_prop() {
     done < "$prop"
 }
 
-# ─── git フックの設定 ────────────────────────────────────────
-# main ブランチへの誤 checkout を警告する post-checkout フック
-git -C "$DOTFILES_DIR" config --local core.hooksPath "$DOTFILES_DIR/git/hooks"
-info "Git hooks を設定しました。"
-
 info "シンボリックリンクを作成します..."
 link_from_prop zsh
 link_from_prop git
@@ -192,7 +187,18 @@ if ! command -v zoxide &>/dev/null; then
     curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 fi
 
-# ─── 10. pyenv のセットアップ ───────────────────────────────
+# ─── 10. git worktree で dotfiles-mac (main ブランチ) を追加 ─────────────────
+# ~/dotfiles-mac を worktree として追加することで、Linux/WSL からも
+# Mac 側の設定ファイルを直接編集できるようにする
+if [ ! -d "$HOME/dotfiles-mac" ]; then
+    info "~/dotfiles-mac worktree を追加します（main ブランチ）..."
+    git -C "$DOTFILES_DIR" worktree add "$HOME/dotfiles-mac" main
+    info "~/dotfiles-mac worktree を作成しました。"
+else
+    info "~/dotfiles-mac は既に存在します。worktree の追加をスキップします。"
+fi
+
+# ─── 11. pyenv のセットアップ ───────────────────────────────
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 
@@ -212,7 +218,7 @@ else
     warn "pyenv のインストールは完了しましたが、PATH の反映には新しいターミナルの起動が必要です。"
 fi
 
-# ─── 11. VS Code 拡張機能（純 Linux のみ）──────────────────
+# ─── 12. VS Code 拡張機能（純 Linux のみ）──────────────────
 # 純 Linux: Aptfile の [linux] に code を追加すれば apt でインストール済み
 # WSL:      VS Code は Windows 側にインストールする運用のため apt インストールしない
 #           参考: https://learn.microsoft.com/ja-jp/windows/wsl/tutorials/wsl-vscode
