@@ -53,5 +53,20 @@ alias gpl='git pull'
 alias myip='curl ifconfig.me'
 alias port='lsof -i -P -n'
 
-# リンク
-alias moodle='open -na "Google Chrome" --args --profile-directory="Profile 1" "https://moodle.gs.chiba-u.jp/moodle/my/"'
+# クリップボード（共通: copy / paste）
+if [[ "$(uname)" == "Darwin" ]]; then
+  alias copy='pbcopy'
+  alias paste='pbpaste'
+elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+  alias copy='clip.exe'
+  alias paste='powershell.exe -command "Get-Clipboard"'
+else
+  alias copy='xclip -selection clipboard'
+  alias paste='xclip -selection clipboard -o'
+fi
+
+# macOS専用エイリアス
+if [[ "$(uname)" == "Darwin" ]]; then
+  # Moodle（Chromeプロファイル指定）
+  alias moodle='open -na "Google Chrome" --args --profile-directory="Profile 1" "https://moodle.gs.chiba-u.jp/moodle/my/"'
+fi

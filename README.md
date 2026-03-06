@@ -197,18 +197,19 @@ dotfiles-mac/
 | `mkcd` | ディレクトリ作成と同時に移動 |
 | `cl` | ディレクトリ移動してls実行 |
 | `newtex` | LaTeXプロジェクトをテンプレートから作成 |
-| `activate` | Python venv有効化 |
 | `copyfile` | ファイル内容をクリップボードにコピー |
 | `copypath` | ファイルパスをクリップボードにコピー |
-| `awake` | システムスリープ防止 |
+| `awake` | システムスリープ防止（macOS専用） |
 | `gbd` | 現在のGitブランチを安全に削除 |
 | `ghopen` | 現在のディレクトリをGitHubで開く |
-| `update` | Homebrewパッケージを一括更新 |
-| `word` / `excel` / `powerpoint` | Office文書を新規作成して開く |
-| `lp` | 低電力モードを切り替える |
+| `update` | Homebrewパッケージを一括更新（macOS専用） |
+| `word` / `excel` / `powerpoint` | Office文書を新規作成して開く（macOS/WSL） |
+| `lp` | 低電力モードを切り替える（macOS専用） |
+| `o` | ファイル・URLを開く（macOS/WSL/Linux対応） |
 | `zsh_stats` | シェル使用統計 |
 | `rr` | Zsh設定の再読み込み |
-| `c` | ディレクトリ移動ユーティリティ |
+| `c` | Cファイルをコンパイルして実行 |
+| `cm` | Claudeでコミットメッセージを自動生成 |
 
 ### Gitエイリアス
 
@@ -235,9 +236,6 @@ dotfiles-mac/
 
 **Git短縮:**
 `g`, `gs`, `gco`, `gbr`, `gcm`, `gca`, `glast`, `glg`, `gdf`, `gdfc`, `gunstage`, `gundo`, `gpu`, `gpl`
-
-**Web検索 (`web_search` ベース):**
-`google`, `youtube`, `scholar`, `chatgpt`, `claudeai`, `grok`, `deepl`, `github`, `stackoverflow`, `reddit`, `ddg`, `wiki`, `news`, `image` など30以上
 
 **ネットワーク:**
 `myip`(グローバルIP表示), `port`(ポート確認)
@@ -340,6 +338,74 @@ dump
 ```
 
 `dump` コマンドは `install/Brewfile` と `vscode/extensions.txt` を現在の環境から自動更新し、コミットまで行います。
+
+## Linux/WSL 対応
+
+macOS をメイン環境としつつ、Linux / WSL でも同じシェル体験を得られるクロスプラットフォーム構成を採用しています。
+
+### リポジトリ・ブランチ構成
+
+| 環境 | 配置先 | ブランチ |
+|------|--------|---------|
+| macOS | `~/dotfiles-mac` | `main` |
+| Linux/WSL | `~/dotfiles-linux` | `linux` |
+
+**単一リポジトリ + `git worktree` で物理分離しています。**
+ブランチを切り替えずに両環境の設定を同時に管理できます。
+
+```
+# 構成イメージ
+~/dotfiles-mac    ← git worktree (main ブランチ) — macOS で使用
+~/dotfiles-linux  ← git worktree (linux ブランチ) — Linux/WSL で使用
+```
+
+### 設定ファイルのOS判定
+
+`zshrc`, `exports.sh`, `aliases.sh` はファイル内に OS 判定を持ち、プラットフォーム固有の処理を自動で切り替えます:
+
+```zsh
+if [[ "$(uname)" == "Darwin" ]]; then
+  # Mac 固有（Homebrew パス、pbcopy 等）
+elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+  # WSL 固有（clip.exe、explorer.exe 等）
+else
+  # 純 Linux 固有（xclip、xdg-open 等）
+fi
+```
+
+### 移植の運用フロー
+
+Mac 側で機能を追加・変更したら `/sync-to-linux` スキルで Linux ブランチに同期します:
+
+1. Mac 側で変更を main ブランチにコミット
+2. `/sync-to-linux` を実行
+3. 変更ごとに以下を選択:
+   - **A) dotfiles-linux に即時反映** — 移植対象の変更をファイルに適用
+   - **B) Mac専用として記録** — `platform-notes.md` に除外ルールを追記
+4. 確認後にコミット・プッシュ
+
+### 移植ルール
+
+`platform-notes.md`（リポジトリルート）が移植の除外ルールを定義します。
+
+**Mac専用（移植しない）:** `ghostty/`, `karabiner/`, `LaunchAgents/`, `scripts/bookmark/`, `install/Brewfile`, `awake` 関数（`caffeinate` 依存）, `lp` 関数（`pmset` 依存）等
+
+**WSL のみ移植（純 Linux は除外）:** `word` / `excel` / `powerpoint` 関数（Windows アプリを `powershell.exe` 経由で起動）
+
+### Linux/WSL セットアップ
+
+```bash
+# 前提: デフォルトシェルを zsh に変更済みであること
+# sudo chsh -s $(which zsh) $USER && ログアウト → 再ログイン
+
+git clone -b linux git@github.com:YOSHIHIDEShimoji/dotfiles-mac.git ~/dotfiles-linux
+cd ~/dotfiles-linux
+bash install/bootstrap-linux.sh
+```
+
+詳細は [linux ブランチの README](https://github.com/YOSHIHIDEShimoji/dotfiles-mac/blob/linux/README.md) を参照してください。
+
+---
 
 ## 作者
 

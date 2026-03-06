@@ -1,7 +1,7 @@
 # PowerPoint で開く
 powerpoint() {
 	local filepath="$1"
-	local template="$HOME/dotfiles-mac/templates/empty.pptx"
+	local template="$DOTFILES/templates/empty.pptx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: powerpoint [path]"
@@ -10,5 +10,12 @@ powerpoint() {
 
 	[[ "$filepath" != *.pptx ]] && filepath="${filepath}.pptx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
-	open -a "Microsoft PowerPoint" "$filepath"
+
+	if [[ "$(uname)" == "Darwin" ]]; then
+		open -a "Microsoft PowerPoint" "$filepath"
+	elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+		local winpath
+		winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
+		powershell.exe -c "Start-Process '$winpath'"
+	fi
 }

@@ -50,3 +50,44 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 - **新しいシンボリックリンク**: 該当する `links.prop` ファイルにエントリを追加。`bootstrap.sh` が残りを処理する。
 - **新しい Homebrew パッケージ**: `install/Brewfile` に追加（CLI は `brew "name"`、GUI は `cask "name"`）。
 - **Git デフォルトブランチ**: `main`。push 時に自動で upstream を設定（`push.autoSetupRemote = true`）。
+
+---
+
+## クロスプラットフォーム運用（Linux/WSL対応）
+
+### リポジトリ・ブランチ構成
+
+| 環境 | 配置先 | ブランチ |
+|------|--------|---------|
+| macOS | `~/dotfiles-mac` | `main` |
+| Linux/WSL | `~/dotfiles-linux` | `linux` |
+
+`git worktree` で物理的に分離済み。ブランチ切り替えは不要。
+
+### 移植ルール
+
+`platform-notes.md`（リポジトリルート）が移植の除外ルールを定義している。
+変更が Mac 専用かどうか迷ったら、必ずこのファイルを参照すること。
+
+**基本方針:**
+- macOS 固有の機能（`caffeinate`, `pmset`, `open -a`, Homebrew 等）は Linux に移植しない
+- `ghostty/`, `karabiner/`, `LaunchAgents/`, `scripts/bookmark/` はMac専用ディレクトリ
+- `word`/`excel`/`powerpoint` 関数は WSL にのみ移植（純 Linux には不要）
+- OS 差異は `if [[ "$(uname)" == "Darwin" ]]; then ... elif [[ -n "$WSL_DISTRO_NAME" ]]; then ... else ... fi` で吸収
+
+### Linux/WSLへの同期
+
+Mac で機能を追加・変更したら `/sync-to-linux` スキルで linux ブランチに移植する:
+1. `/sync-to-linux` を実行
+2. 変更の分類（移植可能 / Mac専用 / 要OS判定）を確認
+3. A) dotfiles-linux に即時反映 / B) Mac専用として platform-notes.md に記録
+
+コミット・プッシュは必ずユーザー確認後に実行する。
+
+### Linux セットアップ
+
+Linux/WSL 環境でのセットアップは `install/bootstrap-linux.sh` を使用:
+```bash
+# 前提: chsh -s $(which zsh) でデフォルトシェルを変更済みであること
+bash install/bootstrap-linux.sh
+```

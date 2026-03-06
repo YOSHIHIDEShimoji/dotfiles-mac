@@ -1,4 +1,4 @@
-ZDOTDIR=~/dotfiles-mac/zsh
+ZDOTDIR="${ZDOTDIR:-$HOME/dotfiles-mac/zsh}"
 
 # basic settings
 source $ZDOTDIR/exports.sh
@@ -11,20 +11,24 @@ for f in $FUNCTIONS_DIR/*(.N); do
   autoload -Uz "${f:t}"
 done
 
-# zsh-completions
-fpath=($(brew --prefix)/share/zsh-completions $fpath)
-
-# complement
-autoload -Uz compinit && compinit
-
-# zsh-autosuggestions
-source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+# プラグイン・補完（OS判定）
+if [[ "$(uname)" == "Darwin" ]]; then
+  # macOS: Homebrew 経由のプラグイン
+  fpath=($(brew --prefix)/share/zsh-completions $fpath)
+  autoload -Uz compinit && compinit
+  source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+else
+  # Linux/WSL: apt 経由のプラグイン
+  autoload -Uz compinit && compinit
+  [[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+    source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+  [[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
+    source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
 
 # themes
 eval "$(starship init zsh)"
-
-# zsh-syntax-highlighting
-source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
 # History search with arrow keys
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search

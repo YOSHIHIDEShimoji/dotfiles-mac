@@ -1,7 +1,7 @@
 # Word で開く
 word() {
 	local filepath="$1"
-	local template="$HOME/dotfiles-mac/templates/empty.docx"
+	local template="$DOTFILES/templates/empty.docx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: word [path]"
@@ -10,5 +10,13 @@ word() {
 
 	[[ "$filepath" != *.docx ]] && filepath="${filepath}.docx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
-	open -a "Microsoft Word" "$filepath"
+
+	if [[ "$(uname)" == "Darwin" ]]; then
+		open -a "Microsoft Word" "$filepath"
+	elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+		# WSL: Windows の Word で開く
+		local winpath
+		winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
+		powershell.exe -c "Start-Process '$winpath'"
+	fi
 }
