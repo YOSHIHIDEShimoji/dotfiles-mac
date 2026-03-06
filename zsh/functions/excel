@@ -1,7 +1,7 @@
 # Excel で開く
 excel() {
 	local filepath="$1"
-	local template="$DOTFILES/templates/empty.xlsx"
+	local template="$HOME/dotfiles-mac/templates/empty.xlsx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: excel [path]"
@@ -10,12 +10,5 @@ excel() {
 
 	[[ "$filepath" != *.xlsx ]] && filepath="${filepath}.xlsx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
-
-	if [[ "$(uname)" == "Darwin" ]]; then
-		open -a "Microsoft Excel" "$filepath"
-	elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-		local winpath
-		winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
-		powershell.exe -c "Start-Process '$winpath'"
-	fi
+	open -a "Microsoft Excel" "$filepath"
 }

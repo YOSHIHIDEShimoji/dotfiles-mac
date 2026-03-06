@@ -1,41 +1,32 @@
-# OS判定
-if [[ "$(uname)" == "Darwin" ]]; then
-  export DOTFILES="$HOME/dotfiles-mac"
-elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-  export DOTFILES="$HOME/dotfiles-linux"
-else
-  export DOTFILES="$HOME/dotfiles-linux"
-fi
-
-# 基本PATH
+# macOS
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-# Claude Code / その他 ~/.local/bin
+# VSCode CLI
+export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
+
+# tex path
+export PATH="/Library/TeX/texbin:$PATH"
+
+# Homebrew
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+
+# Java
+export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+
+# Claude Code
 export PATH="$HOME/.local/bin:$PATH"
 
-# macOS固有PATH
-if [[ "$(uname)" == "Darwin" ]]; then
-  # Homebrew (Apple Silicon)
-  export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-
-  # VSCode CLI
-  export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
-
-  # MacTeX
-  export PATH="/Library/TeX/texbin:$PATH"
-
-  # Java (Homebrew)
-  export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+# dotfiles-mac/scripts 配下のサブディレクトリ以下全てに PATH を通し、実行権限を与える。
+if [ -d "$HOME/dotfiles-mac/scripts" ]; then
+    export PATH="$PATH:$HOME/dotfiles-mac/scripts"
+    for dir in $HOME/dotfiles-mac/scripts/*(/); do
+        export PATH="$PATH:$dir"
+    done
 fi
-
-# dotfiles/scripts 配下のサブディレクトリを PATH に追加し実行権限を付与
-if [ -d "$DOTFILES/scripts" ]; then
-  export PATH="$PATH:$DOTFILES/scripts"
-  for dir in "$DOTFILES"/scripts/*/; do
-    [[ -d "$dir" ]] && export PATH="$PATH:$dir"
-  done
-  chmod -R +x "$DOTFILES/scripts/"
-fi
+chmod -R +x ~/dotfiles-mac/scripts/
 
 # 重複除去
 typeset -U path PATH
+
+# 変数設定
+export DOTFILES="$HOME/dotfiles-mac"
