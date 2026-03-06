@@ -65,7 +65,7 @@ dotfiles-linux/
 │   └── links.prop            # シンボリックリンク定義
 ├── zsh/                      # Zsh 設定
 │   ├── zshrc                 # メインの Zsh 設定（OS 判定あり）
-│   ├── zshenv                # 環境変数（ZDOTDIR 設定）
+│   ├── zshenv                # 環境変数（pyenv PATH 等）
 │   ├── aliases.sh            # エイリアス定義（OS 判定あり）
 │   ├── exports.sh            # PATH・環境変数（OS 判定あり）
 │   ├── starship.toml         # Starship プロンプト設定
@@ -96,10 +96,14 @@ dotfiles-linux/
 
 1. **zsh のインストール確認** — 未インストールの場合 `apt` でインストール
 2. **デフォルトシェルの変更** — `chsh -s $(which zsh)` でシェルを変更
-3. **必須パッケージのインストール** — git, curl, fzf, zoxide, starship, zsh-autosuggestions, zsh-syntax-highlighting 等を `apt` でインストール
-4. **シンボリックリンク作成** — `zsh/links.prop`, `git/links.prop` に従い設定ファイルをリンク
-5. **zshenv の設定** — `ZDOTDIR=$HOME/dotfiles-linux/zsh` を `~/.zshenv` に書き込み
-6. **starship / zoxide / pyenv** — `apt` になければ手動インストール
+3. **必須パッケージのインストール** — git, curl, fzf, bat, zsh-autosuggestions, zsh-syntax-highlighting, trash-cli 等を `apt` でインストール
+   - `eza` — 公式 deb リポジトリ経由でインストール
+   - `ghostty` — 純 Linux のみ、公式リポジトリ経由でインストール
+4. **シンボリックリンク作成** — `zsh/links.prop`, `git/links.prop`（純 Linux は `ghostty/links.prop` も）に従いリンク
+5. **starship** — curl スクリプトでインストール
+6. **zoxide** — curl スクリプトでインストール
+7. **pyenv** — curl スクリプトでインストール
+8. **VS Code** — 純 Linux: `apt` でインストール後に拡張機能を一括導入 / WSL: Windows 側に手動インストール
 
 ## OS 判定の仕組み
 
@@ -121,8 +125,8 @@ Linux / WSL の差異は `aliases.sh` 内で自動吸収されます:
 
 | 機能 | WSL | 純 Linux |
 |------|-----|----------|
-| クリップボードコピー | `clip.exe` | `xclip -selection clipboard` |
-| クリップボードペースト | `powershell.exe -command "Get-Clipboard"` | `xclip -selection clipboard -o` |
+| クリップボードコピー | `/mnt/c/Windows/System32/clip.exe` | `xclip -selection clipboard` |
+| クリップボードペースト | `/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -command "Get-Clipboard"` | `xclip -selection clipboard -o` |
 | ファイルを開く | `explorer.exe` | `xdg-open` |
 
 ## カスタム関数
@@ -135,16 +139,16 @@ Linux 環境で利用可能な主な関数:
 | `cl` | ディレクトリ移動して ls 実行 |
 | `copyfile` | ファイル内容をクリップボードにコピー（OS 判定あり） |
 | `copypath` | ファイルパスをクリップボードにコピー（OS 判定あり） |
-| `gbd` | 現在の Git ブランチを安全に削除 |
 | `ghopen` | 現在のディレクトリを GitHub で開く（OS 判定あり） |
 | `rr` | Zsh 設定の再読み込み |
 | `c` | C ファイルをコンパイルして実行（OS 判定あり） |
 | `zsh_stats` | シェル使用統計 |
 | `o` | ファイル・URLを開く（WSL: explorer.exe/ブラウザ、Linux: xdg-open） |
+| `update` | apt パッケージを一括更新（Linux 専用） |
 | `cm` | Claude でコミットメッセージを自動生成 |
 | `newtex` | LaTeX プロジェクトをテンプレートから作成 |
 
-> **注意**: `awake`, `lp`, `update`, `dump`, `excel`, `word`, `powerpoint` は macOS/WSL 専用のため純 Linux では使用不可。
+> **注意**: `awake`, `lp` は macOS 専用のため Linux では使用不可。`word` / `excel` / `powerpoint` は WSL 専用（純 Linux では使用不可）。
 
 ## Zsh エイリアス
 
@@ -155,7 +159,7 @@ Linux 環境で利用可能な主な関数:
 `g`, `gs`, `gco`, `gbr`, `gcm`, `gca`, `glast`, `glg`, `gdf`, `gdfc`, `gunstage`, `gundo`, `gpu`, `gpl`
 
 **Linux/WSL 専用:**
-`o`（ファイル・URL を開く）, `pbcopy` / `pbpaste`（クリップボード）
+`o`（ファイル・URL を開く）, `copy` / `paste`（クリップボード — WSL: clip.exe / powershell.exe、純 Linux: xclip）
 
 **ネットワーク:**
 `myip`（グローバル IP 表示）, `port`（ポート確認）
