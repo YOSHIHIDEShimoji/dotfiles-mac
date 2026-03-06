@@ -1,3 +1,6 @@
+zsh/starship/current.toml
+zsh/starship/.current-name
+
 .zcompdump*
 
 .zsh_history
