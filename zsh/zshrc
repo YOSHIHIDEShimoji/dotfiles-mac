@@ -39,9 +39,14 @@ bindkey "^[[B" down-line-or-beginning-search
 setopt interactive_comments
 setopt no_beep
 
-# fzf
+# fzf（0.48未満は --zsh 非対応のためシステム統合ファイルを使う）
 if command -v fzf >/dev/null 2>&1; then
-  source <(fzf --zsh)
+  if fzf --zsh &>/dev/null; then
+    source <(fzf --zsh)
+  else
+    [[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+    [[ -f /usr/share/doc/fzf/examples/completion.zsh ]]   && source /usr/share/doc/fzf/examples/completion.zsh
+  fi
 fi
 
 # zoxide
