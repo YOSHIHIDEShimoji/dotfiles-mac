@@ -84,6 +84,7 @@ echo "Linking dotfiles..."
 # シンボリックリンクを作成
 link_from_prop zsh
 link_from_prop git
+link_from_prop tmux
 link_from_prop karabiner
 link_from_prop vscode
 link_from_prop ghostty
