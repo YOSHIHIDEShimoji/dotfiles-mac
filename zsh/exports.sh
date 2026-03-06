@@ -15,5 +15,10 @@ if [ -d "$DOTFILES/scripts" ]; then
 fi
 chmod -R +x "$DOTFILES/scripts/"
 
+# WSL: Windows の VS Code bin を PATH に追加（code コマンドを WSL から使うため）
+if [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+    export PATH="$PATH:/mnt/c/Users/gyshi/AppData/Local/Programs/Microsoft VS Code/bin"
+fi
+
 # 重複除去
 typeset -U path PATH
