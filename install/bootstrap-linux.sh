@@ -141,21 +141,6 @@ if [[ "$IS_WSL" == false ]]; then
     link_from_prop ghostty
 fi
 
-# ─── 5. zshenv のリンク（ZDOTDIR の設定）─────────────────
-# dotfiles-linux に clone した場合にパスが変わるため上書き
-ZSHENV_PATH="$HOME/.zshenv"
-ZSHENV_CONTENT='export ZDOTDIR="$HOME/dotfiles-linux/zsh"'
-
-if [ -f "$ZSHENV_PATH" ]; then
-    current=$(cat "$ZSHENV_PATH")
-    if [ "$current" != "$ZSHENV_CONTENT" ]; then
-        info "既存の .zshenv をバックアップ..."
-        cp "$ZSHENV_PATH" "${ZSHENV_PATH}.backup"
-    fi
-fi
-echo "$ZSHENV_CONTENT" > "$ZSHENV_PATH"
-info ".zshenv を設定しました: ZDOTDIR=$HOME/dotfiles-linux/zsh"
-
 # ─── 6. starship の設定 ──────────────────────────────────
 if ! command -v starship &>/dev/null; then
     info "starship を手動インストールします..."
