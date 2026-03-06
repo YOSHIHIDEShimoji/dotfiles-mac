@@ -51,13 +51,7 @@ c() {
     else
         # 指定がない場合は /tmp に保存
         # mktemp を使うことでファイル名の衝突を防ぐ
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS
-            out="$(mktemp /tmp/${name}.XXXXXX)"
-        else
-            # Linux
-            out="$(mktemp --tmpdir /tmp ${name}.XXXXXX)"
-        fi
+        out="$(mktemp /tmp/${name}.XXXXXX)"
         # コンパイル失敗時にゴミが残らないようトラップしても良いが、
         # 今回はシンプルに「コンパイル成功したら上書き」の挙動にするためそのまま
     fi
