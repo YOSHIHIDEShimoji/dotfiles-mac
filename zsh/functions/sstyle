@@ -1,0 +1,49 @@
+sstyle() {
+  local starship_dir="${ZDOTDIR}/starship"
+  local current="${starship_dir}/current.toml"
+  local state_file="${starship_dir}/.current-name"
+  local -a themes
+  themes=("${starship_dir}"/*.toml(N))
+  themes=("${(@)themes:#${current}}")
+
+  if (( ${#themes} == 0 )); then
+    echo "sstyle: テーマが見つかりません (${starship_dir}/*.toml)"
+    return 1
+  fi
+
+  local target
+  if [[ -n "$1" ]]; then
+    local arg="$1"
+    [[ "$arg" != *.toml ]] && arg="${arg}.toml"
+    target="${starship_dir}/${arg}"
+    if [[ ! -f "$target" ]]; then
+      echo "sstyle: '${1}' が見つかりません"
+      echo "利用可能:"
+      for t in "${themes[@]}"; do
+        echo "  ${${t##*/}%.toml}"
+      done
+      return 1
+    fi
+  else
+    # 現在のテーマの次へ（末尾なら先頭に戻る）
+    local current_name=""
+    [[ -f "$state_file" ]] && current_name="$(cat "$state_file")"
+    local next_idx=1
+    if [[ -n "$current_name" ]]; then
+      local i
+      for i in {1..${#themes}}; do
+        if [[ "${themes[$i]##*/}" == "${current_name}.toml" ]]; then
+          next_idx=$(( (i % ${#themes}) + 1 ))
+          break
+        fi
+      done
+    fi
+    target="${themes[$next_idx]}"
+  fi
+
+  cp "$target" "$current"
+  local name="${${target##*/}%.toml}"
+  echo "$name" > "$state_file"
+  echo "sstyle: ${name}"
+  exec zsh
+}
