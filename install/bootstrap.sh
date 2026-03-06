@@ -91,6 +91,10 @@ link_from_prop ghostty
 
 echo "Dotfiles linking done."
 
+# git フックの設定（linux ブランチへの誤 checkout を警告）
+git -C "$DOTFILES_DIR" config --local core.hooksPath "$DOTFILES_DIR/git/hooks"
+echo "Git hooks configured."
+
 # vscode 拡張機能のインストール
 if [ -f "$DOTFILES_DIR/vscode/extensions.txt" ] && command -v code &>/dev/null; then
     echo "Installing VS Code extensions..."
