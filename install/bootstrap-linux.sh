@@ -9,6 +9,9 @@ set -e
 
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
+# インストール先を即座に command -v で検出できるようにする
+export PATH="$HOME/.local/bin:$PATH"
+
 # ─── ヘルパー ───────────────────────────────────────────
 info()  { echo "[INFO]  $*"; }
 warn()  { echo "[WARN]  $*"; }
@@ -166,9 +169,13 @@ if ! command -v zoxide &>/dev/null; then
 fi
 
 # ─── 8. pyenv のセットアップ ─────────────────────────────
-if ! command -v pyenv &>/dev/null; then
-    info "pyenv を手動インストールします..."
+if [ ! -d "$HOME/.pyenv" ]; then
+    info "pyenv をインストールします..."
     curl https://pyenv.run | bash
+else
+    info "pyenv を更新します..."
+    git -C "$HOME/.pyenv" pull --ff-only
+    git -C "$HOME/.pyenv/plugins/python-build" pull --ff-only 2>/dev/null || true
 fi
 
 # ─── 9. VSCode 拡張機能（オプション）─────────────────────
