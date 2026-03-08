@@ -30,3 +30,6 @@ keybind = ctrl+shift+n=new_split:down
 # Close pane
 # =========================
 keybind = ctrl+shift+x=close_surface
+
+background-opacity = 0.80
+background-blur-radius = 20
