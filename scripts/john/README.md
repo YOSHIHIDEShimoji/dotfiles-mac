@@ -140,7 +140,42 @@ john --show hash.txt
 hashcat -m 10500 hash.txt scripts/john/wordlists/rockyou.txt
 ```
 
-Hashcat のルールファイルは `/opt/homebrew/opt/hashcat/share/doc/hashcat/rules/` にあります。
+### Hashcat でルールベース攻撃（末尾に記号・数字を付加）
+
+実際のパスワードは `password` → `password!` や `password1` のように末尾に記号や数字を加えたものが多い。Hashcat のルールファイルでこのパターンを網羅できます。
+
+ルールファイルのパス: `/opt/homebrew/opt/hashcat/share/doc/hashcat/rules/`
+
+```bash
+RULES=/opt/homebrew/opt/hashcat/share/doc/hashcat/rules
+
+# 末尾に記号（! " # $ % & など）を追加
+hashcat -m 10500 hash.txt scripts/john/wordlists/rockyou.txt -r $RULES/hybrid/append_s.rule
+
+# 末尾に数字（0〜9）を追加
+hashcat -m 10500 hash.txt scripts/john/wordlists/rockyou.txt -r $RULES/hybrid/append_d.rule
+
+# 末尾に数字＋記号を追加（組み合わせ）
+hashcat -m 10500 hash.txt scripts/john/wordlists/rockyou.txt -r $RULES/hybrid/append_ds.rule
+
+# 定番ルール集（大文字化・leet変換・末尾付加など一括）
+hashcat -m 10500 hash.txt scripts/john/wordlists/rockyou.txt -r $RULES/best66.rule
+
+# 複数ルールを重ねがけ（例: best66 + 記号付加）
+hashcat -m 10500 hash.txt scripts/john/wordlists/rockyou.txt -r $RULES/best66.rule -r $RULES/hybrid/append_s.rule
+```
+
+**ルールの仕組み（Hashcat ルール記法）:**
+
+| 記法 | 意味 | 例 |
+|------|------|----|
+| `$X` | 末尾に文字 X を追加 | `$!` → `password!` |
+| `^X` | 先頭に文字 X を追加 | `^1` → `1password` |
+| `u` | 全て大文字 | `PASSWORD` |
+| `l` | 全て小文字 | `password` |
+| `c` | 先頭だけ大文字 | `Password` |
+
+ルールを自作したい場合はテキストファイルに記法を1行ずつ書き、`-r yourule.rule` で指定します。
 
 ---
 
