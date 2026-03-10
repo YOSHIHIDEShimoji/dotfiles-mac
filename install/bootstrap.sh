@@ -3,6 +3,12 @@ set -e
 
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
+# ─── ログ設定 ───────────────────────────────────────────────
+LOG_FILE="/tmp/bootstrap-$(date +%Y%m%d-%H%M%S).log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+echo "ログを保存中: $LOG_FILE"
+trap 'echo "" >&2; echo "エラーが発生しました。ログを確認してください:" >&2; echo "  $LOG_FILE" >&2' ERR
+
 link_from_prop() {
 	dir="$1"
 	prop="$DOTFILES_DIR/$dir/links.prop"
