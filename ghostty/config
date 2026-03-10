@@ -31,5 +31,5 @@ keybind = ctrl+shift+n=new_split:down
 # =========================
 keybind = ctrl+shift+x=close_surface
 
-background-opacity = 0.80
-background-blur-radius = 20
+# background-opacity = 0.80
+# background-blur-radius = 20
