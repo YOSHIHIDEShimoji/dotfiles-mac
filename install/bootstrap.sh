@@ -135,3 +135,10 @@ echo ""
 echo " John/Hashcat ワードリスト (rockyou.txt, 約140MB):"
 echo "   bash install/setup-john-wordlists.sh"
 echo "════════════════════════════════════════════════"
+
+# ─── ウェルカムアニメーション ──────────────────────────────
+if command -v python3 &>/dev/null; then
+    tput smcup >/dev/tty
+    python3 "$DOTFILES_DIR/install/welcome.py" </dev/tty >/dev/tty 2>/dev/tty || true
+    tput rmcup >/dev/tty
+fi
