@@ -15,6 +15,12 @@ info()  { echo "[INFO]  $*"; }
 warn()  { echo "[WARN]  $*"; }
 error() { echo "[ERROR] $*" >&2; exit 1; }
 
+# ─── ログ設定 ───────────────────────────────────────────────
+LOG_FILE="/tmp/bootstrap-$(date +%Y%m%d-%H%M%S).log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+info "ログを保存中: $LOG_FILE"
+trap 'echo "" >&2; echo "エラーが発生しました。ログを確認してください:" >&2; echo "  $LOG_FILE" >&2' ERR
+
 # WSL 判定（スクリプト全体で使用）
 IS_WSL=false
 [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=true
