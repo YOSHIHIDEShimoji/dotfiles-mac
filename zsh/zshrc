@@ -42,13 +42,13 @@ if command -v fzf >/dev/null 2>&1; then
   source <(fzf --zsh)
 fi
 
-# zoxide
-if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh --cmd cd)"
-fi
-
 # pyenv
 if command -v pyenv >/dev/null 2>&1; then
   eval "$(pyenv init -)"
   eval "$(pyenv virtualenv-init -)"
+fi
+
+# zoxide（末尾に配置必須）
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh --cmd cd)"
 fi
