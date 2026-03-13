@@ -273,3 +273,6 @@ echo "      ms-vscode-remote.vscode-remote-extensionpack"
 echo "   3. WSL ターミナルで 'code .' を実行して接続"
 fi
 echo "════════════════════════════════════════════════"
+
+# ─── ウェルカム表示 ─────────────────────────────────────────
+zsh "$DOTFILES_DIR/install/welcome.sh"
