@@ -365,12 +365,12 @@ Mac 側で機能を追加・変更したら `/sync-to-linux` スキルで Linux 
 2. `/sync-to-linux` を実行
 3. 変更ごとに以下を選択:
    - **A) dotfiles-linux に即時反映** — 移植対象の変更をファイルに適用
-   - **B) Mac専用として記録** — `platform-notes.md` に除外ルールを追記
+   - **B) Mac専用として記録** — `docs/platform-notes.md` に除外ルールを追記
 4. 確認後にコミット・プッシュ
 
 ### 移植ルール
 
-`platform-notes.md`（リポジトリルート）が移植の除外ルールを定義します。
+`docs/platform-notes.md` が移植の除外ルールを定義します。
 
 **Mac専用（移植しない）:** `ghostty/`, `karabiner/`, `LaunchAgents/`, `scripts/bookmark/`, `install/Brewfile`, `awake` 関数（`caffeinate` 依存）, `lp` 関数（`pmset` 依存）等
 

@@ -69,7 +69,7 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 
 ### 移植ルール
 
-`platform-notes.md`（リポジトリルート）が移植の除外ルールを定義している。
+`docs/platform-notes.md` が移植の除外ルールを定義している。
 変更が Mac 専用かどうか迷ったら、必ずこのファイルを参照すること。
 
 **基本方針:**
@@ -83,7 +83,7 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 Mac で機能を追加・変更したら `/sync-to-linux` スキルで linux ブランチに移植する:
 1. `/sync-to-linux` を実行
 2. 変更の分類（移植可能 / Mac専用 / 要OS判定）を確認
-3. A) dotfiles-linux に即時反映 / B) Mac専用として platform-notes.md に記録
+3. A) dotfiles-linux に即時反映 / B) Mac専用として docs/platform-notes.md に記録
 
 コミット・プッシュは必ずユーザー確認後に実行する。
 

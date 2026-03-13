@@ -1,4 +1,4 @@
-# platform-notes.md
+# docs/platform-notes.md
 
 `/sync-to-linux` スキルが linux ブランチへの移植可否を判断するためのルール定義。
 
@@ -29,7 +29,7 @@
 - `scripts/ppdf/`
 - `scripts/bin/`
 - `templates/`
-- `platform-notes.md`
+- `docs/platform-notes.md`
 
 ---
 
