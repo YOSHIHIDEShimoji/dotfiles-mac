@@ -16,11 +16,11 @@ ms-vscode.cpptools
 ms-vscode.cpptools-extension-pack
 ms-vscode.cpptools-themes
 ms-vscode.remote-explorer
-openai.chatgpt
 redhat.java
 repreng.csv
 ritwickdey.liveserver
 streetsidesoftware.code-spell-checker
+tomoki1207.pdf
 vscjava.vscode-gradle
 vscjava.vscode-java-debug
 vscjava.vscode-java-dependency
