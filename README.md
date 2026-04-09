@@ -243,16 +243,18 @@ dotfiles-mac/
 
 ### PDFツール (ppdf/)
 
-PDF操作のためのコマンドラインツール群です。`qpdf`, `mupdf-tools`, `poppler`, `john`, `hashcat` 等に依存します。
+`qpdf`・`pdfjam`・`pikepdf`・`hashcat` 等を使ったPDF操作ツール群。ターミナルのどこからでもコマンド名だけで呼び出せる。
 
-| コマンド | 説明 |
+詳細なオプションや使用例は **[scripts/ppdf/README.md](scripts/ppdf/README.md)** を参照。
+
+| コマンド | 概要 |
 |---------|------|
-| `ppdf_unlock` | パスワード付きPDFのロック解除 |
-| `ppdf_crack` | PDFパスワードの解析 |
-| `ppdf_extract` | PDFから指定ページを抽出 |
-| `ppdf_split` | PDFを複数ファイルに分割 |
-| `ppdf_concatenate` | 複数PDFを結合 |
-| `ppdf_make_num` | PDFにページ番号を付与 |
+| `ppdf_unlock` | 暗号化解除（パスワード指定対応、クリーニング付き） |
+| `ppdf_crack` | パスワード解析（辞書・マスク・総当たり） |
+| `ppdf_extract` | 指定ページの抽出（odd/even指定対応） |
+| `ppdf_split` | 指定枚数ごとに分割（N-up処理オプション付き） |
+| `ppdf_concatenate` | ディレクトリ内PDFを結合（編集制限解除） |
+| `ppdf_make_num` | N-upレイアウト適用（複数ページを1枚にまとめる） |
 
 ### ブックマークスクリプト (bookmark/)
 
