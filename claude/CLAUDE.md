@@ -24,7 +24,8 @@
 
 ## Python環境管理
 
-- **必ずpyenvを使う**。生のシステムPythonや`pip install`（グローバル）は使わない
+- 簡単なプロジェクトなら仮想環境venvをつくる
+- **基本はpyenvを使う**。生のシステムPythonや`pip install`（グローバル）は使わない
 - プロジェクトごとに`pyenv virtualenv 3.11.9 <project-name>-3.11.9`で仮想環境を作る
 - `pyenv local <env-name>`で`.python-version`ファイルを生成する
 - ライブラリは仮想環境がアクティブな状態（`.python-version`参照）で`pip install`する
@@ -32,3 +33,4 @@
 ## 禁止事項
 
 - GitHubもContributionにclaude codeを含めない
+- グローバルの Python 環境を汚さない
