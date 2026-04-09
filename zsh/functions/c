@@ -1,7 +1,16 @@
 c() {
+    # -d をどこに書いても検出（事前スキャン）
+    local dry_run=0
+    local -a new_args=()
+    for arg in "$@"; do
+        [[ "$arg" == "-d" ]] && dry_run=1 || new_args+=("$arg")
+    done
+    set -- "${new_args[@]}"
+
     local time_opt=""
     local include_compile=0
-    local cc_flags=()
+    local compile_only=0
+    local -a cc_flags=()
     local explicit_out=""
     local format=""
 
@@ -11,57 +20,173 @@ c() {
             -p|-v) time_opt="$1"; shift ;;
             -f) time_opt="-f"; format="$2"; shift 2 ;;
             -T) include_compile=1; shift ;;
-            -o) 
-                # 出力先の手動指定 (-o) を検知
+            -C) compile_only=1; shift ;;
+            -o)
                 [[ -n "$2" ]] || { echo "missing arg for $1"; return 1; }
                 explicit_out="$2"
-                shift 2 
+                shift 2
                 ;;
             -D|-I)
                 [[ -n "$2" ]] || { echo "missing arg for $1"; return 1; }
                 cc_flags+=("$1$2")
                 shift 2
                 ;;
-            # コンパイルオプション群
             -D*|-I*|-O*|-W*|-std=*|-march=*|-mtune=*|-g|-ggdb|-fsanitize=*|-fno-*|-pthread)
                 cc_flags+=("$1")
                 shift
                 ;;
-            -- | -) shift; break ;; # - は標準入力等のためbreak
-            *) break ;;
+            -- | -) shift; break ;;
+            *)  break ;;
         esac
     done
 
+    # .c_local_flags の収集（$PWD → $HOME まで遡る）
+    local -a local_flags=()
+    local -a flags_sources=()
+    local dir="$PWD"
+    while true; do
+        if [[ -f "$dir/.c_local_flags" ]]; then
+            local -a file_flags=()
+            local has_reset=0
+            while IFS= read -r line || [[ -n "$line" ]]; do
+                [[ "$line" =~ ^[[:space:]]*# ]] && continue
+                [[ -z "${line//[[:space:]]/}" ]] && continue
+                if [[ "$line" == "!reset" ]]; then
+                    has_reset=1
+                    continue
+                fi
+                local -a tokens=()
+                read -rA tokens <<< "$line"
+                for token in "${tokens[@]}"; do
+                    [[ -z "$token" ]] && continue
+                    if [[ "$token" != -* ]]; then
+                        echo "[c] warning: invalid flag '$token' in $dir/.c_local_flags" >&2
+                        continue
+                    fi
+                    file_flags+=("$token")
+                done
+            done < "$dir/.c_local_flags"
+            # 親→子順になるよう先頭に挿入
+            flags_sources=("$dir/.c_local_flags" "${flags_sources[@]}")
+            local_flags=("${file_flags[@]}" "${local_flags[@]}")
+            [[ $has_reset -eq 1 ]] && break
+        fi
+        [[ "$dir" == "$HOME" || "$dir" == "/" ]] && break
+        dir="${dir:h}"
+    done
+
+    # フラグのマージ（local_flags + cc_flags、重複は CLI 優先で除去）
+    local -a all_flags=("${local_flags[@]}")
+    for f in "${cc_flags[@]}"; do
+        local -a new_all=()
+        for existing in "${all_flags[@]}"; do
+            [[ "$existing" != "$f" ]] && new_all+=("$existing")
+        done
+        all_flags=("${new_all[@]}" "$f")
+    done
+
+    # ソースファイルの収集（複数 .c 対応）
+    local -a src_files=()
+    while [[ $# -gt 0 && "$1" == *.c ]]; do
+        src_files+=("$(realpath "$1")")
+        shift
+    done
+
+    # ドライランモード
+    if [[ $dry_run -eq 1 ]]; then
+        for src_path in "${flags_sources[@]}"; do
+            echo "[c_local_flags] $src_path"
+            while IFS= read -r line || [[ -n "$line" ]]; do
+                [[ "$line" =~ ^[[:space:]]*# ]] && continue
+                [[ -z "${line//[[:space:]]/}" ]] && continue
+                [[ "$line" == "!reset" ]] && continue
+                local -a tokens=()
+                read -rA tokens <<< "$line"
+                for token in "${tokens[@]}"; do
+                    [[ -z "$token" || "$token" == -* ]] || continue
+                    [[ -n "$token" ]] && echo "  $token"
+                done
+            done < "$src_path"
+        done
+        echo "[cli flags]"
+        if [[ ${#cc_flags[@]} -eq 0 && -z "$explicit_out" ]]; then
+            echo "  (none)"
+        else
+            for f in "${cc_flags[@]}"; do
+                echo "  $f"
+            done
+            [[ -n "$explicit_out" ]] && echo "  -o $explicit_out"
+        fi
+        if [[ ${#src_files[@]} -gt 0 ]]; then
+            echo "[source]"
+            for s in "${src_files[@]}"; do
+                echo "  $(basename "$s")"
+            done
+        fi
+        return 0
+    fi
+
     # 入力ファイルチェック
-    if [[ ! "$1" == *.c ]]; then
-        echo "Usage: c [-p|-v|-f FORMAT|-T] [-o OUT] [-D...|-I...|-O...] file.c [args...]"
+    if [[ ${#src_files[@]} -eq 0 ]]; then
+        cat <<'USAGE'
+Usage: c [options] file.c [file2.c ...] [-- args...]
+
+Compile & run options:
+  -o OUT        出力バイナリのパスを指定（省略時は /tmp に一時生成）
+  -C            コンパイルのみ（実行しない）
+  -T            コンパイル時間も含めて計測
+
+Time options:
+  -p            実行時間を表示（/usr/bin/time デフォルト）
+  -v            詳細な実行リソースを表示（gtime -v）
+  -f FORMAT     カスタムフォーマットで時間計測（gtime -f）
+
+Compiler flags:
+  -O*, -W*, -std=*, -march=*, -mtune=*
+  -g, -ggdb, -fsanitize=*, -fno-*, -pthread
+  -D NAME, -I PATH
+
+Local flags:
+  -d            ドライラン: .c_local_flags と適用フラグを表示して終了
+                （どこに書いても認識される: c -d -O3 file.c, c -O3 -d file.c）
+USAGE
         return 1
     fi
 
-    local src="$(realpath "$1")"
-    shift # 残りは実行時の引数へ
-
-    local name="$(basename "${src%.c}")"
+    local name="$(basename "${src_files[1]%.c}")"
     local out=""
 
-    # 出力パスの決定ロジック
+    # 出力パスの決定
     if [[ -n "$explicit_out" ]]; then
-        # -o が指定された場合はそのパスに従う (カレントディレクトリ等)
         out="$explicit_out"
+    elif [[ $compile_only -eq 1 ]]; then
+        out="${name}.out"
     else
-        # 指定がない場合は /tmp に保存
-        # mktemp を使うことでファイル名の衝突を防ぐ
         out="$(mktemp /tmp/${name}.XXXXXX)"
-        # コンパイル失敗時にゴミが残らないようトラップしても良いが、
-        # 今回はシンプルに「コンパイル成功したら上書き」の挙動にするためそのまま
     fi
 
     # math.h の自動リンク
-    local compile_cmd=""
-    if grep -q '#[[:space:]]*include[[:space:]]*<math\.h>' "$src"; then
-        compile_cmd="cc ${cc_flags:+${(j: :)cc_flags}} \"$src\" -o \"$out\" -lm"
-    else
-        compile_cmd="cc ${cc_flags:+${(j: :)cc_flags}} \"$src\" -o \"$out\""
+    local lm_flag=""
+    for src in "${src_files[@]}"; do
+        if grep -q '#[[:space:]]*include[[:space:]]*<math\.h>' "$src"; then
+            lm_flag="-lm"
+            break
+        fi
+    done
+
+    # コンパイルコマンドを配列で組み立て（eval 不要、スペース入りパスも安全）
+    local -a compile_args=(cc)
+    [[ ${#all_flags[@]} -gt 0 ]] && compile_args+=("${all_flags[@]}")
+    compile_args+=("${src_files[@]}" -o "$out")
+    [[ -n "$lm_flag" ]] && compile_args+=("$lm_flag")
+    # -T モード用に文字列表現も保持
+    local compile_cmd="${(j: :)${compile_args[@]}}"
+
+    # -C: コンパイルのみ
+    if [[ $compile_only -eq 1 ]]; then
+        "${compile_args[@]}" || return 1
+        echo "compiled: $out"
+        return 0
     fi
 
     # タイム計測コマンドの選定
@@ -77,8 +202,7 @@ c() {
         time_opt="-l"
     fi
 
-    # コンパイルと実行
-    # 実行用のラッパー関数を定義して重複を避ける
+    # 実行用ラッパー
     run_binary() {
         if [[ -n "$time_opt" ]]; then
             local tmp_time="$(mktemp)"
@@ -87,7 +211,6 @@ c() {
             else
                 $TIME_CMD -o "$tmp_time" $time_opt "$@"
             fi
-            # 実行終了後にタイムを表示
             local ret=$?
             echo
             echo "======= TIME RESULT ======="
@@ -100,17 +223,10 @@ c() {
     }
 
     if [[ $include_compile -eq 1 ]]; then
-        # コンパイル時間も含めて計測する場合
-        # sh -c でまとめて渡す必要がある
         local shell_cmd="$compile_cmd && \"$out\""
-        # 引数 ($@) の展開が sh -c 内で複雑になるため、コンパイル時間計測モードでは
-        # 実行引数の扱いに注意が必要（簡易化のためここでは単純結合）
-        # ※厳密にやるなら配列展開が必要だが、今回は既存ロジックを踏襲
         run_binary sh -c "$shell_cmd $*"
     else
-        # コンパイルのみ先に実行
-        eval "$compile_cmd" || return 1
-        # 実行
+        "${compile_args[@]}" || return 1
         run_binary "$out" "$@"
     fi
 }
