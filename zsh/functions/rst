@@ -1,0 +1,55 @@
+# $ZDOTDIR/functions/rst
+# RStudioプロジェクトを初期化・起動する
+# 使い方: rst [path]
+rst() {
+  local target
+
+  # 1. パス解決
+  if [[ $# -eq 0 ]]; then
+    target="$PWD"
+  else
+    target="${1:a}"  # 絶対パスへ正規化（存在しないパスも可）
+  fi
+
+  # 2. ファイルとして既に存在する場合はエラー
+  if [[ -f "$target" ]]; then
+    echo "rst: Not a directory: $target" >&2
+    return 1
+  fi
+
+  # 3. ディレクトリが存在しない場合は作成
+  if [[ ! -d "$target" ]]; then
+    mkdir -p "$target" || {
+      echo "rst: Permission denied: $target" >&2
+      return 1
+    }
+  fi
+
+  # 4. RStudio インストール確認
+  if [[ ! -d "/Applications/RStudio.app" ]]; then
+    echo "rst: RStudio not found at /Applications/RStudio.app" >&2
+    return 1
+  fi
+
+  # 5. .Rproj ファイルの確認と生成
+  local rproj_file
+  rproj_file=$(find "$target" -maxdepth 1 -name "*.Rproj" 2>/dev/null | head -1)
+
+  if [[ -z "$rproj_file" ]]; then
+    local dirname="${target:t}"
+    rproj_file="${target}/${dirname}.Rproj"
+    local template="$HOME/dotfiles-mac/templates/template.Rproj"
+    if [[ -f "$template" ]]; then
+      cp "$template" "$rproj_file" || {
+        echo "rst: Permission denied: $rproj_file" >&2
+        return 1
+      }
+    else
+      echo "rst: Template not found: $template" >&2
+      return 1
+    fi
+  fi
+
+  # 6. RStudio で起動
+  open -a RStudio "$rproj_file"
+}
