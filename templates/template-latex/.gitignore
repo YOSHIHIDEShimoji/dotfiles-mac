@@ -9,5 +9,5 @@ out/
 *.pdf
 
 # テンプレの out ディレクトリは特例で追跡
-!templates/latex-sample/out/
-!templates/latex-sample/out/sample.pdf
+!templates/template-latex/out/
+!templates/template-latex/out/sample.pdf

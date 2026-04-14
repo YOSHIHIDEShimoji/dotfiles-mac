@@ -149,10 +149,10 @@ dotfiles-mac/
 ├── LaunchAgents/                        # macOS LaunchAgents
 │   └── com.yoshihide.setup_drive.plist  # Google Drive日次セットアップ
 └── templates/                           # ファイルテンプレート
-    ├── empty.docx                       # Word用テンプレート
-    ├── empty.xlsx                       # Excel用テンプレート
-    ├── empty.pptx                       # PowerPoint用テンプレート
-    └── latex-sample/                    # LaTeXサンプルプロジェクト
+    ├── template.docx                    # Word用テンプレート
+    ├── template.xlsx                    # Excel用テンプレート
+    ├── template.pptx                    # PowerPoint用テンプレート
+    └── template-latex/                  # LaTeXサンプルプロジェクト
         └── src/                         # sample.tex, title.tex
 ```
 

@@ -1,7 +1,7 @@
 # Word で開く
 word() {
 	local filepath="$1"
-	local template="$HOME/dotfiles-mac/templates/empty.docx"
+	local template="$HOME/dotfiles-mac/templates/template.docx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: word [path]"

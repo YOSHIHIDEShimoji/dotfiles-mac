@@ -1,7 +1,7 @@
 # PowerPoint で開く
 powerpoint() {
 	local filepath="$1"
-	local template="$HOME/dotfiles-mac/templates/empty.pptx"
+	local template="$HOME/dotfiles-mac/templates/template.pptx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: powerpoint [path]"
