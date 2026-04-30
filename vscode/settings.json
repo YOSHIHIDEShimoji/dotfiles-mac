@@ -11,8 +11,9 @@
     "github.copilot.enable": {
         "*": false
     },
-    "accessibility.signals.chatRequestSent": {"sound": "off"},
-    "accessibility.signals.chatResponsePending": {"sound": "off"},
+    "accessibility.signals.chatRequestSent": {
+        "sound": "off"
+    },
     "accessibility.signals.clear": {"sound": "off"},
     "accessibility.signals.lineHasFoldedArea": {"sound": "off"},
     "accessibility.signals.lineHasInlineSuggestion": {"sound": "off"},
@@ -43,5 +44,8 @@
     "explorer.confirmPasteNative": false,
     "git.confirmSync": false,
     "window.confirmSaveUntitledWorkspace": false,
-    "claudeCode.preferredLocation": "panel"
+    "claudeCode.preferredLocation": "panel",
+    "accessibility.signals.progress": {
+        "sound": "off"
+    }
 }

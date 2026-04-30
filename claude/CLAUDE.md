@@ -30,6 +30,17 @@
 - `pyenv local <env-name>`で`.python-version`ファイルを生成する
 - ライブラリは仮想環境がアクティブな状態（`.python-version`参照）で`pip install`する
 
+## pyenv 操作後のクリーンアップ
+
+`pyenv rehash` や `pyenv install` などを実行した場合、処理中断時にロックファイルが残留することがある。
+作業後は必ず以下を確認・削除すること：
+
+```
+rm -f ~/.pyenv/shims/.pyenv-shim
+```
+
+このファイルが残ったままだと、次回ターミナル起動時に `pyenv init -` がロック待ちで60秒フリーズする。
+
 ## 禁止事項
 
 - GitHubもContributionにclaude codeを含めない
