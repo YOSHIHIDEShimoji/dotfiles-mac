@@ -87,7 +87,9 @@ c() {
 
     # ソースファイルの収集（複数 .c 対応）
     local -a src_files=()
-    while [[ $# -gt 0 && "$1" == *.c ]]; do
+    while [[ $# -gt 0 ]]; do
+        [[ "$1" == "--" ]] && { shift; break; }
+        [[ "$1" == *.c ]] || break
         src_files+=("$(realpath "$1")")
         shift
     done
