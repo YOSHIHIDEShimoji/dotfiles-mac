@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
 	<key>Label</key>
 	<string>com.yoshihide.run_spotify_top50_archive</string>
 	<key>ProgramArguments</key>
@@ -11,13 +16,13 @@
 	<key>RunAtLoad</key>
 	<false/>
 	<key>StandardErrorPath</key>
-	<string>/tmp/com.yoshihide.run_spotify_top50_archive.err</string>
+	<string>/Users/yoshihide/Library/Logs/com.yoshihide.run_spotify_top50_archive.err</string>
 	<key>StandardOutPath</key>
-	<string>/tmp/com.yoshihide.run_spotify_top50_archive.out</string>
+	<string>/Users/yoshihide/Library/Logs/com.yoshihide.run_spotify_top50_archive.out</string>
 	<key>StartCalendarInterval</key>
 	<dict>
 		<key>Hour</key>
-		<integer>9</integer>
+		<integer>12</integer>
 		<key>Minute</key>
 		<integer>0</integer>
 	</dict>
