@@ -56,5 +56,5 @@ alias port='lsof -i -P -n'
 # リンク
 alias moodle='open -na "Google Chrome" --args --profile-directory="Profile 1" "https://moodle.gs.chiba-u.jp/moodle/my/"'
 
-# cluade
+# claude
 alias cld='claude --dangerously-skip-permissions'
