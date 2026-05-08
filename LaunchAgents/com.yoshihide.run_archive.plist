@@ -8,17 +8,17 @@
 		<string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
 	</dict>
 	<key>Label</key>
-	<string>com.yoshihide.run_spotify_top50_archive</string>
+	<string>com.yoshihide.run_archive</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Users/yoshihide/dotfiles-mac/scripts/lib/run_spotify_top50_archive.sh</string>
+		<string>/Users/yoshihide/my-projects/spotify-playlist-tools/archive.sh</string>
 	</array>
 	<key>RunAtLoad</key>
 	<false/>
 	<key>StandardErrorPath</key>
-	<string>/Users/yoshihide/Library/Logs/com.yoshihide.run_spotify_top50_archive.err</string>
+	<string>/Users/yoshihide/Library/Logs/com.yoshihide.run_archive.err</string>
 	<key>StandardOutPath</key>
-	<string>/Users/yoshihide/Library/Logs/com.yoshihide.run_spotify_top50_archive.out</string>
+	<string>/Users/yoshihide/Library/Logs/com.yoshihide.run_archive.out</string>
 	<key>StartCalendarInterval</key>
 	<dict>
 		<key>Hour</key>
