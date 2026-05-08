@@ -120,6 +120,23 @@ else
 	echo "Homebrew not found or Brewfile missing. Skipping package install."
 fi
 
+# my-projects のクローン
+MY_PROJECTS="$HOME/my-projects"
+mkdir -p "$MY_PROJECTS"
+
+clone_if_missing() {
+    local repo="$1"
+    local dest="$MY_PROJECTS/$(basename "$repo" .git)"
+    if [ ! -d "$dest" ]; then
+        echo "Cloning $repo -> $dest"
+        git clone "git@github.com:YOSHIHIDEShimoji/${repo}.git" "$dest"
+    else
+        echo "Already exists: $dest"
+    fi
+}
+
+clone_if_missing spotify-playlist-tools
+
 echo ""
 echo "════════════════════════════════════════════════"
 echo " オプションのインストール（必要な場合のみ実行）"
