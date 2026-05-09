@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""
+Excel → CSV 一括変換ツール
+
+使い方:
+  excel2csv <file_or_dir> [file_or_dir ...] [options]
+
+オプション:
+  --output, -o <dir>   出力先ディレクトリ（省略時は各ファイルと同じ場所）
+  --encoding <enc>     CSV エンコーディング（デフォルト: utf-8-sig）
+  --all-sheets         複数シートがある場合にすべて変換（省略時はアクティブシートのみ）
+  --recursive, -r      ディレクトリ入力時にサブディレクトリも再帰的に検索
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+import pandas as pd
+
+EXCEL_SUFFIXES = {".xlsx", ".xls", ".xlsm"}
+
+
+def convert_file(excel_path: Path, output_dir: Path, encoding: str, all_sheets: bool) -> list[Path]:
+    xl = pd.ExcelFile(excel_path)
+    sheets = xl.sheet_names if all_sheets else [xl.sheet_names[0]]
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    results = []
+    for sheet in sheets:
+        df = xl.parse(sheet)
+        stem = excel_path.stem
+        suffix = f"_{sheet}" if all_sheets and len(xl.sheet_names) > 1 else ""
+        csv_path = output_dir / f"{stem}{suffix}.csv"
+        df.to_csv(csv_path, index=False, encoding=encoding)
+        results.append(csv_path)
+
+    return results
+
+
+def collect_excel_files(inputs: list[Path], recursive: bool) -> list[tuple[Path, Path]]:
+    """
+    Returns list of (excel_path, base_root) tuples.
+    base_root is used to compute relative paths when -o is specified.
+    - For file inputs: base_root = file's parent
+    - For dir inputs:  base_root = the dir itself
+    """
+    collected = []
+    for p in inputs:
+        if p.is_file():
+            if p.suffix.lower() in EXCEL_SUFFIXES:
+                collected.append((p, p.parent))
+            else:
+                print(f"警告: {p.name} は Excel ファイルではないためスキップします", file=sys.stderr)
+        elif p.is_dir():
+            pattern = "**/*.xls*" if recursive else "*.xls*"
+            files = [f for f in p.glob(pattern) if f.suffix.lower() in EXCEL_SUFFIXES]
+            for f in sorted(files):
+                collected.append((f, p))
+        else:
+            print(f"警告: {p} が見つかりません", file=sys.stderr)
+    return collected
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Excel ファイルを CSV に一括変換する")
+    parser.add_argument("inputs", nargs="+", help="Excel ファイルまたはディレクトリ（複数指定可）")
+    parser.add_argument("--output", "-o", default=None, help="CSV 出力先ディレクトリ（省略時は各ファイルと同じ場所）")
+    parser.add_argument("--encoding", default="utf-8-sig", help="CSV エンコーディング（デフォルト: utf-8-sig）")
+    parser.add_argument("--all-sheets", action="store_true", help="全シートを変換")
+    parser.add_argument("--recursive", "-r", action="store_true", help="ディレクトリ入力時にサブディレクトリも検索")
+    args = parser.parse_args()
+
+    inputs = [Path(p).resolve() for p in args.inputs]
+    output_root = Path(args.output).resolve() if args.output else None
+
+    entries = collect_excel_files(inputs, args.recursive)
+    if not entries:
+        print("対象の Excel ファイルが見つかりませんでした。")
+        sys.exit(0)
+
+    print(f"{len(entries)} 件の Excel ファイルを変換します...")
+    success, failed = 0, []
+
+    for excel_path, base_root in entries:
+        try:
+            if output_root:
+                # -o 指定時: base_root 名をサブディレクトリとして切る
+                rel = excel_path.parent.relative_to(base_root)
+                dest = output_root / base_root.name / rel
+            else:
+                dest = excel_path.parent
+
+            csv_paths = convert_file(excel_path, dest, args.encoding, args.all_sheets)
+            for p in csv_paths:
+                display = p.relative_to(output_root) if output_root else p.name
+                print(f"  ✓ {excel_path.name}  →  {display}")
+            success += 1
+        except Exception as e:
+            print(f"  ✗ {excel_path.name}: {e}", file=sys.stderr)
+            failed.append(excel_path)
+
+    print(f"\n完了: {success} 件成功 / {len(failed)} 件失敗")
+    if failed:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

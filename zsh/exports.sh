@@ -19,7 +19,7 @@ export PATH="$HOME/.local/bin:$PATH"
 # dotfiles-mac/scripts 配下のサブディレクトリ以下全てに PATH を通し、実行権限を与える。
 if [ -d "$HOME/dotfiles-mac/scripts" ]; then
     export PATH="$PATH:$HOME/dotfiles-mac/scripts"
-    for dir in $HOME/dotfiles-mac/scripts/*(/); do
+    for dir in $HOME/dotfiles-mac/scripts/**/*(/); do
         export PATH="$PATH:$dir"
     done
 fi
