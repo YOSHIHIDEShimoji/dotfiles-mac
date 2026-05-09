@@ -47,5 +47,6 @@
     "claudeCode.preferredLocation": "panel",
     "accessibility.signals.progress": {
         "sound": "off"
-    }
+    },
+    "accessibility.signalOptions.volume": 0
 }
