@@ -36,6 +36,19 @@ npm
 tmux
 # eza: 公式 deb リポジトリ経由（bootstrap が自動追加）
 eza
+build-essential
+libssl-dev
+zlib1g-dev
+libbz2-dev
+libreadline-dev
+libsqlite3-dev
+libncurses-dev
+xz-utils
+tk-dev
+libxml2-dev
+libxmlsec1-dev
+libffi-dev
+liblzma-dev
 
 [linux]
 # ghostty: apt.ghostty.org リポジトリ経由（bootstrap が自動追加）
