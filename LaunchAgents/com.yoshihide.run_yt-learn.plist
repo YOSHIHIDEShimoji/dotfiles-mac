@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>GEMINI_API_KEY</key>
+		<string>YOUR_GEMINI_API_KEY_HERE</string>
+	</dict>
+	<key>Label</key>
+	<string>com.yoshihide.run_yt-learn</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/yoshihide/my-projects/yt-learn/yt-learn</string>
+		<string>all</string>
+	</array>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>StandardErrorPath</key>
+	<string>/Users/yoshihide/Library/Logs/com.yoshihide.run_yt-learn.err</string>
+	<key>StandardOutPath</key>
+	<string>/Users/yoshihide/Library/Logs/com.yoshihide.run_yt-learn.out</string>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>0</integer>
+		<key>Minute</key>
+		<integer>0</integer>
+	</dict>
+</dict>
+</plist>
