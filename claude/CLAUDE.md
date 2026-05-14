@@ -42,6 +42,14 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 
 このファイルが残ったままだと、次回ターミナル起動時に `pyenv init -` がロック待ちで60秒フリーズする。
 
+## Skills 管理
+
+- Skills の実体は `~/dotfiles-mac/claude/skills/` で管理（git 管理対象）
+- 新しい skill をインストールするときは `~/dotfiles-mac/claude/skills/` に入れる
+- `~/.agents/skills` → `~/dotfiles-mac/claude/skills/`（シンボリックリンク）
+- `~/.claude/skills` → `~/.agents/skills`（シンボリックリンク）
+- `cc-skills-sync` は廃止済み・使わない
+
 ## 禁止事項
 
 - GitHubもContributionにclaude codeを含めない

@@ -95,6 +95,10 @@ link_from_prop karabiner
 link_from_prop vscode
 link_from_prop ghostty
 link_from_prop ssh
+link_from_prop claude
+
+# ~/.claude/skills -> ~/.agents/skills の恒久リンク（cc-skills-sync 不要）
+ln -sfv "${HOME}/.agents/skills" "${HOME}/.claude/skills"
 
 # ControlMaster のソケットディレクトリを作成
 mkdir -p "${HOME}/.ssh/cm"
