@@ -16,6 +16,10 @@ export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
 # Claude Code
 export PATH="$HOME/.local/bin:$PATH"
 
+# pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+
 # dotfiles-mac/scripts 配下のサブディレクトリ以下全てに PATH を通し、実行権限を与える。
 if [ -d "$HOME/dotfiles-mac/scripts" ]; then
     export PATH="$PATH:$HOME/dotfiles-mac/scripts"
