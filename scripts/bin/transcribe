@@ -122,6 +122,13 @@ def main() -> None:
         description="音声/動画ファイルまたはURLを文字起こしする",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
+処理時間の目安 (M4 / mlx-community/whisper-large-v3-turbo):
+  30分の音声  → 約2分
+  1時間の音声 → 約4〜5分
+  2時間の音声 → 約9分
+  3時間の音声 → 約13分
+  ※ 初回のみモデルダウンロード (~800MB) が加算される
+
 examples:
   transcribe voice_memo.m4a
   transcribe voice_memo.m4a --lang en
