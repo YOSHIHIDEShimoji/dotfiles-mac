@@ -4,8 +4,8 @@
 
 set -euo pipefail
 
-WHISPER_CLI=~/whisper.cpp/build/bin/whisper-cli
-WHISPER_MODEL=~/whisper.cpp/models/ggml-large-v3-turbo.bin
+WHISPER_CLI=~/my-projects/whisper.cpp/build/bin/whisper-cli
+WHISPER_MODEL=~/my-projects/whisper.cpp/models/ggml-large-v3-turbo.bin
 
 usage() {
   cat <<EOF
