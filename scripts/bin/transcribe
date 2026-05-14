@@ -1,5 +1,5 @@
-#!/Users/yoshihide/.pyenv/versions/moodle-transcriber-3.11.9/bin/python
-"""汎用文字起こしツール: ファイル or URL → faster-whisper → stdout + ファイル保存"""
+#!/Users/yoshihide/.pyenv/versions/dotfiles-scripts-3.11.9/bin/python
+"""汎用文字起こしツール: ファイル or URL → mlx-whisper → stdout + ファイル保存"""
 
 import argparse
 import os
@@ -8,6 +8,7 @@ import readline
 import signal
 import sys
 import tempfile
+import threading
 from pathlib import Path
 
 
@@ -21,13 +22,12 @@ def _download_audio(url: str, out_dir: str) -> str:
 
     out_tmpl = os.path.join(out_dir, "%(title)s.%(ext)s")
     ydl_opts = {
-        "format": "bestaudio/best",
+        "format": "bestaudio[ext=m4a]/bestaudio/best",
         "outtmpl": out_tmpl,
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
-                "preferredcodec": "wav",
-                "preferredquality": "192",
+                "preferredcodec": "m4a",
             }
         ],
         "quiet": True,
@@ -39,10 +39,10 @@ def _download_audio(url: str, out_dir: str) -> str:
         ydl.extract_info(url, download=True)
 
     for f in Path(out_dir).iterdir():
-        if f.suffix == ".wav":
+        if f.suffix == ".m4a":
             return str(f)
 
-    raise RuntimeError(f"ダウンロード後の wav ファイルが見つかりません: {out_dir}")
+    raise RuntimeError(f"ダウンロード後の m4a ファイルが見つかりません: {out_dir}")
 
 
 def _is_url(s: str) -> bool:
@@ -123,14 +123,13 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
 examples:
-  transcribe lecture.mp4
-  transcribe lecture.mp4 --lang en
-  transcribe lecture.mp4 --format txt        # タイムスタンプ付き
-  transcribe lecture.mp4 --format srt        # 字幕ファイル
-  transcribe lecture.mp4 -o output.txt       # ファイル名指定（リネームプロンプトなし）
-  transcribe https://example.com/video.mp4
+  transcribe voice_memo.m4a
+  transcribe voice_memo.m4a --lang en
+  transcribe voice_memo.m4a --format txt        # タイムスタンプ付き
+  transcribe voice_memo.m4a --format srt        # 字幕ファイル
+  transcribe voice_memo.m4a -o output.txt       # ファイル名指定（リネームプロンプトなし）
   transcribe https://www.youtube.com/watch?v=xxxxx --lang en
-  transcribe lecture.mp4 | pbcopy           # クリップボードにコピー
+  transcribe voice_memo.m4a | pbcopy           # クリップボードにコピー
 """,
     )
     parser.add_argument("input", help="音声/動画ファイルパス、またはURL")
@@ -147,11 +146,8 @@ examples:
     parser.add_argument("--lang", default="ja", help="言語コード (default: ja)")
     parser.add_argument(
         "--model",
-        default="large-v3",
-        help="Whisperモデルサイズ (default: large-v3)",
-    )
-    parser.add_argument(
-        "--device", default="cpu", choices=["cpu", "cuda"], help="推論デバイス (default: cpu)"
+        default="mlx-community/whisper-large-v3-turbo",
+        help="MLXモデル識別子 (default: mlx-community/whisper-large-v3-turbo)",
     )
     args = parser.parse_args()
 
@@ -185,76 +181,74 @@ examples:
             out_path = Path(f"{_sanitize_filename(stem)}.{ext}")
             prompt_rename = True
 
-        _err(f"[model] {args.model} をロード中...")
-        from faster_whisper import WhisperModel
-
-        compute_type = "float16" if args.device == "cuda" else "int8"
-        model = WhisperModel(
-            args.model,
-            device=args.device,
-            compute_type=compute_type,
-            cpu_threads=8,
-        )
-
+        _err(f"[model] {args.model}")
         _err(f"[transcribe] 文字起こし開始: {Path(audio_path).name}")
         _err(f"[output] {out_path.resolve()}")
 
-        segments_iter, info = model.transcribe(
-            audio_path,
-            language=args.lang,
-            beam_size=5,
-            vad_filter=True,
-            vad_parameters={"min_silence_duration_ms": 500},
-        )
-
-        duration = info.duration or 0.0
-        seg_id = 1
-        seg_count = 0
-        is_tty = sys.stdout.isatty()
-
+        import mlx_whisper
         from tqdm import tqdm
 
-        bar_fmt = "{l_bar}{bar}| {n:.0f}/{total:.0f}s [{elapsed}<{remaining}]"
+        result_holder: list = [None]
+        error_holder: list = [None]
+
+        def _run_transcribe():
+            try:
+                result_holder[0] = mlx_whisper.transcribe(
+                    audio_path,
+                    path_or_hf_repo=args.model,
+                    language=args.lang,
+                    verbose=False,
+                )
+            except Exception as e:
+                error_holder[0] = e
+
+        t = threading.Thread(target=_run_transcribe, daemon=True)
+        t.start()
+
+        is_tty = sys.stdout.isatty()
         with tqdm(
-            total=duration,
-            unit="s",
-            bar_format=bar_fmt,
+            desc="[transcribe] 処理中",
+            bar_format="{desc} [{elapsed}]",
             file=sys.stderr,
-            dynamic_ncols=True,
             disable=not is_tty,
         ) as pbar:
-            with out_path.open("w", encoding="utf-8") as f:
-                for seg in segments_iter:
-                    if interrupted:
-                        break
+            while t.is_alive() and not interrupted:
+                t.join(timeout=0.5)
+                pbar.update(0)
 
-                    text = seg.text.strip()
-                    if not text:
-                        continue
+        t.join()
 
-                    line = _format_line(
-                        {"start": seg.start, "end": seg.end, "text": text},
-                        args.format,
-                        seg_id,
-                    )
+        if error_holder[0]:
+            raise error_holder[0]
+        if interrupted:
+            _err("[中断] 文字起こしを中断しました")
+            sys.exit(1)
 
-                    if is_tty:
-                        # ターミナル: バーの上にテキストを1回だけ表示
-                        tqdm.write(line, end="", file=sys.stderr)
-                    else:
-                        # パイプ: stdout にストリーミング
-                        sys.stdout.write(line)
-                        sys.stdout.flush()
+        segments = result_holder[0].get("segments", [])
+        seg_count = 0
 
-                    f.write(line)
-                    f.flush()
+        with out_path.open("w", encoding="utf-8") as f:
+            for seg_id, seg in enumerate(segments, start=1):
+                text = seg.get("text", "").strip()
+                if not text:
+                    continue
 
-                    pbar.update(seg.end - pbar.n)
-                    seg_id += 1
-                    seg_count += 1
+                line = _format_line(
+                    {"start": seg["start"], "end": seg["end"], "text": text},
+                    args.format,
+                    seg_id,
+                )
 
-        status = "中断" if interrupted else "完了"
-        _err(f"[{status}] {seg_count} セグメント")
+                if is_tty:
+                    tqdm.write(line, end="", file=sys.stderr)
+                else:
+                    sys.stdout.write(line)
+                    sys.stdout.flush()
+
+                f.write(line)
+                seg_count += 1
+
+        _err(f"[完了] {seg_count} セグメント")
 
         if prompt_rename:
             out_path = _prompt_rename(out_path)
