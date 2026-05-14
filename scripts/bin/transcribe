@@ -1,273 +1,106 @@
-#!/Users/yoshihide/.pyenv/versions/dotfiles-scripts-3.11.9/bin/python
-"""汎用文字起こしツール: ファイル or URL → mlx-whisper → stdout + ファイル保存"""
+#!/usr/bin/env bash
+# 文字起こしツール: whisper.cpp + CoreML（M4 Neural Engine）
+# 処理時間の目安 (M4 / large-v3-turbo):
+#   30分 → 約1分30秒, 1時間 → 約3分, 2時間 → 約6分, 3時間 → 約9分
 
-import argparse
-import os
-import re
-import readline
-import signal
-import sys
-import tempfile
-import threading
-from pathlib import Path
+set -euo pipefail
 
+WHISPER_CLI=~/my-projects/whisper.cpp/build/bin/whisper-cli
+WHISPER_MODEL=~/my-projects/whisper.cpp/models/ggml-large-v3-turbo.bin
 
-def _err(msg: str) -> None:
-    from tqdm import tqdm
-    tqdm.write(msg, file=sys.stderr)
+usage() {
+  cat <<EOF
+Usage: transcribe <input> [-o output] [--lang ja] [--format plain|txt|srt]
 
+処理時間の目安 (M4 / whisper.cpp + CoreML + large-v3-turbo):
+  30分の音声  → 約1分30秒
+  1時間の音声 → 約3分
+  2時間の音声 → 約6分
+  3時間の音声 → 約9分
 
-def _download_audio(url: str, out_dir: str) -> str:
-    import yt_dlp
+Options:
+  -o, --output PATH    出力ファイルパス (省略時はカレントディレクトリに自動保存)
+  --lang LANG          言語コード (default: ja)
+  --format FORMAT      plain=テキストのみ, txt=タイムスタンプ付き, srt=字幕 (default: plain)
+  -h, --help
 
-    out_tmpl = os.path.join(out_dir, "%(title)s.%(ext)s")
-    ydl_opts = {
-        "format": "bestaudio[ext=m4a]/bestaudio/best",
-        "outtmpl": out_tmpl,
-        "postprocessors": [
-            {
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "m4a",
-            }
-        ],
-        "quiet": True,
-        "no_warnings": True,
-    }
-
-    _err("[download] 音声を取得中...")
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.extract_info(url, download=True)
-
-    for f in Path(out_dir).iterdir():
-        if f.suffix == ".m4a":
-            return str(f)
-
-    raise RuntimeError(f"ダウンロード後の m4a ファイルが見つかりません: {out_dir}")
-
-
-def _is_url(s: str) -> bool:
-    return s.startswith(("http://", "https://", "ftp://"))
-
-
-def _fmt_time(seconds: float) -> str:
-    h = int(seconds // 3600)
-    m = int((seconds % 3600) // 60)
-    s = seconds % 60
-    if h:
-        return f"{h:02d}:{m:02d}:{s:05.2f}"
-    return f"{m:02d}:{s:05.2f}"
-
-
-def _sanitize_filename(name: str) -> str:
-    name = re.sub(r'[\\/:*?"<>|]', "_", name)
-    return name.strip()[:200]
-
-
-def _prompt_rename(current_path: Path, timeout: int = 60) -> Path:
-    ext = current_path.suffix
-    prefill = current_path.stem
-
-    readline.set_startup_hook(lambda: readline.insert_text(prefill))
-    sys.stderr.write(f"\nファイル名を編集 (拡張子{ext}は自動付与、{timeout}秒で自動確定): ")
-    sys.stderr.flush()
-
-    def _on_timeout(sig, frame):
-        raise TimeoutError()
-
-    old_handler = signal.signal(signal.SIGALRM, _on_timeout)
-    signal.alarm(timeout)
-    try:
-        answer = input()
-        signal.alarm(0)
-    except (TimeoutError, EOFError, KeyboardInterrupt):
-        sys.stderr.write("\n")
-        answer = ""
-    finally:
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, old_handler)
-        readline.set_startup_hook(None)
-
-    new_stem = answer.strip()
-    if new_stem.lower().endswith(ext.lower()):
-        new_stem = new_stem[: -len(ext)]
-    new_stem = _sanitize_filename(new_stem)
-
-    if not new_stem or new_stem == current_path.stem:
-        return current_path
-
-    new_path = current_path.with_name(new_stem + ext)
-    current_path.rename(new_path)
-    return new_path
-
-
-def _srt_ts(t: float) -> str:
-    h = int(t // 3600)
-    m = int((t % 3600) // 60)
-    s = t % 60
-    ms = int((s - int(s)) * 1000)
-    return f"{h:02d}:{m:02d}:{int(s):02d},{ms:03d}"
-
-
-def _format_line(seg: dict, fmt: str, seg_id: int) -> str:
-    if fmt == "srt":
-        return f"{seg_id}\n{_srt_ts(seg['start'])} --> {_srt_ts(seg['end'])}\n{seg['text']}\n"
-    elif fmt == "txt":
-        return f"[{_fmt_time(seg['start'])}] {seg['text']}\n"
-    else:  # plain
-        return seg["text"] + "\n"
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="音声/動画ファイルまたはURLを文字起こしする",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""\
-処理時間の目安 (M4 / mlx-community/whisper-large-v3-turbo):
-  30分の音声  → 約2分
-  1時間の音声 → 約4〜5分
-  2時間の音声 → 約9分
-  3時間の音声 → 約13分
-  ※ 初回のみモデルダウンロード (~800MB) が加算される
-  ※ より高速な transcribe-cpp (whisper.cpp + CoreML) もある → 1時間で約3分
-
-examples:
+Examples:
   transcribe voice_memo.m4a
-  transcribe voice_memo.m4a --lang en
-  transcribe voice_memo.m4a --format txt        # タイムスタンプ付き
-  transcribe voice_memo.m4a --format srt        # 字幕ファイル
-  transcribe voice_memo.m4a -o output.txt       # ファイル名指定（リネームプロンプトなし）
-  transcribe https://www.youtube.com/watch?v=xxxxx --lang en
-  transcribe voice_memo.m4a | pbcopy           # クリップボードにコピー
-""",
-    )
-    parser.add_argument("input", help="音声/動画ファイルパス、またはURL")
-    parser.add_argument(
-        "-o", "--output",
-        help="出力ファイルパス (省略時はカレントディレクトリに自動保存)",
-    )
-    parser.add_argument(
-        "--format",
-        choices=["txt", "srt", "plain"],
-        default="plain",
-        help="出力フォーマット: txt=タイムスタンプ付き, srt=字幕, plain=テキストのみ (default: plain)",
-    )
-    parser.add_argument("--lang", default="ja", help="言語コード (default: ja)")
-    parser.add_argument(
-        "--model",
-        default="mlx-community/whisper-large-v3-turbo",
-        help="MLXモデル識別子 (default: mlx-community/whisper-large-v3-turbo)",
-    )
-    args = parser.parse_args()
+  transcribe voice_memo.m4a -o ~/Desktop/output.txt
+  transcribe voice_memo.m4a --lang en --format srt
+  transcribe voice_memo.m4a | pbcopy
+EOF
+}
 
-    src = args.input
-    tmpdir = None
-    interrupted = False
+INPUT=""
+OUTPUT=""
+LANG="ja"
+FORMAT="plain"
 
-    def _handle_sigint(sig, frame):
-        nonlocal interrupted
-        interrupted = True
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    -o|--output) OUTPUT="$2"; shift 2 ;;
+    --lang) LANG="$2"; shift 2 ;;
+    --format) FORMAT="$2"; shift 2 ;;
+    -*) echo "Unknown option: $1" >&2; usage; exit 1 ;;
+    *) INPUT="$1"; shift ;;
+  esac
+done
 
-    signal.signal(signal.SIGINT, _handle_sigint)
+if [[ -z "$INPUT" ]]; then
+  usage; exit 1
+fi
 
-    try:
-        if _is_url(src):
-            tmpdir = tempfile.mkdtemp(prefix="transcribe_")
-            audio_path = _download_audio(src, tmpdir)
-            stem = Path(audio_path).stem
-        else:
-            audio_path = src
-            if not Path(audio_path).exists():
-                _err(f"[error] ファイルが見つかりません: {audio_path}")
-                sys.exit(1)
-            stem = Path(audio_path).stem
+if [[ ! -f "$INPUT" ]]; then
+  echo "[error] ファイルが見つかりません: $INPUT" >&2
+  exit 1
+fi
 
-        ext = "srt" if args.format == "srt" else "txt"
-        if args.output:
-            out_path = Path(args.output)
-            prompt_rename = False
-        else:
-            out_path = Path(f"{_sanitize_filename(stem)}.{ext}")
-            prompt_rename = True
+# WAV以外はffmpegで16kHz mono WAVに変換
+TMPWAV=""
+if [[ "${INPUT##*.}" != "wav" ]]; then
+  TMPWAV=$(mktemp /tmp/transcribe_XXXXXX.wav)
+  echo "[convert] ${INPUT##*/} → 16kHz mono wav ..." >&2
+  ffmpeg -i "$INPUT" -ar 16000 -ac 1 -c:a pcm_s16le "$TMPWAV" -y -loglevel error
+  AUDIO="$TMPWAV"
+else
+  AUDIO="$INPUT"
+fi
 
-        _err(f"[model] {args.model}")
-        _err(f"[transcribe] 文字起こし開始: {Path(audio_path).name}")
-        _err(f"[output] {out_path.resolve()}")
+cleanup() {
+  [[ -n "$TMPWAV" ]] && rm -f "$TMPWAV"
+}
+trap cleanup EXIT
 
-        import mlx_whisper
-        from tqdm import tqdm
+STEM=$(basename "$INPUT")
+STEM="${STEM%.*}"
 
-        result_holder: list = [None]
-        error_holder: list = [None]
+case "$FORMAT" in
+  srt) EXT="srt" ;;
+  *)   EXT="txt" ;;
+esac
 
-        def _run_transcribe():
-            try:
-                result_holder[0] = mlx_whisper.transcribe(
-                    audio_path,
-                    path_or_hf_repo=args.model,
-                    language=args.lang,
-                    verbose=False,
-                )
-            except Exception as e:
-                error_holder[0] = e
+if [[ -z "$OUTPUT" ]]; then
+  OUTPUT_BASE="${STEM}"
+else
+  OUTPUT_BASE="${OUTPUT%.*}"
+fi
 
-        t = threading.Thread(target=_run_transcribe, daemon=True)
-        t.start()
+echo "[model] $WHISPER_MODEL (CoreML)" >&2
+echo "[transcribe] 文字起こし開始: ${INPUT##*/}" >&2
+echo "[output] ${OUTPUT_BASE}.${EXT}" >&2
 
-        is_tty = sys.stdout.isatty()
-        with tqdm(
-            desc="[transcribe] 処理中",
-            bar_format="{desc} [{elapsed}]",
-            file=sys.stderr,
-            disable=not is_tty,
-        ) as pbar:
-            while t.is_alive() and not interrupted:
-                t.join(timeout=0.5)
-                pbar.update(0)
+WHISPER_FLAGS=(-m "$WHISPER_MODEL" -f "$AUDIO" -l "$LANG" -of "$OUTPUT_BASE")
 
-        t.join()
+case "$FORMAT" in
+  srt)   WHISPER_FLAGS+=(-osrt) ;;
+  txt)   WHISPER_FLAGS+=(-otxt) ;;
+  plain) WHISPER_FLAGS+=(-otxt --no-timestamps) ;;
+esac
 
-        if error_holder[0]:
-            raise error_holder[0]
-        if interrupted:
-            _err("[中断] 文字起こしを中断しました")
-            sys.exit(1)
+"$WHISPER_CLI" "${WHISPER_FLAGS[@]}" 2>/dev/null
 
-        segments = result_holder[0].get("segments", [])
-        seg_count = 0
-
-        with out_path.open("w", encoding="utf-8") as f:
-            for seg_id, seg in enumerate(segments, start=1):
-                text = seg.get("text", "").strip()
-                if not text:
-                    continue
-
-                line = _format_line(
-                    {"start": seg["start"], "end": seg["end"], "text": text},
-                    args.format,
-                    seg_id,
-                )
-
-                if is_tty:
-                    tqdm.write(line, end="", file=sys.stderr)
-                else:
-                    sys.stdout.write(line)
-                    sys.stdout.flush()
-
-                f.write(line)
-                seg_count += 1
-
-        _err(f"[完了] {seg_count} セグメント")
-
-        if prompt_rename:
-            out_path = _prompt_rename(out_path)
-
-        _err(f"[saved] {out_path.resolve()}")
-
-    finally:
-        if tmpdir:
-            import shutil
-            shutil.rmtree(tmpdir, ignore_errors=True)
-
-
-if __name__ == "__main__":
-    main()
+SEG_COUNT=$(grep -c "." "${OUTPUT_BASE}.${EXT}" 2>/dev/null || echo 0)
+echo "[完了] ${SEG_COUNT} 行" >&2
+echo "[saved] $(realpath "${OUTPUT_BASE}.${EXT}")" >&2
