@@ -9,8 +9,14 @@ alias grep='grep --color=auto'
 alias f='fd'
 alias fh='fd --hidden --exclude .git --exclude node_modules --exclude .venv --exclude .cache'
 
+# dust
+alias d='dust -r'
+
 # trash
 alias r='trash -v'
+
+# procs
+alias p='procs'
 
 # tldr
 alias t='tldr'
@@ -55,3 +61,6 @@ fi
 # ネットワーク・システム
 alias myip='curl ifconfig.me'
 alias port='lsof -i -P -n'
+
+# claude
+alias cld='claude --dangerously-skip-permissions'

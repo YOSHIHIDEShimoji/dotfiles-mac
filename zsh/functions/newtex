@@ -17,7 +17,7 @@ newtex() {
     print "DOTFILES is not set"
     return 1
   fi
-  local src="$DOTFILES/templates/latex-sample"
+  local src="$DOTFILES/templates/template-latex"
   if [[ ! -d "$src" ]]; then
     print "Template not found: $src"
     return 1

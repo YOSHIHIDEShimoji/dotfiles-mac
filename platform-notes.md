@@ -1,4 +1,4 @@
-# platform-notes.md
+# docs/platform-notes.md
 
 `/sync-to-linux` スキルが linux ブランチへの移植可否を判断するためのルール定義。
 
@@ -10,6 +10,7 @@
 - `karabiner/`
 - `LaunchAgents/`
 - `scripts/bookmark/`
+- `ssh/`（`Host win` の HostName・User は個人情報のため移植しない。`Host *` グローバル設定のみ linux ブランチへの手動移植を検討）
 - `install/Brewfile`
 - `install/bootstrap.sh`（Homebrew・launchctl・sudoers処理を含む）
 - `zsh/functions/awake`（caffeinate）
@@ -29,7 +30,7 @@
 - `scripts/ppdf/`
 - `scripts/bin/`
 - `templates/`
-- `platform-notes.md`
+- `docs/platform-notes.md`
 
 ---
 

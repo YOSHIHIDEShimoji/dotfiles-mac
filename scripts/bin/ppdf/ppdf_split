@@ -1,0 +1,172 @@
+#!/bin/bash
+
+# --- デフォルト設定 ---
+SPLIT_PAGES=24      # 分割枚数デフォルト
+NUP_GRID="1"        # グリッド指定 (1=しない, "2x3"など)
+FRAME_OPT="false"   # 枠線
+ORIENTATION="auto"  # 向き (auto, p, l)
+
+function usage {
+    echo "使用法: $(basename $0) [オプション] <file1.pdf> [file2.pdf ...]"
+    echo "オプション:"
+    echo "  -s <num>   : 分割する枚数 (デフォルト: 24)"
+    echo "  -n <grid>  : 1枚にまとめる配置 ('2', '4', 'CxR' 形式)"
+    echo "               例: -n 2x3 (横2列 x 縦3行)"
+    echo "  -f         : 各ページに枠線をつける"
+    echo "  -o <p|l>   : 向きを強制指定 (p=縦, l=横)"
+    echo "  -h         : ヘルプを表示"
+    exit 1
+}
+
+# --- オプション解析 ---
+while getopts "s:n:fo:h" opt; do
+  case ${opt} in
+    s) SPLIT_PAGES="$OPTARG" ;;
+    n) 
+      if [[ "$OPTARG" == "2" ]]; then
+          NUP_GRID="2"
+      elif [[ "$OPTARG" == "4" ]]; then
+          NUP_GRID="2x2"
+      elif [[ "$OPTARG" =~ ^[0-9]+x[0-9]+$ ]]; then
+          NUP_GRID="$OPTARG"
+      else
+          echo "エラー: -n は '2', '4', または 'CxR' (例: 2x3) 形式で指定してください。"
+          exit 1
+      fi
+      ;;
+    f) FRAME_OPT="true" ;;
+    o)
+      if [[ "$OPTARG" == "p" ]]; then ORIENTATION="portrait"; fi
+      if [[ "$OPTARG" == "l" ]]; then ORIENTATION="landscape"; fi
+      ;;
+    h) usage ;;
+    \?) usage ;;
+  esac
+done
+shift $((OPTIND -1))
+
+# --- 引数チェック ---
+if [[ $# -eq 0 ]]; then
+    echo "エラー: 対象のPDFファイルを指定してください。"
+    usage
+fi
+
+# ツール確認 (最初に1回だけ行う)
+for cmd in qpdf pdfjam; do
+    if ! command -v $cmd &> /dev/null; then
+        echo "エラー: '$cmd' がインストールされていません。"
+        exit 1
+    fi
+done
+
+# ループ処理開始: 指定された全ファイルを順に処理
+for INPUT_FILE in "$@"; do
+
+    echo "--------------------------------------------------------"
+    echo "処理対象: $INPUT_FILE"
+
+    if [[ ! -f "$INPUT_FILE" ]]; then
+        echo "スキップ: ファイル '$INPUT_FILE' が見つかりません。"
+        continue
+    fi
+
+    # --- 1. 出力ディレクトリの準備 ---
+    BASENAME=$(basename "$INPUT_FILE" .pdf)
+
+    # フォルダ名構成
+    DIR_SUFFIX="_split_${SPLIT_PAGES}"
+    if [[ "$NUP_GRID" != "1" ]]; then
+        DIR_SUFFIX="${DIR_SUFFIX}_${NUP_GRID}in1"
+    fi
+
+    OUTPUT_DIR="${BASENAME}${DIR_SUFFIX}"
+    mkdir -p "$OUTPUT_DIR"
+
+    # --- 2. N-up処理 (必要な場合) ---
+    PROCESS_FILE="$INPUT_FILE"
+
+    if [[ "$NUP_GRID" != "1" ]]; then
+        echo "  [Step 1] 集約処理 ($NUP_GRID) を実行中..."
+        
+        NUP_FILE="${OUTPUT_DIR}/${BASENAME}_${NUP_GRID}in1.pdf"
+        
+        # 元ファイルのサイズ取得
+        PAGE_SIZE=$(qpdf --show-pages "$INPUT_FILE" | head -n 1 | awk -F': ' '{print $2}')
+        WIDTH=$(echo $PAGE_SIZE | awk '{print $1}' | cut -d'.' -f1)
+        HEIGHT=$(echo $PAGE_SIZE | awk '{print $3}' | cut -d'.' -f1)
+        if [[ $WIDTH -gt $HEIGHT ]]; then INPUT_ORIENT="landscape"; else INPUT_ORIENT="portrait"; fi
+
+        # --- レイアウトと向きの決定ロジック ---
+        FINAL_ORIENT=""
+        FINAL_GRID="$NUP_GRID" # デフォルトはそのまま
+
+        if [[ "$NUP_GRID" == "2" ]]; then
+            # 特殊プリセット "2"
+            if [[ "$ORIENTATION" == "auto" ]]; then
+                if [[ "$INPUT_ORIENT" == "portrait" ]]; then
+                    FINAL_ORIENT="--landscape"; FINAL_GRID="2x1"
+                else
+                    FINAL_ORIENT="--no-landscape"; FINAL_GRID="1x2"
+                fi
+            else
+                FINAL_GRID="2x1"
+            fi
+        else
+            # カスタムグリッド (Cols x Rows)
+            COLS=$(echo $NUP_GRID | cut -d'x' -f1)
+            ROWS=$(echo $NUP_GRID | cut -d'x' -f2)
+            
+            # pdfjamへ渡すGrid指定 (Cols x Rows)
+            FINAL_GRID="${COLS}x${ROWS}"
+
+            if [[ "$ORIENTATION" == "auto" ]]; then
+                if [[ $COLS -gt $ROWS ]]; then
+                    FINAL_ORIENT="--landscape"
+                else
+                    FINAL_ORIENT="--no-landscape"
+                fi
+            fi
+        fi
+
+        # 手動指定があれば上書き
+        if [[ "$ORIENTATION" == "landscape" ]]; then FINAL_ORIENT="--landscape"; fi
+        if [[ "$ORIENTATION" == "portrait" ]]; then FINAL_ORIENT="--no-landscape"; fi
+
+        # pdfjam実行
+        LC_COLLATE=C pdfjam "$INPUT_FILE" --nup "$FINAL_GRID" --frame "$FRAME_OPT" $FINAL_ORIENT --outfile "$NUP_FILE" --quiet
+
+        if [[ $? -ne 0 ]]; then
+            echo "  エラー: pdfjamによる変換に失敗しました。このファイルをスキップします。"
+            continue
+        fi
+        PROCESS_FILE="$NUP_FILE"
+    fi
+
+    # --- 3. 分割処理 ---
+    echo "  [Step 2] $SPLIT_PAGES ページごとに分割中..."
+
+    PROC_BASENAME=$(basename "$PROCESS_FILE" .pdf)
+    TOTAL_PAGES=$(qpdf --show-npages "$PROCESS_FILE")
+    CURRENT_PAGE=1
+    PART_NUM=1
+
+    while [ $CURRENT_PAGE -le $TOTAL_PAGES ]; do
+        END_PAGE=$((CURRENT_PAGE + SPLIT_PAGES - 1))
+        if [ $END_PAGE -gt $TOTAL_PAGES ]; then END_PAGE=$TOTAL_PAGES; fi
+
+        OUT_NAME="${OUTPUT_DIR}/${PROC_BASENAME}_part$(printf "%02d" $PART_NUM).pdf"
+        qpdf --empty --pages "$PROCESS_FILE" $CURRENT_PAGE-$END_PAGE -- "$OUT_NAME"
+        
+        # 進捗表示（少し静かに）
+        # echo "    -> 作成: $(basename "$OUT_NAME")"
+
+        CURRENT_PAGE=$((END_PAGE + 1))
+        PART_NUM=$((PART_NUM + 1))
+    done
+
+    echo "  完了! 保存先: $OUTPUT_DIR"
+
+done
+
+echo "========================================================"
+echo "すべてのファイルの処理が完了しました。"

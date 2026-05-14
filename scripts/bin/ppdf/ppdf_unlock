@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# 再帰的なパス展開 (**/*.pdf) を有効化
+shopt -s globstar 2>/dev/null
+
+usage() {
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS] FILE.pdf [FILE.pdf ...]
+
+PDFの暗号化を解除し、デフォルトで内部データのクリーニングと非圧縮を行います。
+元ファイルは /tmp に一時退避され、処理後に元の場所に上書きされます。
+
+optional arguments:
+  -h, --help           このヘルプを表示
+  -p, --password PASS  PDFのパスワードを指定
+  -o, --output-dir DIR 指定したディレクトリに保存 (元ファイルは移動しません)
+  -S, --simple         【シンプルモード】クリーニング・非圧縮を行わず、暗号化解除のみ行う
+                       (ファイルサイズを抑えたい場合や、表示崩れを防ぎたい場合に使用)
+EOF
+    exit 0
+}
+
+OUTPUT_DIR=""
+PASSWORD=""
+SIMPLE_MODE=false
+FILES=()
+
+# オプション解析
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        -h|--help) usage ;;
+        -p|--password)
+            if [[ -n "$2" && "$2" != -* ]]; then
+                PASSWORD="$2"; shift 2
+            else
+                echo "Error: -p にはパスワードが必要です"; exit 1
+            fi ;;
+        -o|--output-dir)
+            if [[ -n "$2" && "$2" != -* ]]; then
+                OUTPUT_DIR="$2"; shift 2
+            else
+                echo "Error: -o にはディレクトリ名が必要です"; exit 1
+            fi ;;
+        -S|--simple) SIMPLE_MODE=true; shift ;;
+        -*) echo "Error: 不明なオプション $1"; usage ;;
+        *) FILES+=("$1"); shift ;;
+    esac
+done
+
+set -- "${FILES[@]}"
+if [[ $# -eq 0 ]]; then usage; fi
+
+[ -n "$OUTPUT_DIR" ] && mkdir -p "$OUTPUT_DIR"
+
+# --- オプション設定 ---
+# 1. 基本オプション (必ず適用): 暗号化解除
+BASE_OPTS="--decrypt"
+[ -n "$PASSWORD" ] && BASE_OPTS="--password=$PASSWORD $BASE_OPTS"
+
+# 2. クリーニング・非圧縮オプション (デフォルトで適用)
+#    --object-streams=disable  : オブジェクトストリームを解除
+#    --stream-data=uncompress  : ストリームデータを展開 (テキスト化)
+#    --normalize-content=y     : 記述ミスの正規化
+#    --coalesce-contents       : コンテンツの結合
+#    --linearize               : Web表示最適化
+CLEAN_OPTS="--object-streams=disable --stream-data=uncompress --normalize-content=y --coalesce-contents --linearize"
+
+# モードによるオプション結合
+if [ "$SIMPLE_MODE" = true ]; then
+    QPDF_OPTS="$BASE_OPTS"
+    MODE_MSG="(Simple Decrypt)"
+else
+    QPDF_OPTS="$BASE_OPTS $CLEAN_OPTS"
+    MODE_MSG="(Full Clean & Decrypt)"
+fi
+
+echo "Mode: $MODE_MSG"
+
+for file in "$@"; do
+    [[ ! -f "$file" ]] && continue
+    
+    base=$(basename "$file")
+    
+    if [ -n "$OUTPUT_DIR" ]; then
+        # パターンA: 出力先指定あり (-o)
+        output="$OUTPUT_DIR/$base"
+        echo -n "Processing: $file -> $output ... "
+        qpdf $QPDF_OPTS "$file" "$output" 2>/dev/null && echo "Done!" || echo "Failed."
+    else
+        # パターンB: デフォルト動作 (その場で置換)
+        
+        # /tmp でのファイル名衝突を防ぐため、時刻とランダム値を入れる
+        filename="${base%.*}"
+        extension="${base##*.}"
+        unique_id="$(date +%s)_${RANDOM}"
+        backup_path="/tmp/${filename}_${unique_id}_original.${extension}"
+
+        echo -n "Processing: $file (Backup: $backup_path) ... "
+
+        # 1. 退避
+        if mv "$file" "$backup_path"; then
+            # 2. 処理実行
+            qpdf $QPDF_OPTS "$backup_path" "$file" 2>/dev/null
+            status=$?
+
+            if [ $status -eq 0 ] || [ $status -eq 3 ]; then
+                if [ $status -eq 3 ]; then
+                    echo "Done! (Warnings ignored)"
+                else
+                    echo "Done!"
+                fi
+            else
+                echo "Failed! (Status: $status)"
+                echo "  -> Error occurred. Restoring original file..."
+                mv "$backup_path" "$file"
+            fi
+        else
+            echo "Error: Could not move to /tmp."
+        fi
+    fi
+done
