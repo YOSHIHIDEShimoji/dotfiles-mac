@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# whisper.cpp + CoreML を使った文字起こしツール（M4 Neural Engine 活用）
+# mlx-whisper より約1.5倍速い（62分音声: 3:02 vs 4:33）
+
+set -euo pipefail
+
+WHISPER_CLI=~/whisper.cpp/build/bin/whisper-cli
+WHISPER_MODEL=~/whisper.cpp/models/ggml-large-v3-turbo.bin
+
+usage() {
+  cat <<EOF
+Usage: transcribe-cpp <input> [-o output] [--lang ja] [--format plain|txt|srt]
+
+処理時間の目安 (M4 / whisper.cpp + CoreML + large-v3-turbo):
+  30分の音声  → 約1分30秒
+  1時間の音声 → 約3分
+  2時間の音声 → 約6分
+  3時間の音声 → 約9分
+
+Options:
+  -o, --output PATH    出力ファイルパス (省略時はカレントディレクトリに自動保存)
+  --lang LANG          言語コード (default: ja)
+  --format FORMAT      plain=テキストのみ, txt=タイムスタンプ付き, srt=字幕 (default: plain)
+  -h, --help
+
+Examples:
+  transcribe-cpp voice_memo.m4a
+  transcribe-cpp voice_memo.m4a -o ~/Desktop/output.txt
+  transcribe-cpp voice_memo.m4a --lang en --format srt
+EOF
+}
+
+INPUT=""
+OUTPUT=""
+LANG="ja"
+FORMAT="plain"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    -o|--output) OUTPUT="$2"; shift 2 ;;
+    --lang) LANG="$2"; shift 2 ;;
+    --format) FORMAT="$2"; shift 2 ;;
+    -*) echo "Unknown option: $1" >&2; usage; exit 1 ;;
+    *) INPUT="$1"; shift ;;
+  esac
+done
+
+if [[ -z "$INPUT" ]]; then
+  usage; exit 1
+fi
+
+if [[ ! -f "$INPUT" ]]; then
+  echo "[error] ファイルが見つかりません: $INPUT" >&2
+  exit 1
+fi
+
+# WAV以外はffmpegで16kHz mono WAVに変換
+TMPWAV=""
+if [[ "${INPUT##*.}" != "wav" ]]; then
+  TMPWAV=$(mktemp /tmp/transcribe_cpp_XXXXXX.wav)
+  echo "[convert] ${INPUT##*/} → 16kHz mono wav ..." >&2
+  ffmpeg -i "$INPUT" -ar 16000 -ac 1 -c:a pcm_s16le "$TMPWAV" -y -loglevel error
+  AUDIO="$TMPWAV"
+else
+  AUDIO="$INPUT"
+fi
+
+cleanup() {
+  [[ -n "$TMPWAV" ]] && rm -f "$TMPWAV"
+}
+trap cleanup EXIT
+
+STEM=$(basename "$INPUT")
+STEM="${STEM%.*}"
+
+# 出力ファイルパス決定
+case "$FORMAT" in
+  srt) EXT="srt" ;;
+  *)   EXT="txt" ;;
+esac
+
+if [[ -z "$OUTPUT" ]]; then
+  OUTPUT_BASE="${STEM}"
+  PROMPT_RENAME=1
+else
+  OUTPUT_BASE="${OUTPUT%.*}"
+  PROMPT_RENAME=0
+fi
+
+echo "[model] $WHISPER_MODEL (CoreML)" >&2
+echo "[transcribe] 文字起こし開始: ${INPUT##*/}" >&2
+echo "[output] ${OUTPUT_BASE}.${EXT}" >&2
+
+# whisper-cli 実行
+WHISPER_FLAGS=(-m "$WHISPER_MODEL" -f "$AUDIO" -l "$LANG" -of "$OUTPUT_BASE")
+
+case "$FORMAT" in
+  srt)   WHISPER_FLAGS+=(-osrt) ;;
+  txt)   WHISPER_FLAGS+=(-otxt) ;;
+  plain) WHISPER_FLAGS+=(-otxt --no-timestamps) ;;
+esac
+
+"$WHISPER_CLI" "${WHISPER_FLAGS[@]}" 2>/dev/null
+
+SEG_COUNT=$(grep -c "." "${OUTPUT_BASE}.${EXT}" 2>/dev/null || echo 0)
+echo "[完了] ${SEG_COUNT} 行" >&2
+echo "[saved] $(realpath "${OUTPUT_BASE}.${EXT}")" >&2

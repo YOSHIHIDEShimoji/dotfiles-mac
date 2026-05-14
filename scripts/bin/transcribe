@@ -128,6 +128,7 @@ def main() -> None:
   2時間の音声 → 約9分
   3時間の音声 → 約13分
   ※ 初回のみモデルダウンロード (~800MB) が加算される
+  ※ より高速な transcribe-cpp (whisper.cpp + CoreML) もある → 1時間で約3分
 
 examples:
   transcribe voice_memo.m4a
