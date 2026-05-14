@@ -1,0 +1,22 @@
+# ─── グローバル設定（全ホスト共通）────────────────────────
+Host *
+  # キープアライブ（接続ラグ・タイムアウト対策）
+  ServerAliveInterval 60
+  ServerAliveCountMax 3
+  TCPKeepAlive yes
+
+  # 接続多重化（同じホストへの2回目以降の接続を高速化）
+  ControlMaster auto
+  ControlPath ~/.ssh/cm/%r@%h:%p
+  ControlPersist 10m
+
+  # IPv4 優先（IPv6 フォールバックのラグ対策）
+  AddressFamily inet
+
+  # GSSAPI 認証の無効化（Kerberos 未使用環境での接続遅延対策）
+  GSSAPIAuthentication no
+
+# ─── 個人ホスト設定 ─────────────────────────────────────
+Host win
+  HostName 100.85.4.93
+  User gyshi

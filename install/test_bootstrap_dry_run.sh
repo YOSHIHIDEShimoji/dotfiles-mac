@@ -119,6 +119,8 @@ check_links_prop git
 check_links_prop karabiner
 check_links_prop vscode
 check_links_prop ghostty
+check_links_prop tmux
+check_links_prop ssh
 
 # ==========================================
 # 7. Brewfile 検証

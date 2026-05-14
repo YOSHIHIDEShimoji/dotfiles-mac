@@ -1,0 +1,21 @@
+# 秘密鍵・証明書（誤コミット防止）
+id_rsa
+id_rsa.pub
+id_dsa
+id_dsa.pub
+id_ecdsa
+id_ecdsa.pub
+id_ed25519
+id_ed25519.pub
+*.pem
+*.key
+*.crt
+
+# ControlMaster ソケットファイル
+cm/
+
+# known_hosts
+known_hosts
+known_hosts.old
+
+.DS_Store

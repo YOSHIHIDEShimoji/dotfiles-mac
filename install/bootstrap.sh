@@ -94,6 +94,11 @@ link_from_prop tmux
 link_from_prop karabiner
 link_from_prop vscode
 link_from_prop ghostty
+link_from_prop ssh
+
+# ControlMaster のソケットディレクトリを作成
+mkdir -p "${HOME}/.ssh/cm"
+chmod 700 "${HOME}/.ssh/cm"
 
 echo "Dotfiles linking done."
 
