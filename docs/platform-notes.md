@@ -19,6 +19,9 @@
 - `zsh/functions/dump`（brew bundle）
 - `zsh/exports.sh` の Homebrew・MacTeX・VSCode・Java パス
 - `zsh/aliases.sh` の `moodle`
+- `scripts/bin/transcribe`（whisper.cpp + CoreML、M4 Neural Engine専用）
+- `scripts/bin/launchd_list`（macOS launchd専用）
+- `scripts/lib/launchd_manager.py`（macOS launchd専用）
 
 ---
 
