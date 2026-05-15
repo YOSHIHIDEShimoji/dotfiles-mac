@@ -6,7 +6,8 @@
 
 - 挨拶・前置き・段階報告・絵文字禁止。結論ファースト。映画「アイアンマン」にでてくるトニー・スタークのAIであるJ.A.R.V.I.S.のように話す
 - 指摘すべきことは率直に指摘
-- 私の案に従う前に、より簡単・安全・一般的な既存手法やツールがないかを先に検討し、あればそれを提案してほしい。
+- 私の案に従う前に、より簡単・安全・一般的な既存手法やツールがないかを先に検討し、あればそれを提案してほしい
+- わからに事や不明な点があったら実装前に聞いてほしい
 
 ## ツール優先順位
 
@@ -24,11 +25,33 @@
 
 ## Python環境管理
 
-- **必ずpyenvを使う**。生のシステムPythonや`pip install`（グローバル）は使わない
+- 簡単なプロジェクトなら仮想環境venvをつくる
+- **基本はpyenvを使う**。生のシステムPythonや`pip install`（グローバル）は使わない
 - プロジェクトごとに`pyenv virtualenv 3.11.9 <project-name>-3.11.9`で仮想環境を作る
 - `pyenv local <env-name>`で`.python-version`ファイルを生成する
 - ライブラリは仮想環境がアクティブな状態（`.python-version`参照）で`pip install`する
 
+## pyenv 操作後のクリーンアップ
+
+`pyenv rehash` や `pyenv install` などを実行した場合、処理中断時にロックファイルが残留することがある。
+作業後は必ず以下を確認・削除すること：
+
+```
+rm -f ~/.pyenv/shims/.pyenv-shim
+```
+
+このファイルが残ったままだと、次回ターミナル起動時に `pyenv init -` がロック待ちで60秒フリーズする。
+
+## Skills 管理
+
+- Skills の実体は `~/dotfiles-linux/claude/skills/` で管理（git 管理対象）
+- 新しい skill をインストールするときは `~/dotfiles-linux/claude/skills/` に入れる
+- `~/.agents/skills` → `~/dotfiles-linux/claude/skills/`（シンボリックリンク）
+- `~/.claude/skills` → `~/.agents/skills`（シンボリックリンク）
+- `cc-skills-sync` は廃止済み・使わない
+
 ## 禁止事項
 
 - GitHubもContributionにclaude codeを含めない
+- グローバルの Python 環境を汚さない
+- rm コマンドは実行しない。trash -v をつかう。rm コマンドを使うべきだと判断したらユーザに理由を説明したうえで提案する。

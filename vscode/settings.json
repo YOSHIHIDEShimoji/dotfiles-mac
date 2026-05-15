@@ -11,7 +11,9 @@
     "github.copilot.enable": {
         "*": false
     },
-    "accessibility.signals.chatRequestSent": {"sound": "off"},
+    "accessibility.signals.chatRequestSent": {
+        "sound": "off"
+    },
     "accessibility.signals.clear": {"sound": "off"},
     "accessibility.signals.lineHasFoldedArea": {"sound": "off"},
     "accessibility.signals.lineHasInlineSuggestion": {"sound": "off"},
@@ -30,8 +32,6 @@
     "accessibility.signals.diffLineModified": {"sound": "off"},
     "accessibility.signals.diffLineInserted": {"sound": "off"},
     "accessibility.signals.diffLineDeleted": {"sound": "off"},
-    "accessibility.signals.progress": {"sound": "off"},
-    "accessibility.signalOptions.volume": 0,
     "python.defaultInterpreterPath": "/Users/yoshihide/.pyenv/versions/3.11.9/envs/prog-spe2-3.11.9",
     "explorer.confirmDragAndDrop": false,
     "git.openRepositoryInParentFolders": "always",
@@ -44,5 +44,9 @@
     "explorer.confirmPasteNative": false,
     "git.confirmSync": false,
     "window.confirmSaveUntitledWorkspace": false,
-    "claudeCode.preferredLocation": "panel"
+    "claudeCode.preferredLocation": "panel",
+    "accessibility.signals.progress": {
+        "sound": "off"
+    },
+    "accessibility.signalOptions.volume": 0
 }

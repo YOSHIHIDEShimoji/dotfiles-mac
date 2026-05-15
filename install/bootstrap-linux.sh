@@ -175,6 +175,10 @@ info "シンボリックリンクを作成します..."
 link_from_prop zsh
 link_from_prop git
 link_from_prop tmux
+link_from_prop claude
+
+# ~/.claude/skills -> ~/.agents/skills の恒久リンク（cc-skills-sync 不要）
+ln -sfv "${HOME}/.agents/skills" "${HOME}/.claude/skills"
 
 # Ghostty は純 Linux のみリンク（WSL はデスクトップ環境がないため不要）
 if [[ "$IS_WSL" == false ]]; then
