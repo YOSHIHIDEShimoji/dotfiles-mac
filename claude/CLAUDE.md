@@ -23,6 +23,26 @@
 
 - プランファイルには**意図**（なぜ必要か）と**選択理由**を含める
 
+## windowsについて
+
+- `ssh win` で自宅のWindowsマシンにSSH接続できる（シェルはPowerShell）
+- Windowsは操作せず、WSLに入って操作する
+- WSLでコマンドを実行する場合は `wsl -- bash -c '...'` を経由する
+
+```bash
+# 一発実行
+ssh win "wsl -- bash -c 'コマンド'"
+
+# バックグラウンドで長時間実行（tmux推奨）
+ssh win "wsl -- bash -c 'tmux new-session -d -s <name> \"コマンド\"'"
+
+# tmuxセッション確認
+ssh win "wsl -- bash -c 'tmux list-sessions'"
+
+# ログ確認
+ssh win "wsl -- bash -c 'tail -20 ~/path/to/logfile'"
+```
+
 ## Python環境管理
 
 - 簡単なプロジェクトなら仮想環境venvをつくる
@@ -33,14 +53,14 @@
 
 ## pyenv 操作後のクリーンアップ
 
-`pyenv rehash` や `pyenv install` などを実行した場合、処理中断時にロックファイルが残留することがある。
+`pyenv rehash` や `pyenv install` などを実行した場合、処理中断時にロックファイルが残留することがある
 作業後は必ず以下を確認・削除すること：
 
 ```
 rm -f ~/.pyenv/shims/.pyenv-shim
 ```
 
-このファイルが残ったままだと、次回ターミナル起動時に `pyenv init -` がロック待ちで60秒フリーズする。
+このファイルが残ったままだと、次回ターミナル起動時に `pyenv init -` がロック待ちで60秒フリーズする
 
 ## Skills 管理
 
@@ -54,4 +74,4 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 
 - GitHubもContributionにclaude codeを含めない
 - グローバルの Python 環境を汚さない
-- rm コマンドは実行しない。trash -v をつかう。rm コマンドを使うべきだと判断したらユーザに理由を説明したうえで提案する。
+- rm コマンドは実行しない。trash -v をつかう。rm コマンドを使うべきだと判断したらユーザに理由を説明したうえで提案する
