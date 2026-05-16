@@ -35,12 +35,6 @@ ssh win "wsl -- bash -c 'コマンド'"
 
 # バックグラウンドで長時間実行（tmux推奨）
 ssh win "wsl -- bash -c 'tmux new-session -d -s <name> \"コマンド\"'"
-
-# tmuxセッション確認
-ssh win "wsl -- bash -c 'tmux list-sessions'"
-
-# ログ確認
-ssh win "wsl -- bash -c 'tail -20 ~/path/to/logfile'"
 ```
 
 ## Python環境管理
