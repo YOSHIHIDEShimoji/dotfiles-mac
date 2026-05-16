@@ -26,14 +26,15 @@
 ## windowsについて
 
 - `ssh win` で自宅のWindowsマシンにSSH接続できる（シェルはPowerShell）
-- Windowsは操作せず、WSLに入って操作する
+- `ssh win` が失敗する場合は Tailscale がオフになっている。`tailscale up` を実行してから再試行する
+- Windows 本体を直接操作すべき場合もある。WSL に入りたい場合のみ以下の方法を使う
 - WSLでコマンドを実行する場合は `wsl -- bash -c '...'` を経由する
 
 ```bash
-# 一発実行
+# WSL に入って一発実行
 ssh win "wsl -- bash -c 'コマンド'"
 
-# バックグラウンドで長時間実行（tmux推奨）
+# WSL でバックグラウンド長時間実行（tmux推奨）
 ssh win "wsl -- bash -c 'tmux new-session -d -s <name> \"コマンド\"'"
 ```
 
