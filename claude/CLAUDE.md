@@ -68,18 +68,27 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 ## yt-learn のローカルLLM（Ollama）
 
 `transcribe.py` / `summarize.py` はOllama優先・Geminiフォールバック構成。
-`.env` に `LOCAL_LLM_URL=http://localhost:11434` と `LOCAL_LLM_MODEL=qwen3.5:9b` を設定する。
+`LOCAL_LLM_URL` が設定されていれば Mac/WSL 問わず Ollama を使う。
 
-**Macから手動実行する場合** — 事前にSSHトンネルが必要:
+**Mac の .env**
 
-```bash
-ssh -f -N -L 11434:localhost:11434 win
-python transcribe.py ...
+```
+LOCAL_LLM_URL=http://100.85.4.93:11434  # Windows の Tailscale IP
+LOCAL_LLM_MODEL=qwen3.5:9b
 ```
 
-`run_transcribe.sh` / `run_summarize.sh`（launchd経由）は自動でトンネルを張るため不要。
+**WSL の .env**
 
-**WSLから実行する場合** — トンネル不要。WSLを自動検出してOllamaをスキップし、Geminiにフォールバックする。
+```
+LOCAL_LLM_URL=http://localhost:11434  # localhost 経由で Windows Ollama に接続
+LOCAL_LLM_MODEL=qwen3.5:9b
+```
+
+**.env の Mac → WSL 転送**
+
+Mac と WSL で `LOCAL_LLM_URL` の値が異なるため、`scp` で丸ごと上書きしないこと。
+WSL 側の `.env` は `.gitignore` 対象なので `git pull` では上書きされない。
+変更が必要な場合は WSL 側で直接編集するか、差分を意識して転送する。
 
 ## 禁止事項
 
