@@ -73,7 +73,7 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 **Mac の .env**
 
 ```
-LOCAL_LLM_URL=http://100.85.4.93:11434  # Windows の Tailscale IP
+LOCAL_LLM_URL=http://<Windows-TailscaleIP>:11434
 LOCAL_LLM_MODEL=qwen3.5:9b
 ```
 
