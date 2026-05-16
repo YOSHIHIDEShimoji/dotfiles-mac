@@ -65,6 +65,22 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 - `~/.claude/skills` → `~/.agents/skills`（シンボリックリンク）
 - `cc-skills-sync` は廃止済み・使わない
 
+## yt-learn のローカルLLM（Ollama）
+
+`transcribe.py` / `summarize.py` はOllama優先・Geminiフォールバック構成。
+`.env` に `LOCAL_LLM_URL=http://localhost:11434` と `LOCAL_LLM_MODEL=qwen3.5:9b` を設定する。
+
+**Macから手動実行する場合** — 事前にSSHトンネルが必要:
+
+```bash
+ssh -f -N -L 11434:localhost:11434 win
+python transcribe.py ...
+```
+
+`run_transcribe.sh` / `run_summarize.sh`（launchd経由）は自動でトンネルを張るため不要。
+
+**WSLから実行する場合** — トンネル不要。WSLを自動検出してOllamaをスキップし、Geminiにフォールバックする。
+
 ## 禁止事項
 
 - GitHubもContributionにclaude codeを含めない
