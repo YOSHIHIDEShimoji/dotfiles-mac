@@ -42,6 +42,22 @@ git -C ~/dotfiles-linux diff --name-only HEAD
 | `install/Brewfile` | インストールされるアプリセクション |
 | `ghostty/` | Ghostty設定セクション |
 
+### Step 2.5: `--help` との照合
+
+CLIスクリプトが存在する場合、`--help` 出力と README のコマンド例を照合する：
+
+```bash
+python <script>.py --help
+# または
+<command> --help
+```
+
+確認ポイント：
+- **オプション名・フラグ** — README に載っているオプションが実際に存在するか
+- **デフォルト値** — README に書かれたデフォルト値と `--help` が一致するか
+- **サブコマンド** — README に載っているサブコマンドが実装されているか
+- **削除されたオプション** — README には残っているが `--help` に出てこないものを削除
+
 ### Step 3: 差異の検出と更新
 
 - **追加された関数** → 関数テーブルに行を追加
