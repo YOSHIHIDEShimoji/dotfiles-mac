@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOTFILES_DIR="${DOTFILES:-$HOME/dotfiles-mac}"
+DOTFILES_DIR="${DOTFILES:-$HOME/dotfiles-linux}"
 WORDLISTS_DIR="$DOTFILES_DIR/scripts/john/wordlists"
 
 mkdir -p "$WORDLISTS_DIR"

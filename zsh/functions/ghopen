@@ -46,7 +46,7 @@ ghopen() {
 	if [[ "$(uname -s)" == "Darwin" ]]; then
 		open "$url"
 	elif grep -qi microsoft /proc/version 2>/dev/null; then
-		explorer.exe "$url"
+		cmd.exe /c start "$url" 2>/dev/null
 	else
 		xdg-open "$url" || google-chrome "$url" &
 	fi

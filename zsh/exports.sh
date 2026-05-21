@@ -1,7 +1,7 @@
 export DOTFILES="$HOME/dotfiles-linux"
 
-# 基本PATH
-export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+# 基本PATH（WSL interop パス等の既存 PATH を保持しつつ基本パスを先頭に追加）
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
 # Claude Code
 export PATH="$HOME/.local/bin:$PATH"

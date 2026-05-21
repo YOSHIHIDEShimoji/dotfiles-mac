@@ -1,5 +1,5 @@
 dump() {
-  local DOTFILES="${DOTFILES:-$HOME/dotfiles-mac}"
+  local DOTFILES="${DOTFILES:-$HOME/dotfiles-linux}"
   local brewfile="$DOTFILES/install/Brewfile"
   local extfile="$DOTFILES/vscode/extensions.txt"
 
