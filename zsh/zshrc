@@ -1,4 +1,8 @@
-ZDOTDIR=~/dotfiles-mac/zsh
+if [[ "$(uname)" == "Darwin" ]]; then
+  ZDOTDIR="$HOME/dotfiles-mac/zsh"
+else
+  ZDOTDIR="$HOME/dotfiles-linux/zsh"
+fi
 
 # basic settings
 source $ZDOTDIR/exports.sh
@@ -12,19 +16,33 @@ for f in $FUNCTIONS_DIR/*(.N); do
 done
 
 # zsh-completions
-fpath=($(brew --prefix)/share/zsh-completions $fpath)
+if [[ "$(uname)" == "Darwin" ]]; then
+  fpath=($(brew --prefix)/share/zsh-completions $fpath)
+else
+  fpath=(/usr/share/zsh/vendor-completions $fpath)
+fi
 
 # complement
 autoload -Uz compinit && compinit
 
 # zsh-autosuggestions
-source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+if [[ "$(uname)" == "Darwin" ]]; then
+  source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+else
+  [[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+    source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
 
 # themes
 eval "$(starship init zsh)"
 
 # zsh-syntax-highlighting
-source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+if [[ "$(uname)" == "Darwin" ]]; then
+  source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+else
+  [[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
+    source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
 
 # History search with arrow keys
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
@@ -37,9 +55,14 @@ bindkey "^[[B" down-line-or-beginning-search
 setopt interactive_comments
 setopt no_beep
 
-# fzf
+# fzf（0.48未満は --zsh 非対応のためシステム統合ファイルを使う）
 if command -v fzf >/dev/null 2>&1; then
-  source <(fzf --zsh)
+  if fzf --zsh &>/dev/null; then
+    source <(fzf --zsh)
+  else
+    [[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+    [[ -f /usr/share/doc/fzf/examples/completion.zsh ]]   && source /usr/share/doc/fzf/examples/completion.zsh
+  fi
 fi
 
 # pyenv

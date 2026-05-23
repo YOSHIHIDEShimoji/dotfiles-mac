@@ -26,9 +26,16 @@ rst() {
   fi
 
   # 4. RStudio インストール確認
-  if [[ ! -d "/Applications/RStudio.app" ]]; then
-    echo "rst: RStudio not found at /Applications/RStudio.app" >&2
-    return 1
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if [[ ! -d "/Applications/RStudio.app" ]]; then
+      echo "rst: RStudio not found at /Applications/RStudio.app" >&2
+      return 1
+    fi
+  else
+    if ! command -v rstudio &>/dev/null; then
+      echo "rst: RStudio not found (install via https://posit.co/download/rstudio-desktop/)" >&2
+      return 1
+    fi
   fi
 
   # 5. .Rproj ファイルの確認と生成
@@ -38,7 +45,7 @@ rst() {
   if [[ -z "$rproj_file" ]]; then
     local dirname="${target:t}"
     rproj_file="${target}/${dirname}.Rproj"
-    local template="$HOME/dotfiles-mac/templates/template.Rproj"
+    local template="${DOTFILES}/templates/template.Rproj"
     if [[ -f "$template" ]]; then
       cp "$template" "$rproj_file" || {
         echo "rst: Permission denied: $rproj_file" >&2
@@ -51,5 +58,9 @@ rst() {
   fi
 
   # 6. RStudio で起動
-  open -a RStudio "$rproj_file"
+  if [[ "$(uname)" == "Darwin" ]]; then
+    open -a RStudio "$rproj_file"
+  else
+    rstudio "$rproj_file" &>/dev/null &
+  fi
 }
