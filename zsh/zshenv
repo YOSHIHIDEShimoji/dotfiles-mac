@@ -1,3 +1,9 @@
+if [[ "$(uname)" == "Darwin" ]]; then
+  export ZDOTDIR="$HOME/dotfiles-mac/zsh"
+else
+  export ZDOTDIR="$HOME/dotfiles-linux/zsh"
+fi
+
 # pyenv (全 zsh セッションで PATH が必要)
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$HOME/.local/bin:$PATH"
