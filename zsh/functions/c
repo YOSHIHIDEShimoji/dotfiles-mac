@@ -7,6 +7,19 @@ c() {
     done
     set -- "${new_args[@]}"
 
+    # ソースファイルの言語を事前検出（ローカルフラグファイル名・コンパイラの決定に使用）
+    local lang="c"
+    local compiler="cc"
+    local local_flags_file=".c_local_flags"
+    for arg in "$@"; do
+        if [[ "$arg" == *.cpp || "$arg" == *.cc ]]; then
+            lang="c++"
+            compiler="c++"
+            local_flags_file=".cpp_local_flags"
+            break
+        fi
+    done
+
     local time_opt=""
     local include_compile=0
     local compile_only=0
@@ -45,7 +58,7 @@ c() {
     local -a flags_sources=()
     local dir="$PWD"
     while true; do
-        if [[ -f "$dir/.c_local_flags" ]]; then
+        if [[ -f "$dir/$local_flags_file" ]]; then
             local -a file_flags=()
             local has_reset=0
             while IFS= read -r line || [[ -n "$line" ]]; do
@@ -60,14 +73,14 @@ c() {
                 for token in "${tokens[@]}"; do
                     [[ -z "$token" ]] && continue
                     if [[ "$token" != -* ]]; then
-                        echo "[c] warning: invalid flag '$token' in $dir/.c_local_flags" >&2
+                        echo "[c] warning: invalid flag '$token' in $dir/$local_flags_file" >&2
                         continue
                     fi
                     file_flags+=("$token")
                 done
-            done < "$dir/.c_local_flags"
+            done < "$dir/$local_flags_file"
             # 親→子順になるよう先頭に挿入
-            flags_sources=("$dir/.c_local_flags" "${flags_sources[@]}")
+            flags_sources=("$dir/$local_flags_file" "${flags_sources[@]}")
             local_flags=("${file_flags[@]}" "${local_flags[@]}")
             [[ $has_reset -eq 1 ]] && break
         fi
@@ -89,15 +102,25 @@ c() {
     local -a src_files=()
     while [[ $# -gt 0 ]]; do
         [[ "$1" == "--" ]] && { shift; break; }
-        [[ "$1" == *.c ]] || break
+        [[ "$1" == *.c || "$1" == *.cpp || "$1" == *.cc ]] || break
         src_files+=("$(realpath "$1")")
         shift
     done
 
+    # C と C++ の混在チェック
+    if [[ "$lang" == "c++" ]]; then
+        for src in "${src_files[@]}"; do
+            if [[ "$src" == *.c ]]; then
+                echo "[c] error: .c と .cpp/.cc の混在はサポートしていません" >&2
+                return 1
+            fi
+        done
+    fi
+
     # ドライランモード
     if [[ $dry_run -eq 1 ]]; then
         for src_path in "${flags_sources[@]}"; do
-            echo "[c_local_flags] $src_path"
+            echo "[$local_flags_file] $src_path"
             while IFS= read -r line || [[ -n "$line" ]]; do
                 [[ "$line" =~ ^[[:space:]]*# ]] && continue
                 [[ -z "${line//[[:space:]]/}" ]] && continue
@@ -132,6 +155,11 @@ c() {
     if [[ ${#src_files[@]} -eq 0 ]]; then
         cat <<'USAGE'
 Usage: c [options] file.c [file2.c ...] [-- args...]
+       c [options] file.cpp [file2.cpp ...] [-- args...]
+       c [options] file.cc  [file2.cc  ...] [-- args...]
+
+  拡張子で自動判定: .c → cc、.cpp/.cc → c++
+  .c と .cpp/.cc の混在は不可
 
 Compile & run options:
   -o OUT        出力バイナリのパスを指定（省略時は /tmp に一時生成）
@@ -149,13 +177,15 @@ Compiler flags:
   -D NAME, -I PATH
 
 Local flags:
-  -d            ドライラン: .c_local_flags と適用フラグを表示して終了
-                （どこに書いても認識される: c -d -O3 file.c, c -O3 -d file.c）
+  .c_local_flags    C プロジェクト用フラグ（$PWD → $HOME を遡って収集）
+  .cpp_local_flags  C++ プロジェクト用フラグ（同上）
+  -d                ドライラン: ローカルフラグと適用フラグを表示して終了
+                    （どこに書いても認識される: c -d -O3 file.c, c -O3 -d file.c）
 USAGE
         return 1
     fi
 
-    local name="$(basename "${src_files[1]%.c}")"
+    local name="$(basename "${src_files[1]%.*}")"
     local out=""
 
     # 出力パスの決定
@@ -167,17 +197,17 @@ USAGE
         out="$(mktemp /tmp/${name}.XXXXXX)"
     fi
 
-    # math.h の自動リンク
+    # math.h / cmath の自動リンク
     local lm_flag=""
     for src in "${src_files[@]}"; do
-        if grep -q '#[[:space:]]*include[[:space:]]*<math\.h>' "$src"; then
+        if grep -qE '#[[:space:]]*include[[:space:]]*<(math\.h|cmath)>' "$src"; then
             lm_flag="-lm"
             break
         fi
     done
 
     # コンパイルコマンドを配列で組み立て（eval 不要、スペース入りパスも安全）
-    local -a compile_args=(cc)
+    local -a compile_args=("$compiler")
     [[ ${#all_flags[@]} -gt 0 ]] && compile_args+=("${all_flags[@]}")
     compile_args+=("${src_files[@]}" -o "$out")
     [[ -n "$lm_flag" ]] && compile_args+=("$lm_flag")
