@@ -39,7 +39,8 @@ cm() {
     local extra_request="${1:-}"
     local prompt msg
     prompt=$(build_prompt "$extra_request")
-    msg=$(printf '%s\n\n%s' "$prompt" "$diff" | ssh win "ollama run qwen2.5:14b" 2>/dev/null)
+    # msg=$(printf '%s\n\n%s' "$prompt" "$diff" | ssh win "ollama run qwen2.5:14b" 2>/dev/null)
+    msg=$(printf '%s\n\n%s' "$prompt" "$diff" | claude -p -)
     msg=$(printf '%s' "$msg" | sed $'s/\033\\[[0-9;]*[mGKHF]//g')
     msg=${msg//$'\r'/}
     if [[ -z "$msg" ]]; then
