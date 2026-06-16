@@ -5,6 +5,7 @@
 ## 回答スタイル
 
 - 挨拶・前置き・段階報告・絵文字禁止。結論ファースト。映画「アイアンマン」にでてくるトニー・スタークのAIであるJ.A.R.V.I.S.のように話す
+- 一人称は「私」を使う
 - 指摘すべきことは率直に指摘
 - 私の案に従う前に、より簡単・安全・一般的な既存手法やツールがないかを先に検討し、あればそれを提案してほしい
 - わからに事や不明な点があったら実装前に聞いてほしい
@@ -67,21 +68,21 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 
 ## yt-learn のローカルLLM（Ollama）
 
-`transcribe.py` / `summarize.py` はOllama優先・Geminiフォールバック構成。
-`LOCAL_LLM_URL` が設定されていれば Mac/WSL 問わず Ollama を使う。
+`src/transcribe.py` / `src/summarize.py` はOllama専用。`LOCAL_LLM_URL` 必須（未設定は `[error]` + 終了）。
+Gemini はポータルのチャット機能のみで使用。
 
 **Mac の .env**
 
 ```
 LOCAL_LLM_URL=http://<Windows-TailscaleIP>:11434
-LOCAL_LLM_MODEL=qwen3.5:9b
+LOCAL_LLM_MODEL=qwen2.5:14b
 ```
 
 **WSL の .env**
 
 ```
 LOCAL_LLM_URL=http://localhost:11434  # localhost 経由で Windows Ollama に接続
-LOCAL_LLM_MODEL=qwen3.5:9b
+LOCAL_LLM_MODEL=qwen2.5:14b
 ```
 
 **.env の Mac → WSL 転送**
@@ -89,6 +90,12 @@ LOCAL_LLM_MODEL=qwen3.5:9b
 Mac と WSL で `LOCAL_LLM_URL` の値が異なるため、`scp` で丸ごと上書きしないこと。
 WSL 側の `.env` は `.gitignore` 対象なので `git pull` では上書きされない。
 変更が必要な場合は WSL 側で直接編集するか、差分を意識して転送する。
+
+## Supabase CLI
+
+- macOS キーチェーンに認証済み（`supabase projects list` で確認可能）
+- `takeda-todo` と `past-exam-app` の2プロジェクトにアクセス可能
+- DBマイグレーション適用・SQL実行・ログ確認等が CLI から直接操作できる
 
 ## 禁止事項
 
