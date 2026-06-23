@@ -1,27 +1,44 @@
 awake() {
-  local usage="Usage: awake [time(s/m/h)] (e.g., awake 1.5h)"
-  
-  if [ -z "$1" ]; then
+  local usage="Usage: awake [time]  (例: awake 1.5h / awake 30m / awake 3:00:00 / awake 3:00)"
+
+  if [[ -z "$1" ]]; then
     echo "Caffeinated... (Infinite mode. Press Ctrl+C to stop)"
     caffeinate -i -d
     return
   fi
 
-  # 数値部分（小数含む）と単位を分離
-  local val=$(echo "$1" | sed -E 's/([0-9.]+).*/\1/')
-  local unit=$(echo "$1" | sed -E 's/[0-9.]+//')
-  local multiplier=1
+  local input="$1"
+  local seconds=0
 
-  case $unit in
-    m) multiplier=60 ;;
-    h) multiplier=3600 ;;
-    s|"") multiplier=1 ;;
-    *) echo "Invalid unit. Use s, m, or h."; echo $usage; return 1 ;;
-  esac
+  if [[ "$input" =~ ^([0-9]+):([0-9]{2})(:([0-9]{2}))?$ ]]; then
+    local h="${match[1]}" m="${match[2]}" s="${match[4]:-0}"
+    if (( m >= 60 || s >= 60 )); then
+      echo "Invalid time: 分・秒は 0〜59 で指定してください" >&2
+      echo "$usage" >&2
+      return 1
+    fi
+    seconds=$(( h * 3600 + m * 60 + s ))
+  elif [[ "$input" =~ ^([0-9]+(\.[0-9]+)?)(s|m|h)?$ ]]; then
+    local val="${match[1]}" unit="${match[3]:-s}"
+    local multiplier=1
+    case "$unit" in
+      m) multiplier=60 ;;
+      h) multiplier=3600 ;;
+    esac
+    seconds=$(printf "%.0f" "$(echo "$val * $multiplier" | bc)")
+  else
+    echo "Invalid format: '$input'" >&2
+    echo "$usage" >&2
+    return 1
+  fi
 
-  # 小数計算のために bc を使用（整数に四捨五入）
-  local seconds=$(echo "$val * $multiplier" | bc | xargs printf "%.0f")
+  if (( seconds <= 0 )); then
+    echo "Time must be greater than 0" >&2
+    return 1
+  fi
 
-  echo "Caffeinated for $1 ($seconds seconds)..."
-  caffeinate -i -d -t $seconds
+  local end_time
+  end_time=$(date -v+${seconds}S "+%H:%M:%S")
+  echo "Caffeinated for $input ($seconds sec, until $end_time)..."
+  caffeinate -i -d -t "$seconds"
 }

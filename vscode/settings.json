@@ -48,5 +48,7 @@
     "accessibility.signals.progress": {
         "sound": "off"
     },
-    "accessibility.signalOptions.volume": 0
+    "accessibility.signalOptions.volume": 0,
+    "editor.accessibilitySupport": "on",
+    "security.promptForLocalFileProtocolHandling": false
 }

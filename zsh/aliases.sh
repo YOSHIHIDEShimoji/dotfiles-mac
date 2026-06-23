@@ -68,4 +68,4 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 # claude
-alias cld='claude --dangerously-skip-permissions'
+alias cld='claude'
