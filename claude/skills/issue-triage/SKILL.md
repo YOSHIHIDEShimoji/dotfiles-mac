@@ -72,4 +72,15 @@ gh issue edit <N> --remove-label "P2-medium" --add-label "P1-high"
 
 ### 5. 完了
 
-出力なし（説明を求められた場合のみ理由を述べる）。
+全 Issue のラベル付与が終わったら、**優先度の高い順に上位3件を出力する。**
+
+```
+## 対応優先度 Top 3
+
+1. #N タイトル — P0-critical / risk-high / impact-user-blocking
+2. #M タイトル — P1-high / risk-medium / impact-user-visible
+3. #L タイトル — P1-high / risk-low / impact-internal
+```
+
+Priority の順位: P0-critical > P1-high > P2-medium > P3-low。
+同 Priority 内では risk-high > risk-medium > risk-low を次点基準にする。
