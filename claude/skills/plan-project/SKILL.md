@@ -38,11 +38,14 @@ yields the same high quality.
 
 Run these in order. Each later step may send you back to ask more.
 
-### 1. Find the starting point
+### 1. Find the starting point & assess repo state
 - Look for an existing requirements doc (`docs/要件定義.md`, `docs/requirements*.md`,
   a README spec, etc.). If found, read it and build on it.
 - If none, gather the idea through dialogue: what it is, who uses it, core flows,
   must-haves vs out-of-scope. Capture enough to design from.
+- **Assess the repo**: greenfield vs existing codebase, is it a git repo, is there
+  a remote, current framework/stack if any. Adapt the plan to what's already there
+  (don't plan a scaffold over an existing app).
 
 ### 2. Interrogate until a self-driving plan is possible
 - Hunt for ambiguity and resolve it now (data-model edge cases, rules,
@@ -66,9 +69,15 @@ Run these in order. Each later step may send you back to ask more.
 - Confirm the services the project needs (hosting, DB, auth, mail, analytics…).
   For a typical web app that's often **Vercel (host) + Neon (Postgres)**, but
   this skill is general — confirm each.
-- For every chosen service, **verify its CLI is installed, authenticated, and can
-  do what the project needs** (e.g., create a project). See
-  [references/service-checks.md](references/service-checks.md).
+- **Native access first.** For every service (common or brand-new), first check
+  whether it's already authenticated via **that service's own native CLI / API /
+  token**, and if so use that to create/manage. **Never provision a service
+  through another service's marketplace/proxy** (e.g. Neon via
+  `vercel integration add neon`) when native access exists — proxy-owned
+  resources don't show in the user's own account and can't be managed natively.
+- For every chosen service, **verify its native CLI/token is installed,
+  authenticated, and can do what the project needs** (e.g., create a project).
+  See [references/service-checks.md](references/service-checks.md).
 
 ### 6. Prompt setup BEFORE writing the plan
 - If any check fails (CLI missing, not logged in, no project quota), tell the user
@@ -88,25 +97,40 @@ Run these in order. Each later step may send you back to ask more.
   `.gitignore`.
 - Reflect the new paths in the plan so the implementer finds them.
 
-### 9. Write the outputs (no code)
+### 9. Propose the screen composition (IA & navigation)
+- Once the design is settled, propose a concrete screen/UI structure derived from
+  the requirements: the list of screens, the navigation/tab structure, and roughly
+  what each screen holds and how the user moves between them.
+- Present it as a recommendation ("設計を踏まえると、こういう画面構成・タブ構成が
+  いいのでは？") via `AskUserQuestion` or a short outline, and refine with the user.
+- Record the agreed screens + navigation in the plan's 画面構成 section — detailed
+  enough that the implementer builds the same information architecture.
+
+### 10. Write the outputs (no code)
 - Write **`docs/plan.md`** using
   [references/plan-template.md](references/plan-template.md). It must cover:
-  context, scope, services + verified CLI status, branch/env strategy, design
-  direction, data model/architecture, phased implementation, file locations
-  (incl. relocated files), **test methods**, verification & deploy checks,
-  prerequisites, conventions/secrets, and the "done" definition.
+  context, scope, **不変条件 (must-not-break)**, services + verified CLI status,
+  branch/env strategy, design direction, **screen composition (IA/navigation)**,
+  data model/architecture, **API/endpoints**, **環境変数 table**, phased
+  implementation, file locations (incl. relocated files), **seed data +
+  happy-path E2E**, test methods, verification & deploy checks, prerequisites,
+  **中断ポイント (where to stop for the user)**, **risks & mitigations**,
+  conventions/secrets, **Decision Log (with rationale)**, and the "done" definition.
+- While planning, actively note **中断ポイント**: anything the implementer can't do
+  alone (DNS, paid upgrades, user-only secrets). List them so the build pauses
+  only there — that is how the user avoids babysitting.
 - Write/refresh the root **`CLAUDE.md`** using
   [references/claude-md-template.md](references/claude-md-template.md).
 - If a separate requirements doc exists, link it from `plan.md` rather than
   duplicating it.
 
-### 10. Explain it to the user in plain language
+### 11. Explain it to the user in plain language
 - After the plan is written, describe — without code-speak — **what app you'll
   build and what the user will be able to do** ("Users can register, see X, do
   Y…"). Then a short plain list of services ("Vercel でビルド・公開、Neon でDB管理").
   Keep it human.
 
-### 11. Hand off to an implementation session
+### 12. Hand off to an implementation session
 - Tell the user to open a **new session** and run the built-in **`goal`** command
   to execute autonomously, e.g.:
 

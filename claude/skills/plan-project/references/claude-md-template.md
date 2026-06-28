@@ -27,6 +27,10 @@ Fill the placeholders and delete anything that doesn't apply.
 
 ## 使うサービスと鍵の置き場所
 - <Vercel / Neon / 他>：役割を1行ずつ。
+- **各サービスはそのサービス固有の CLI/API/token で直接操作する**（例: Neon は
+  `neonctl`、Vercel は `vercel`、GitHub は `gh`）。別サービスの統合/Marketplace
+  経由で作らない（代理所有になり本人のアカウントに出ない）。各サービスの認証方法を
+  1行ずつ明記（例: 「Neon=neonctl ログイン済み・個人org」「Vercel=vercel CLI ログイン済み」）。
 - シークレットは `.env.local`（ローカル）と <ホスティング> の環境変数のみ。**値は repo に書かない**。
 - 主な鍵: `<NAME>` … 用途 / 置き場所（値は書かない）。
 

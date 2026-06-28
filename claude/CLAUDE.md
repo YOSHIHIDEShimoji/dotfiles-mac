@@ -91,6 +91,22 @@ Mac と WSL で `LOCAL_LLM_URL` の値が異なるため、`scp` で丸ごと上
 WSL 側の `.env` は `.gitignore` 対象なので `git pull` では上書きされない。
 変更が必要な場合は WSL 側で直接編集するか、差分を意識して転送する。
 
+## クラウドサービスの認証（ネイティブCLI/トークン優先）
+
+- **原則**: 各クラウドサービスは、**そのサービス固有のCLI/API/tokenで直接**操作する。
+  別サービスの統合/Marketplace経由でプロビジョンしない（例: Neon を `vercel integration add neon`
+  で作らない）。代理経由で作ると**代理（Vercel等）所有になり、自分のアカウントの一覧に出ず、
+  ネイティブCLIで管理できなくなる**（後で移行する羽目になる）。
+- **新規サービスを使うときも同じ**: まず「そのサービスのネイティブCLIや既発行のAPIキー/トークンで
+  認証済みか」を確認し、認証済みならそれを直接使う。無ければユーザーに発行/ログインを依頼してから使う。
+- **Vercel**: `vercel` CLI ログイン済み（`vercel whoami` で確認）。プロジェクト作成・env管理・
+  デプロイは `vercel` で直接行う。
+- **Neon**: `neonctl` ログイン済み（`neonctl me` で確認）。**Vercel経由で作らない**。プロジェクトは
+  自分の個人org に作る（Neonダッシュボードの一覧に出る）。本番/開発は1プロジェクトの
+  `main`/`develop` ブランチで分け、各環境の `DATABASE_URL` を手動配線（`--pooled` URI）。
+- 注意: `vercel env rm <NAME> <env>` は1エントリ全環境分を消すことがある。env別に値を変えるときは
+  「全削除→production/preview/development を明示add」。本番値は触る前にバックアップ。
+
 ## Supabase CLI
 
 - macOS キーチェーンに認証済み（`supabase projects list` で確認可能）
