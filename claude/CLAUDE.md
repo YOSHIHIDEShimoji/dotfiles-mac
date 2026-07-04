@@ -65,6 +65,9 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 - `~/.agents/skills` → `~/dotfiles-mac/claude/skills/`（シンボリックリンク）
 - `~/.claude/skills` → `~/.agents/skills`（シンボリックリンク）
 - `cc-skills-sync` は廃止済み・使わない
+- **第三者スキルも git 管理する**。再インストール可能でも「依存物だから非追跡」にはしない。clone 一発で全環境が揃うこと（オフライン復元・版の固定）を、リポジトリの軽さより優先する
+- **第三者スキルの導入は公式リポジトリを `git clone` してファイルを取り込む**（npm 等のインストーラでコード実行しない＝安全機構でブロックされるうえ版が浮く）。例: ui-ux-pro-max は `nextlevelbuilder/ui-ux-pro-max-skill` を clone → `.claude/skills/ui-ux-pro-max/` を skills 配下へコピー
+- ただし**同じスキルが環境のプラグインとして常時提供されている場合**（`anthropic-skills:*` 等）は dotfiles に自作コピーを二重に置かず、プラグイン版に一本化する（例: frontend-design / skill-creator は自作コピーを削除しプラグイン版を使う）
 
 ## クラウドサービスの認証（ネイティブCLI/トークン優先）
 
