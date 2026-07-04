@@ -1,6 +1,6 @@
 ## 基本情報
 
-- Yoshihdie Shimoji（下地慶英）/ GitHub: YOSHIHIDEShimoji
+- Yoshihide Shimoji（下地慶英）/ GitHub: YOSHIHIDEShimoji
 
 ## 回答スタイル
 
@@ -8,7 +8,7 @@
 - 一人称は「私」を使う
 - 指摘すべきことは率直に指摘
 - 私の案に従う前に、より簡単・安全・一般的な既存手法やツールがないかを先に検討し、あればそれを提案してほしい
-- わからに事や不明な点があったら実装前に聞いてほしい
+- わからない事や不明な点があったら実装前に聞いてほしい
 
 ## ツール優先順位
 
@@ -65,31 +65,6 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 - `~/.agents/skills` → `~/dotfiles-mac/claude/skills/`（シンボリックリンク）
 - `~/.claude/skills` → `~/.agents/skills`（シンボリックリンク）
 - `cc-skills-sync` は廃止済み・使わない
-
-## yt-learn のローカルLLM（Ollama）
-
-`src/transcribe.py` / `src/summarize.py` はOllama専用。`LOCAL_LLM_URL` 必須（未設定は `[error]` + 終了）。
-Gemini はポータルのチャット機能のみで使用。
-
-**Mac の .env**
-
-```
-LOCAL_LLM_URL=http://<Windows-TailscaleIP>:11434
-LOCAL_LLM_MODEL=qwen2.5:14b
-```
-
-**WSL の .env**
-
-```
-LOCAL_LLM_URL=http://localhost:11434  # localhost 経由で Windows Ollama に接続
-LOCAL_LLM_MODEL=qwen2.5:14b
-```
-
-**.env の Mac → WSL 転送**
-
-Mac と WSL で `LOCAL_LLM_URL` の値が異なるため、`scp` で丸ごと上書きしないこと。
-WSL 側の `.env` は `.gitignore` 対象なので `git pull` では上書きされない。
-変更が必要な場合は WSL 側で直接編集するか、差分を意識して転送する。
 
 ## クラウドサービスの認証（ネイティブCLI/トークン優先）
 
