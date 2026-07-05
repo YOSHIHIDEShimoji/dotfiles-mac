@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""
+yt2ob — YouTube文字起こしメモをObsidian frontmatter形式に変換する
+
+入力（baoyu-youtube-transcript等が生成する形式）:
+  # タイトル
+
+  チャンネル: ...
+  URL: ...
+  モデル: ...
+  処理日時: YYYY-MM-DD HH:MM:SS
+
+  ## ポイント (または ## ポイnt)
+  - ...
+
+  ---
+
+  (本文)
+
+出力（Obsidianのfrontmatter形式。00_Inboxに生成、同名ファイルがあれば上書き）:
+  ---
+  title: タイトル
+  source: URL
+  author:
+    - "チャンネル"
+  created: YYYY-MM-DD
+  tags:
+    - youtube
+  ---
+
+  (本文)
+
+## ポイント (または ## ポイnt) セクションはデフォルトでは破棄される。
+--point を指定するとそのまま（見出し・文言とも無加工で）本文の前に引き継ぐ。
+
+使い方:
+  yt2ob file1.md file2.md ...
+  yt2ob *.md
+  yt2ob --point file1.md
+"""
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+DEFAULT_OUTPUT_DIR = Path(
+    "/Users/yoshihide/Library/Mobile Documents/com~apple~CloudDocs/"
+    "Obsidian/Yoshihide's context vault/00_Inbox"
+)
+
+TITLE_RE = re.compile(r"^#\s+(.+)$", re.MULTILINE)
+CHANNEL_RE = re.compile(r"^チャンネル:\s*(.+)$", re.MULTILINE)
+URL_RE = re.compile(r"^URL:\s*(.+)$", re.MULTILINE)
+DATE_RE = re.compile(r"^処理日時:\s*(\d{4}-\d{2}-\d{2})", re.MULTILINE)
+DIVIDER_RE = re.compile(r"^---\s*$", re.MULTILINE)
+POINTS_HEADING_RE = re.compile(r"^#+\s*ポイ(?:ント|nt)\s*$", re.MULTILINE)
+
+INVALID_FILENAME_CHARS_RE = re.compile(r'[\\/:*?"<>|]')
+SPECIAL_START_RE = re.compile(r'^[\s\-?:,\[\]{}#&*!|>\'"%@`]')
+
+
+def needs_quote(value: str) -> bool:
+    if value == "" or value != value.strip():
+        return True
+    if ": " in value or value.endswith(":"):
+        return True
+    if value.startswith("#") or " #" in value:
+        return True
+    return bool(SPECIAL_START_RE.match(value))
+
+
+def yaml_quote(value: str) -> str:
+    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def yaml_scalar(value: str) -> str:
+    return yaml_quote(value) if needs_quote(value) else value
+
+
+def parse(text: str):
+    title_m = TITLE_RE.search(text)
+    channel_m = CHANNEL_RE.search(text)
+    url_m = URL_RE.search(text)
+    date_m = DATE_RE.search(text)
+    divider_m = DIVIDER_RE.search(text)
+
+    missing = [
+        name
+        for name, m in [
+            ("タイトル(# 見出し)", title_m),
+            ("チャンネル", channel_m),
+            ("URL", url_m),
+            ("処理日時", date_m),
+            ("--- 区切り", divider_m),
+        ]
+        if m is None
+    ]
+    if missing:
+        raise ValueError(f"想定フォーマットと異なります。見つからない項目: {', '.join(missing)}")
+
+    title = title_m.group(1).strip()
+    channel = channel_m.group(1).strip()
+    url = url_m.group(1).strip()
+    created = date_m.group(1)
+    body = text[divider_m.end():].lstrip("\n")
+
+    points_m = POINTS_HEADING_RE.search(text, 0, divider_m.start())
+    points_section = text[points_m.start():divider_m.start()].rstrip() if points_m else None
+
+    return title, channel, url, created, body, points_section
+
+
+def build_output(
+    title: str,
+    channel: str,
+    url: str,
+    created: str,
+    body: str,
+    points_section: str = None,
+) -> str:
+    frontmatter = "\n".join(
+        [
+            "---",
+            f"title: {yaml_scalar(title)}",
+            f"source: {yaml_scalar(url)}",
+            "author:",
+            f"  - {yaml_quote(channel)}",
+            f"created: {created}",
+            "tags:",
+            "  - youtube",
+            "---",
+        ]
+    )
+    parts = [frontmatter]
+    if points_section:
+        parts.append(points_section)
+    parts.append(body.rstrip())
+    return "\n\n".join(parts) + "\n"
+
+
+def sanitize_filename(title: str, fallback: str) -> str:
+    name = INVALID_FILENAME_CHARS_RE.sub("_", title).strip(" .")
+    return name or fallback
+
+
+def main():
+    parser = argparse.ArgumentParser(description="YouTube文字起こしメモをObsidian frontmatter形式に変換する")
+    parser.add_argument("inputs", nargs="+", help="変換元の.mdファイル（複数指定・ワイルドカード可）")
+    parser.add_argument(
+        "--output-dir",
+        "-o",
+        default=None,
+        help=f"出力先ディレクトリ（省略時: {DEFAULT_OUTPUT_DIR}）",
+    )
+    parser.add_argument(
+        "--point",
+        action="store_true",
+        help="## ポイント（または ## ポイnt）セクションを無加工のまま本文の前に引き継ぐ（デフォルトでは破棄）",
+    )
+    args = parser.parse_args()
+
+    output_dir = Path(args.output_dir).expanduser() if args.output_dir else DEFAULT_OUTPUT_DIR
+    if not output_dir.is_dir():
+        print(f"[error] 出力先ディレクトリが見つかりません: {output_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    success, failed = 0, []
+    for raw_path in args.inputs:
+        src = Path(raw_path)
+        if not src.is_file():
+            print(f"  ✗ {raw_path}: ファイルが見つかりません", file=sys.stderr)
+            failed.append(raw_path)
+            continue
+        try:
+            text = src.read_text(encoding="utf-8")
+            title, channel, url, created, body, points_section = parse(text)
+            output_text = build_output(
+                title, channel, url, created, body,
+                points_section=points_section if args.point else None,
+            )
+            dest = output_dir / f"{sanitize_filename(title, src.stem)}.md"
+            overwritten = dest.exists()
+            dest.write_text(output_text, encoding="utf-8")
+            mark = "(上書き)" if overwritten else ""
+            print(f"  ✓ {src.name} → {dest.name} {mark}".rstrip())
+            success += 1
+        except Exception as e:
+            print(f"  ✗ {src.name}: {e}", file=sys.stderr)
+            failed.append(raw_path)
+
+    print(f"\n完了: {success} 件成功 / {len(failed)} 件失敗")
+    if failed:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
