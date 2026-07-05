@@ -100,6 +100,9 @@ link_from_prop claude
 # ~/.claude/skills -> ~/.agents/skills の恒久リンク（cc-skills-sync 不要）
 ln -sfv "${HOME}/.agents/skills" "${HOME}/.claude/skills"
 
+# ~/iCloud -> iCloud Drive のショートカット
+ln -sfv "${HOME}/Library/Mobile Documents/com~apple~CloudDocs" "${HOME}/iCloud"
+
 # ControlMaster のソケットディレクトリを作成
 mkdir -p "${HOME}/.ssh/cm"
 chmod 700 "${HOME}/.ssh/cm"
