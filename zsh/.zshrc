@@ -1,1 +1,1 @@
-/Users/yoshihide/dotfiles-mac/zsh/zshrc
+zshrc
