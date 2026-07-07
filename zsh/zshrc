@@ -22,8 +22,13 @@ else
   fpath=(/usr/share/zsh/vendor-completions $fpath)
 fi
 
-# complement
-autoload -Uz compinit && compinit
+# complement（1日以内のダンプがあれば -C で高速起動、無ければ/古ければフル実行＝#13）
+autoload -Uz compinit
+if [[ -n ${ZSH_COMPDUMP}(#qNmh-24) ]]; then
+  compinit -C -d "$ZSH_COMPDUMP"
+else
+  compinit -d "$ZSH_COMPDUMP"
+fi
 
 # zsh-autosuggestions
 if [[ "$(uname)" == "Darwin" ]]; then
@@ -72,6 +77,9 @@ if command -v pyenv >/dev/null 2>&1; then
 fi
 
 # zoxide（末尾に配置必須）
+# --cmd cd の doctor は cd 実行時に chpwd フックの有無で誤検知することがあり、
+# ここで確実に最後に初期化しているため false-positive。警告を無効化する（#19）。
+export _ZO_DOCTOR=0
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh --cmd cd)"
 fi

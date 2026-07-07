@@ -234,8 +234,8 @@ USAGE
         time_opt="-l"
     fi
 
-    # 実行用ラッパー
-    run_binary() {
+    # 実行用ラッパー（zsh はネスト関数をスコープしないため、使用後に unfunction で後始末する＝#19）
+    _c_run_binary() {
         if [[ -n "$time_opt" ]]; then
             local tmp_time="$(mktemp)"
             if [[ "$time_opt" == "-f" ]]; then
@@ -247,18 +247,26 @@ USAGE
             echo
             echo "======= TIME RESULT ======="
             sed 's/^/  /' "$tmp_time"
-            rm -f "$tmp_time"
+            command rm -f "$tmp_time"
             return $ret
         else
             "$@"
         fi
     }
 
+    local _c_ret=0
     if [[ $include_compile -eq 1 ]]; then
         local shell_cmd="$compile_cmd && \"$out\""
-        run_binary sh -c "$shell_cmd $*"
+        _c_run_binary sh -c "$shell_cmd $*"
+        _c_ret=$?
     else
-        "${compile_args[@]}" || return 1
-        run_binary "$out" "$@"
+        if ! "${compile_args[@]}"; then
+            unfunction _c_run_binary 2>/dev/null
+            return 1
+        fi
+        _c_run_binary "$out" "$@"
+        _c_ret=$?
     fi
+    unfunction _c_run_binary 2>/dev/null
+    return $_c_ret
 }

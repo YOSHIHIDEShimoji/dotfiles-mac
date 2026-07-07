@@ -1,7 +1,7 @@
-# Excel で開く
+# Excel で開く（Darwin=open -a / WSL=powershell / 純Linux=不可）
 excel() {
 	local filepath="$1"
-	local template="$HOME/dotfiles-mac/templates/template.xlsx"
+	local template="${DOTFILES:-$HOME/dotfiles-mac}/templates/template.xlsx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: excel [path]"
@@ -10,5 +10,15 @@ excel() {
 
 	[[ "$filepath" != *.xlsx ]] && filepath="${filepath}.xlsx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
-	open -a "Microsoft Excel" "$filepath"
+
+	if [[ "$(uname)" == "Darwin" ]]; then
+		open -a "Microsoft Excel" "$filepath"
+	elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+		local winpath
+		winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
+		/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c "Start-Process '$winpath'"
+	else
+		echo "excel: この環境（純 Linux）では Microsoft Excel を起動できません。"
+		return 1
+	fi
 }

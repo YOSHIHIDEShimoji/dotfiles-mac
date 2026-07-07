@@ -9,14 +9,14 @@ alias grep='grep --color=auto'
 alias f='fd'
 alias fh='fd --hidden --exclude .git --exclude node_modules --exclude .venv --exclude .cache'
 
-# dust
-alias d='dust -r'
+# dust（未インストール環境ではエイリアスを張らない）
+command -v dust >/dev/null 2>&1 && alias d='dust -r'
 
 # trash
 alias r='trash -v'
 
-# procs
-alias p='procs'
+# procs（未インストール環境ではエイリアスを張らない）
+command -v procs >/dev/null 2>&1 && alias p='procs'
 
 # tldr
 alias t='tldr'

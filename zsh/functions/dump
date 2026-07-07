@@ -1,33 +1,37 @@
 dump() {
   local DOTFILES="${DOTFILES:-$HOME/dotfiles-mac}"
-  local brewfile="$DOTFILES/install/Brewfile"
   local extfile="$DOTFILES/vscode/extensions.txt"
+  local -a add_files=()
 
-  mkdir -p "$(dirname "$brewfile")" "$(dirname "$extfile")"
+  mkdir -p "$(dirname "$extfile")"
 
-  if command -v brew >/dev/null 2>&1; then
-    local tmp
-    tmp="$(mktemp)"
+  # Darwin のみ Brewfile を自動 dump（Linux の Aptfile は手動管理のため対象外）
+  if [[ "$(uname)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
+    local brewfile="$DOTFILES/install/Brewfile"
+    mkdir -p "$(dirname "$brewfile")"
+    local tmp; tmp="$(mktemp)"
     brew bundle dump --force --file=- | grep -v '^vscode' > "$tmp"
     mv "$tmp" "$brewfile"
+    add_files+=("$brewfile")
   fi
 
   if command -v code >/dev/null 2>&1; then
-    local tmp
-    tmp="$(mktemp)"
+    local tmp; tmp="$(mktemp)"
     if code --list-extensions > "$tmp"; then
       mv "$tmp" "$extfile"
+      add_files+=("$extfile")
     else
-      rm -f "$tmp"
+      command rm -f "$tmp"
     fi
   fi
 
+  # 対象ファイルだけをステージ・コミットする（無関係な変更を巻き込まない）
   (
-    cd "$DOTFILES"
-    if [[ -n "$(git status --porcelain)" ]]; then
-      git status -s
-      git add "$brewfile" "$extfile"
-      git commit -m "Update Brewfile and VSCode extensions"
+    cd "$DOTFILES" || return
+    if [[ ${#add_files[@]} -gt 0 ]] && [[ -n "$(git status --porcelain -- "${add_files[@]}")" ]]; then
+      git add "${add_files[@]}"
+      git status -s -- "${add_files[@]}"
+      git commit -m "Update package manifest and VSCode extensions"
       echo "Changes committed."
     else
       echo "No changes."

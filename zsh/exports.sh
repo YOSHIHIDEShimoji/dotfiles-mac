@@ -34,14 +34,23 @@ export PATH="$HOME/.local/bin:$PATH"
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 
-# dotfiles/scripts 配下のサブディレクトリ以下全てに PATH を通し、実行権限を与える。
-if [ -d "$DOTFILES/scripts" ]; then
-    export PATH="$PATH:$DOTFILES/scripts"
-    for dir in "$DOTFILES"/scripts/**/*(/); do
+# dotfiles/scripts/bin 配下の実行ディレクトリに PATH を通す。
+# 実行権限の付与は bootstrap で一度だけ行う（起動ごとの chmod -R は廃止＝#12）。
+# lib/ や __pycache__ / john/wordlists など非実行ディレクトリは PATH に入れない。
+if [ -d "$DOTFILES/scripts/bin" ]; then
+    export PATH="$PATH:$DOTFILES/scripts/bin"
+    for dir in "$DOTFILES"/scripts/bin/**/*(/N); do
+        [[ "$dir" == *__pycache__* ]] && continue
         export PATH="$PATH:$dir"
     done
 fi
-chmod -R +x "$DOTFILES/scripts/"
+
+# zsh のランタイム状態を repo 外へ退避（ZDOTDIR=repo のため既定では作業ツリーを汚す＝#13）
+export HISTFILE="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/history"
+export ZSH_COMPDUMP="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-${ZSH_VERSION}"
+[ -d "${HISTFILE:h}" ] || mkdir -p "${HISTFILE:h}"
+# macOS Terminal のセッション履歴（.zsh_sessions）を repo に作らせない
+export SHELL_SESSIONS_DISABLE=1
 
 # 重複除去
 typeset -U path PATH

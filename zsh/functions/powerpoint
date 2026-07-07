@@ -1,7 +1,7 @@
-# PowerPoint で開く
+# PowerPoint で開く（Darwin=open -a / WSL=powershell / 純Linux=不可）
 powerpoint() {
 	local filepath="$1"
-	local template="$HOME/dotfiles-mac/templates/template.pptx"
+	local template="${DOTFILES:-$HOME/dotfiles-mac}/templates/template.pptx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: powerpoint [path]"
@@ -10,5 +10,15 @@ powerpoint() {
 
 	[[ "$filepath" != *.pptx ]] && filepath="${filepath}.pptx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
-	open -a "Microsoft PowerPoint" "$filepath"
+
+	if [[ "$(uname)" == "Darwin" ]]; then
+		open -a "Microsoft PowerPoint" "$filepath"
+	elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+		local winpath
+		winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
+		/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c "Start-Process '$winpath'"
+	else
+		echo "powerpoint: この環境（純 Linux）では Microsoft PowerPoint を起動できません。"
+		return 1
+	fi
 }
