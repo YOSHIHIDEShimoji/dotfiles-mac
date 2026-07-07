@@ -1,33 +1,14 @@
-set -e
+#!/usr/bin/env bash
+# Claude Code 本体のインストールのみを責務とする。
+# - PATH（$HOME/.local/bin）は zsh/exports.sh が正（追跡ファイルへの追記はしない = #15）。
+# - skills 配線（~/.claude/skills -> ~/.agents/skills）は bootstrap.sh / bootstrap-linux.sh が
+#   単一シンボリックリンクで行う。ここでは触らない（旧・個別リンクループは廃止 = #14）。
+set -euo pipefail
 
-# exports.sh に記述があるか確認し、なければ追記
-grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' ~/dotfiles-mac/zsh/exports.sh || echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/dotfiles-mac/zsh/exports.sh
-
-# 現在のターミナルにも反映
+# 現在のターミナルに .local/bin を通す（この後の claude 実行のため。恒久設定は exports.sh）
 export PATH="$HOME/.local/bin:$PATH"
 
 # インストール実行
 curl -fsSL https://claude.ai/install.sh | bash
 
-# skills を使えるようにする（dotfiles-mac/scripts/bin/skills-sync をインストール時に行う）
-SRC_DIR="$HOME/.agents/skills"
-DST_DIR="$HOME/.claude/skills"
-
-mkdir -p "$DST_DIR"
-
-for dir in "$SRC_DIR"/*; do
-    if [ -d "$dir" ]; then
-        name=$(basename "$dir")
-        target="$DST_DIR/$name"
-
-        if [ -L "$target" ] || [ -e "$target" ]; then
-            rm -rf "$target"
-        fi
-
-        ln -s "$dir" "$target"
-        echo "linked: $name"
-    fi
-done
-
-echo "done."
-
+echo "done. (skills の配線は bootstrap.sh / bootstrap-linux.sh が担当します)"

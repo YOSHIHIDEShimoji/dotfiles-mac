@@ -17,6 +17,8 @@ Host *
   GSSAPIAuthentication no
 
 # ─── 個人ホスト設定 ─────────────────────────────────────
-Host win
-  HostName 100.85.4.93
-  User gyshi
+# マシン固有ホスト（内部 IP・ユーザー名など）は追跡対象外の
+# ~/.ssh/config.local に分離する（public リポジトリに晒さない = #16）。
+# テンプレート: ssh/config.local.example（bootstrap.sh が未存在時にコピー）。
+# 相対パスの Include は ~/.ssh 基準で解決され、ファイルが無くても無害。
+Include config.local

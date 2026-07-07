@@ -25,7 +25,8 @@ awake() {
       m) multiplier=60 ;;
       h) multiplier=3600 ;;
     esac
-    seconds=$(printf "%.0f" "$(echo "$val * $multiplier" | bc)")
+    # zsh 算術（浮動小数対応）で bc 依存を排除（#19）
+    seconds=$(printf "%.0f" "$(( val * multiplier ))")
   else
     echo "Invalid format: '$input'" >&2
     echo "$usage" >&2

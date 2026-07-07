@@ -1,0 +1,13 @@
+# ~/.ssh/config.local — マシン固有ホスト定義（追跡対象外）
+#
+# public リポジトリに内部 IP・ユーザー名を晒さないため、machine-specific な
+# ホストはこのローカルファイルに書く。ssh/config の `Include config.local` が
+# 読み込む（ファイルが無くても ssh はエラーにならない）。
+#
+# 使い方: このファイルを ~/.ssh/config.local にコピーし、値を自分の環境に合わせて埋める。
+#   cp ssh/config.local.example ~/.ssh/config.local
+#
+# 例（自宅 Windows への Tailscale 経由 SSH）:
+# Host win
+#   HostName <tailscale-ip-or-magicdns-name>
+#   User <windows-username>

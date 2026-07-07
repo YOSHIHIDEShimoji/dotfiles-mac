@@ -120,6 +120,14 @@ ln -sfv "${HOME}/Library/Mobile Documents/com~apple~CloudDocs" "${HOME}/iCloud"
 mkdir -p "${HOME}/.ssh/cm"
 chmod 700 "${HOME}/.ssh/cm"
 
+# マシン固有ホスト定義（~/.ssh/config.local）を未存在時にテンプレートからシード（#16）。
+# 実 IP・ユーザー名は追跡対象外のこのファイルに書く（ssh/config が Include する）。
+if [ ! -f "${HOME}/.ssh/config.local" ] && [ -f "${DOTFILES_DIR}/ssh/config.local.example" ]; then
+    cp "${DOTFILES_DIR}/ssh/config.local.example" "${HOME}/.ssh/config.local"
+    chmod 600 "${HOME}/.ssh/config.local"
+    echo "seeded ~/.ssh/config.local (Host win 等のマシン固有ホストをここに記入)"
+fi
+
 echo "Dotfiles linking done."
 
 # vscode 拡張機能のインストール

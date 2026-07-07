@@ -36,28 +36,10 @@ else
   print "MacTeX はインストール済みです。"
 fi
 
-# 2) PATH 追加 (/Library/TeX/texbin) → $ZDOTDIR/exports.sh に固定で追記
-print_step "PATH 設定の確認・追記（$ZDOTDIR/exports.sh）"
+# 2) PATH（/Library/TeX/texbin）は zsh/exports.sh が正（Darwin ブロックに固定）。
+#    追跡ファイルへの追記はしない（二重管理・冪等性の脆さを排除 = #15）。現セッションにだけ通す。
 TEXBIN="/Library/TeX/texbin"
-ZROOT="${ZDOTDIR:-$HOME}"
-TARGET_EXPORTS="$ZROOT/exports.sh"
-
-mkdir -p "$(dirname "$TARGET_EXPORTS")"
-touch "$TARGET_EXPORTS"
-
-if ! grep -q '/Library/TeX/texbin' "$TARGET_EXPORTS"; then
-  {
-    echo ""
-    echo "# tex関連"
-    echo "export PATH=\"$TEXBIN:\$PATH\""
-    echo ""
-  } >> "$TARGET_EXPORTS"
-  print "PATH を $TARGET_EXPORTS に追記しました。"
-else
-  print "$TARGET_EXPORTS には既に PATH 設定があります。"
-fi
-
-# 現セッションにも反映
+print_step "PATH は zsh/exports.sh で管理済み（現セッションにのみ $TEXBIN を反映）"
 export PATH="$TEXBIN:$PATH"
 
 

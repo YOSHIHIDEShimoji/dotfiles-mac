@@ -1,0 +1,50 @@
+name: ci
+
+# clone 一発で全環境が揃うことを継続的に担保する（#20）。
+# links.prop の src 欠落・plist 構文エラー・Brewfile 破損・シェル構文エラーを
+# 手元の bootstrap 実行前に検知する。副作用なし（ln/sudo/launchctl/brew bundle は実行しない）。
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # macOS: 本体の dry-run テスト（plutil/launchctl を使うため macos runner が必須）
+  macos-dry-run:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: bootstrap dry-run test
+        run: bash install/test_bootstrap_dry_run.sh
+      - name: shell syntax check (bash)
+        run: |
+          bash -n install/bootstrap.sh
+          for f in install/cli-tools/*.sh; do bash -n "$f"; done
+      - name: shell syntax check (zsh functions & installers)
+        run: |
+          for f in zsh/functions/*; do zsh -n "$f" || exit 1; done
+          for f in install/*.zsh; do zsh -n "$f" || exit 1; done
+
+  # Linux/WSL: 純 Linux runner でブートストラップと関数の構文・Aptfile 構造を検証
+  linux-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install zsh
+        run: sudo apt-get update && sudo apt-get install -y zsh
+      - name: shell syntax check
+        run: |
+          bash -n install/bootstrap-linux.sh
+          for f in zsh/functions/*; do zsh -n "$f" || exit 1; done
+      - name: Aptfile structure
+        run: |
+          grep -q '^\[wsl\]' install/Aptfile   || { echo "Aptfile: [wsl] セクションが無い"; exit 1; }
+          grep -q '^\[linux\]' install/Aptfile || { echo "Aptfile: [linux] セクションが無い"; exit 1; }
+          for pkg in xclip xdg-utils; do
+            grep -q "^${pkg}$" install/Aptfile || { echo "Aptfile: $pkg が無い（純 Linux の一部機能が動かない）"; exit 1; }
+          done
+      - name: no worktree scaffolding (単一ブランチ運用の担保)
+        run: |
+          if grep -q 'worktree add' install/bootstrap-linux.sh; then
+            echo "bootstrap-linux.sh に worktree add が残存（単一ブランチ化で撤去済みのはず）"; exit 1
+          fi

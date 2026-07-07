@@ -18,4 +18,7 @@ cm/
 known_hosts
 known_hosts.old
 
+# マシン固有ホスト定義（内部IP・ユーザー名。追跡対象外。#16）
+config.local
+
 .DS_Store
