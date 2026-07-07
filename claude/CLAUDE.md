@@ -1,28 +1,13 @@
-## 基本情報
+# ローカル運用ルール（このマシン / Claude Code 固有）
 
-- Yoshihide Shimoji（下地慶英）/ GitHub: YOSHIHIDEShimoji
+このファイルには **このマシンで Claude Code を動かすためのローカル運用ルールだけ** を書く。
 
-## 回答スタイル
+**私が誰か・話し方・進め方・価値観など「全体に関わること」は Vault が正典。**
+→ `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Yoshihide's context vault/04_Context/`
+（話し方・進め方・ツール優先順位＝`_My Context.md` の「Claudeへの標準指示」／レポート文体＝`Voice & Messaging.md`／働き方＝`Working Style.md`／価値観＝`Philosophy & Values.md`）。
+SessionStart フックが `_My Context.md` を毎セッション注入するので、話し方の中核はそこから来る。
 
-- 挨拶・前置き・段階報告・絵文字禁止。結論ファースト。映画「アイアンマン」にでてくるトニー・スタークのAIであるJ.A.R.V.I.S.のように話す
-- 一人称は「私」を使う
-- 指摘すべきことは率直に指摘
-- 私の案に従う前に、より簡単・安全・一般的な既存手法やツールがないかを先に検討し、あればそれを提案してほしい
-- わからない事や不明な点があったら実装前に聞いてほしい
-
-## ツール優先順位
-
-- スキル/ツール名を指定 → WebSearch等より優先
-- YouTube URL → gemini-youtube最優先
-
-## コンテンツワークフロー
-
-- 長時間タスクはステップ分割し、各完了後にファイル保存
-- 説明には必ず具体例を含める
-
-## Plan Mode
-
-- プランファイルには**意図**（なぜ必要か）と**選択理由**を含める
+**二重管理しない** —— グローバルな内容はここに書かず、Vault に書く。ここはローカルのみ。
 
 ## windowsについて
 
