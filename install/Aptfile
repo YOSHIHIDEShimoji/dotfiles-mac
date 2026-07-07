@@ -1,0 +1,63 @@
+# Aptfile
+# apt でインストールするパッケージリスト
+# macOS の Brewfile に相当する Linux/WSL 版パッケージ定義
+#
+# セクション:
+#   [wsl]   — WSL・純 Linux 共通（CLI ツール等）
+#   [linux] — 純 Linux のみ（[wsl] に加えてインストール）: GUI アプリ等
+#
+# インストール対象:
+#   WSL       → [wsl] のみ
+#   純 Linux  → [wsl] + [linux]
+#
+# 特殊リポジトリが必要なパッケージは bootstrap-linux.sh がリポジトリを自動追加する:
+#   eza                  → deb.gierens.de
+#   ghostty              → apt.ghostty.org
+#   code                 → packages.microsoft.com
+#   google-chrome-stable → dl.google.com
+
+[wsl]
+git
+curl
+wget
+ca-certificates
+jq
+tree
+ripgrep
+fd-find
+fzf
+bat
+zsh
+zsh-autosuggestions
+zsh-syntax-highlighting
+trash-cli
+nodejs
+npm
+tmux
+# eza: 公式 deb リポジトリ経由（bootstrap が自動追加）
+eza
+build-essential
+libssl-dev
+zlib1g-dev
+libbz2-dev
+libreadline-dev
+libsqlite3-dev
+libncurses-dev
+xz-utils
+tk-dev
+libxml2-dev
+libxmlsec1-dev
+libffi-dev
+liblzma-dev
+
+[linux]
+# クリップボード連携（copy/paste・copyfile・copypath が使用。WSL は clip.exe を使うため不要）
+xclip
+# xdg-open（o / ghopen が使用。デスクトップ環境では chrome 等が引くが最小構成向けに明示）
+xdg-utils
+# ghostty: apt.ghostty.org リポジトリ経由（bootstrap が自動追加）
+ghostty
+# VS Code: packages.microsoft.com リポジトリ経由（bootstrap が自動追加）
+code
+# Google Chrome: dl.google.com リポジトリ経由（bootstrap が自動追加）
+google-chrome-stable

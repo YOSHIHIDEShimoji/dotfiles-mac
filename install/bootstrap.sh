@@ -85,6 +85,19 @@ else
 	echo "pmset sudoers rule already exists. Skipping."
 fi
 
+# starship テーマの初期化（current.toml は gitignore 対象のため fresh setup では未生成）
+# 未生成のまま links.prop でリンクすると dangling symlink になり既定プロンプトに落ちるため、
+# 既定テーマを cp して実体を用意する（sstyle と同じ挙動）。
+STARSHIP_DIR="$DOTFILES_DIR/zsh/starship"
+if [ ! -f "$STARSHIP_DIR/current.toml" ] && [ -f "$STARSHIP_DIR/tokyo-night.toml" ]; then
+	echo "Seeding starship theme: tokyo-night"
+	cp "$STARSHIP_DIR/tokyo-night.toml" "$STARSHIP_DIR/current.toml"
+	echo "tokyo-night" > "$STARSHIP_DIR/.current-name"
+fi
+
+# scripts/bin を実行可能にする（シェル起動時の chmod を廃止したため、ここで一度だけ実行）
+[ -d "$DOTFILES_DIR/scripts/bin" ] && chmod -R +x "$DOTFILES_DIR/scripts/bin" 2>/dev/null || true
+
 echo "Linking dotfiles..."
 
 # シンボリックリンクを作成
@@ -108,10 +121,6 @@ mkdir -p "${HOME}/.ssh/cm"
 chmod 700 "${HOME}/.ssh/cm"
 
 echo "Dotfiles linking done."
-
-# git フックの設定（linux ブランチへの誤 checkout を警告）
-git -C "$DOTFILES_DIR" config --local core.hooksPath "$DOTFILES_DIR/git/hooks"
-echo "Git hooks configured."
 
 # vscode 拡張機能のインストール
 if [ -f "$DOTFILES_DIR/vscode/extensions.txt" ] && command -v code &>/dev/null; then
