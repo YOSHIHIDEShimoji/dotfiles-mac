@@ -286,55 +286,33 @@ dump
 
 ## Linux/WSL 対応
 
-macOS をメイン環境としつつ、Linux / WSL でも同じシェル体験を得られるクロスプラットフォーム構成を採用しています。
+macOS をメイン環境としつつ、**単一 `main` ブランチ**で Linux / WSL / 純Linux でも同じシェル体験を得られるクロスプラットフォーム構成です。共有設定ファイルが実行時に OS を判定して分岐するため、ブランチ分割や同期作業は不要です。
 
-### リポジトリ・ブランチ構成
+> 2026-07-08 に旧・2本ブランチ運用（`linux` ブランチ + `git worktree` + `/sync-to-linux` スキル）を廃止し、`main` 1本に統合しました。旧ブランチは `backup/linux-20260708` タグとして保全しています。
+
+### リポジトリ配置
 
 | 環境 | 配置先 | ブランチ |
 |------|--------|---------|
 | macOS | `~/dotfiles-mac` | `main` |
-| Linux/WSL | `~/dotfiles-linux` | `linux` |
+| Linux/WSL | `~/dotfiles-linux` | `main` |
 
-**単一リポジトリ + `git worktree` で物理分離しています。**
-ブランチを切り替えずに両環境の設定を同時に管理できます。
+ディレクトリ名が OS で異なるのは `zsh/zshenv`・`zsh/exports.sh` の `DOTFILES`/`ZDOTDIR` 定義に合わせるためで、ブランチはどちらも `main` です。
 
-```
-# 構成イメージ
-~/dotfiles-mac    ← git worktree (main ブランチ) — macOS で使用
-~/dotfiles-linux  ← git worktree (linux ブランチ) — Linux/WSL で使用
-```
+### 設定ファイルの OS 判定
 
-### 設定ファイルのOS判定（linux ブランチ）
-
-linux ブランチの `aliases.sh` 等はファイル内に OS 判定を持ち、WSL / 純 Linux の差異を自動吸収します。main ブランチ（macOS）の設定ファイルは OS 判定を持ちません。
+共有ファイルはファイル内で OS を判定し、macOS / WSL / 純Linux の差異を吸収します。
 
 ```zsh
-# linux ブランチの aliases.sh 例
+# aliases.sh の clipboard 例
 if [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-  alias copy='/mnt/c/Windows/System32/clip.exe'
-else
-  alias copy='xclip -selection clipboard'
+  alias copy='/mnt/c/Windows/System32/clip.exe'   # WSL
+elif [[ "$(uname)" != "Darwin" ]]; then
+  alias copy='xclip -selection clipboard'          # 純Linux
 fi
 ```
 
-### 移植の運用フロー
-
-Mac 側で機能を追加・変更したら `/sync-to-linux` スキルで Linux ブランチに同期します:
-
-1. Mac 側で変更を main ブランチにコミット
-2. `/sync-to-linux` を実行
-3. 変更ごとに以下を選択:
-   - **A) dotfiles-linux に即時反映** — 移植対象の変更をファイルに適用
-   - **B) Mac専用として記録** — `docs/platform-notes.md` に除外ルールを追記
-4. 確認後にコミット・プッシュ
-
-### 移植ルール
-
-`docs/platform-notes.md` が移植の除外ルールを定義します。
-
-**Mac専用（移植しない）:** `ghostty/`, `karabiner/`, `LaunchAgents/`, `scripts/bookmark/`, `install/Brewfile`, `awake` 関数（`caffeinate` 依存）, `lp` 関数（`pmset` 依存）等
-
-**WSL のみ移植（純 Linux は除外）:** `word` / `excel` / `powerpoint` 関数（Windows アプリを `powershell.exe` 経由で起動）
+どのファイルがどの OS 固有かの一覧は [`docs/platform-notes.md`](docs/platform-notes.md) を参照してください。
 
 ### Linux/WSL セットアップ
 
@@ -342,12 +320,12 @@ Mac 側で機能を追加・変更したら `/sync-to-linux` スキルで Linux 
 # 前提: デフォルトシェルを zsh に変更済みであること
 # sudo chsh -s $(which zsh) $USER && ログアウト → 再ログイン
 
-git clone -b linux git@github.com:YOSHIHIDEShimoji/dotfiles-mac.git ~/dotfiles-linux
+git clone git@github.com:YOSHIHIDEShimoji/dotfiles-mac.git ~/dotfiles-linux
 cd ~/dotfiles-linux
 bash install/bootstrap-linux.sh
 ```
 
-詳細は [linux ブランチの README](https://github.com/YOSHIHIDEShimoji/dotfiles-mac/blob/linux/README.md) を参照してください。
+apt パッケージは `install/Aptfile`（`[wsl]` / `[linux]` セクション）で管理します。
 
 ---
 

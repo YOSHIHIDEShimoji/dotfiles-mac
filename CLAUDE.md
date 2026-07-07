@@ -35,12 +35,12 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
    - `aliases.sh` — シェルおよび Git のエイリアス
    - `functions/*` — `fpath` 経由で自動読み込み（1ファイル1関数、拡張子なし）
    - `plugins/*` — Homebrewインストール済みプラグイン（zsh-autosuggestions, zsh-completions, zsh-syntax-highlighting）をsource
-   - Starshipプロンプト（`starship.toml`）
+   - Starshipプロンプト（`starship/current.toml`、`sstyle` でテーマ切替）
    - fzf および zoxide の統合
 
 ### スクリプト PATH
 
-`exports.sh` が `~/dotfiles-mac/scripts/` とそのすべてのサブディレクトリを PATH に追加し、実行権限を付与します。スクリプトは名前で直接呼び出し可能です（例: `ppdf_unlock`, `setup_drive.sh`）。
+`exports.sh` が `scripts/bin` とその配下の実行ディレクトリを PATH に追加します。スクリプトは名前で直接呼び出し可能です（例: `ppdf_unlock`, `yt2ob`）。実行権限の付与は bootstrap 実行時に一度だけ行います（シェル起動ごとの `chmod` は廃止）。ランタイム状態（履歴・補完ダンプ）は `~/.cache/zsh/` に退避し、リポジトリを汚しません。
 
 ## 規約
 
@@ -53,44 +53,46 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 
 ---
 
-## クロスプラットフォーム運用（Linux/WSL対応）
+## クロスプラットフォーム運用（macOS / WSL / 純Linux）
 
-### リポジトリ・ブランチ構成
+**単一 `main` ブランチで全 OS をカバーする。** 旧・2本ブランチ運用（`linux` ブランチ + `git worktree` + `/sync-to-linux`）は 2026-07-08 に廃止した。共有ファイルは実行時に OS を判定して分岐する。同期作業は不要。
+
+### リポジトリ配置
 
 | 環境 | 配置先 | ブランチ |
 |------|--------|---------|
 | macOS | `~/dotfiles-mac` | `main` |
-| Linux/WSL | `~/dotfiles-linux` | `linux` |
+| Linux/WSL | `~/dotfiles-linux` | `main` |
 
-`git worktree` で物理的に分離済み。ブランチ切り替えは不要。
+配置ディレクトリ名が OS で異なるのは `zsh/zshenv`・`zsh/exports.sh` の `DOTFILES`/`ZDOTDIR` 定義に合わせるため（Linux/WSL では `main` を `~/dotfiles-linux` に clone する）。ブランチはどちらも `main`。
 
-- macOS 上での linux ブランチ worktree: `~/.dotfiles-linux`（隠しディレクトリ）
-- Linux/WSL 上での main ブランチ worktree: `~/.dotfiles-mac`（隠しディレクトリ）
+### OS 差異の吸収方法（新規追加・変更時の指針）
 
-### 移植ルール
+大半のファイル（skills・git・tmux・ほとんどの関数/エイリアス）は OS 非依存でそのまま動く。OS で挙動が変わる箇所だけ、次のいずれかで吸収する:
 
-`docs/platform-notes.md` が移植の除外ルールを定義している。
-変更が Mac 専用かどうか迷ったら、必ずこのファイルを参照すること。
+1. **`command -v` ガード** — 「そのツールがあれば使う」型（例: `dump` の `command -v brew`）。判定を書かずに両対応できる。
+2. **明示的な `if`** — コマンド自体が違う所だけ:
+   ```zsh
+   if [[ "$(uname)" == "Darwin" ]]; then
+     ...   # macOS: brew / pbcopy / open -a / caffeinate / pmset
+   elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+     ...   # WSL: clip.exe / powershell.exe / explorer.exe
+   else
+     ...   # 純Linux: apt / xclip / xdg-open
+   fi
+   ```
+3. **ファイル単位で分離** — OS 固有の「器」は他 OS では触らない:
+   - Mac 専用: `ghostty/`・`karabiner/`・`LaunchAgents/`・`install/Brewfile`・`install/bootstrap.sh`・`zsh/functions/awake`(caffeinate)・`lp`(pmset)
+   - Linux/WSL 専用: `install/Aptfile`・`install/bootstrap-linux.sh`
+   - `bootstrap.sh`(Mac) は karabiner/ghostty/LaunchAgents 等もリンク。`bootstrap-linux.sh`(Linux) は zsh/git/tmux/claude のみリンク（ghostty は純Linuxのみ）。
 
-**基本方針:**
-- macOS 固有の機能（`caffeinate`, `pmset`, `open -a`, Homebrew 等）は Linux に移植しない
-- `ghostty/`, `karabiner/`, `LaunchAgents/`, `scripts/bookmark/` はMac専用ディレクトリ
-- `word`/`excel`/`powerpoint` 関数は WSL にのみ移植（純 Linux には不要）
-- OS 差異は `if [[ "$(uname)" == "Darwin" ]]; then ... elif [[ -n "$WSL_DISTRO_NAME" ]]; then ... else ... fi` で吸収
+パッケージ追加は `install/Brewfile`（Mac）と `install/Aptfile`（Linux）の両方に1行ずつ（パッケージ名が OS で違うため不可避）。
 
-### Linux/WSLへの同期
+### セットアップ
 
-Mac で機能を追加・変更したら `/sync-to-linux` スキルで linux ブランチに移植する:
-1. `/sync-to-linux` を実行
-2. 変更の分類（移植可能 / Mac専用 / 要OS判定）を確認
-3. A) dotfiles-linux に即時反映 / B) Mac専用として docs/platform-notes.md に記録
+- **macOS**: `cd ~/dotfiles-mac && ./install/bootstrap.sh`
+- **Linux/WSL**: `main` を `~/dotfiles-linux` に clone → `bash install/bootstrap-linux.sh`（前提: `chsh -s $(which zsh)` 済み）
 
-コミット・プッシュは必ずユーザー確認後に実行する。
+### 復元用バックアップ
 
-### Linux セットアップ
-
-Linux/WSL 環境でのセットアップは `install/bootstrap-linux.sh` を使用:
-```bash
-# 前提: chsh -s $(which zsh) でデフォルトシェルを変更済みであること
-bash install/bootstrap-linux.sh
-```
+旧 `linux` ブランチは `backup/linux-20260708` タグ（origin に push 済み）として保全。必要時は `git checkout backup/linux-20260708` で参照可能。
