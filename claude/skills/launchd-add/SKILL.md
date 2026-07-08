@@ -14,8 +14,8 @@ description: >-
 
 ## 収集する情報
 
-1. **実行スクリプトのパス** — 絶対パスで確認（例: `/Users/yoshihide/my-projects/foo/bar.sh`）
-2. **launchd ラベル** — `com.yoshihide.run_<name>` 形式を提案してユーザーに確認
+1. **実行スクリプトのパス** — 絶対パスで確認（例: `/Users/yoshihide/my-projects/foo/bar.sh`）。実在と実行権限を `ls -l` で確認する
+2. **launchd ラベル** — `com.yoshihide.run_<name>` 形式を提案してユーザーに確認。同名の plist が `~/dotfiles-mac/LaunchAgents/` や `launchctl list` に既に無いか先に確認し、あればユーザーに上書きの可否を聞く
 3. **スケジュール** — 実行時刻（Hour / Minute）を確認。「毎日12:00」など自然言語で受け取り、整数に変換する
 
 ## 実行手順
@@ -72,7 +72,21 @@ launchctl load ~/Library/LaunchAgents/{label}.plist
 launchctl list | grep {label}
 ```
 
-登録されていることを確認する。
+登録されていることを確認する。`load` は legacy サブコマンドのため、失敗する場合は
+`launchctl bootstrap gui/$UID ~/Library/LaunchAgents/{label}.plist` を使う。
+
+### 3.5. 試走で動作検証（可能な場合のみ）
+
+登録して終わりにしない。スクリプトに副作用（送信・削除・課金等）が無いことを確認したうえで、
+ユーザーの了承を得てから1回試走し、ログで成否を確認する:
+
+```bash
+launchctl start {label}
+sleep 3 && tail -20 ~/Library/Logs/{label}.out ~/Library/Logs/{label}.err
+```
+
+副作用がある・判断がつかない場合は試走をスキップし、その旨をユーザーに伝える
+（「初回実行は次のスケジュール時刻。ログは `~/Library/Logs/{label}.out` / `.err`」）。
 
 ### 4. dotfiles-mac を commit & push
 
