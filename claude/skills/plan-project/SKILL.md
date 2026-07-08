@@ -40,7 +40,8 @@ Run these in order. Each later step may send you back to ask more.
 
 ### 1. Find the starting point & assess repo state
 - Look for an existing requirements doc (`docs/要件定義.md`, `docs/requirements*.md`,
-  a README spec, etc.). If found, read it and build on it.
+  `doc/requirements.md` — the output of the `design-strategy` skill —, a README
+  spec, etc.). If found, read it and build on it.
 - If none, gather the idea through dialogue: what it is, who uses it, core flows,
   must-haves vs out-of-scope. Capture enough to design from.
 - **Assess the repo**: greenfield vs existing codebase, is it a git repo, is there
@@ -131,12 +132,16 @@ Run these in order. Each later step may send you back to ask more.
   Keep it human.
 
 ### 12. Hand off to an implementation session
-- Tell the user to open a **new session** and run the built-in **`goal`** command
-  to execute autonomously, e.g.:
+- Tell the user to open a **new session** and use the built-in **`/goal`**
+  command (Claude Code v2.1.139+): set a completion condition, then give the
+  kickoff instruction, e.g.:
 
   > 新しいセッションを開いて、次を実行してください:
-  > `goal docs/plan.md を読んで、このプロジェクトを実装し、デプロイまで完成させて`
+  > `/goal docs/plan.md の全フェーズが実装され、検証手順がパスし、デプロイまで完了している`
+  > 続けて: `docs/plan.md を読んで、このプロジェクトを実装し、デプロイまで完成させて`
 
+- Derive the `/goal` condition from the plan's "done" definition — **measurable
+  end states** (tests pass, deploy URL live) work better than vague ones.
 - Adjust the wording to the project, but the intent is fixed: **read the plan →
   implement → verify/deploy to completion.**
 
