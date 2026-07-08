@@ -91,6 +91,11 @@ check_links_prop() {
 		# テスト4: ソースファイル存在
 		if [ -e "$src_path" ]; then
 			pass "ソースファイル存在: $src_path"
+		elif [ "$dir/$src" = "zsh/starship/current.toml" ] && [ -f "$DOTFILES_DIR/zsh/starship/tokyo-night.toml" ]; then
+			# current.toml は .gitignore 対象（#13）で fresh checkout には無い。
+			# bootstrap.sh が tokyo-night.toml からシードしてからリンクするため、
+			# シード元が存在すれば PASS 扱いにする（テストを実装挙動に一致させる＝#21）。
+			pass "ソースファイル（bootstrap がシード）: $src_path ← tokyo-night.toml"
 		else
 			fail "ソースファイルが存在しない: $src_path"
 		fi
@@ -114,13 +119,12 @@ check_links_prop() {
 
 echo "--- [3-6] links.prop パース・ソースファイル・親ディレクトリ・衝突 ---"
 echo ""
-check_links_prop zsh
-check_links_prop git
-check_links_prop karabiner
-check_links_prop vscode
-check_links_prop ghostty
-check_links_prop tmux
-check_links_prop ssh
+# links.prop を持つ全ディレクトリを自動列挙する（手動リストの追加漏れを構造的に防ぐ＝#21。
+# 以前は claude/ が対象外だった）。bootstrap.sh がリンクする集合と一致する。
+for _prop in "$DOTFILES_DIR"/*/links.prop; do
+	[ -f "$_prop" ] || continue
+	check_links_prop "$(basename "$(dirname "$_prop")")"
+done
 
 # ==========================================
 # 7. Brewfile 検証

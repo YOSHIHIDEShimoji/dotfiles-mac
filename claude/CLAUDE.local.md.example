@@ -1,0 +1,32 @@
+# ローカル運用ルール（マシン/アカウント固有・非公開）テンプレート
+
+このファイル（`.example`）は公開リポジトリに含まれるテンプレート。
+bootstrap が未存在時に `~/.claude/CLAUDE.local.md` へコピーし、`claude/CLAUDE.md` の
+末尾 `@~/.claude/CLAUDE.local.md` が毎セッション読み込む。**実値（プロジェクト名・実パス・内部ホスト等）は
+このテンプレートには書かず、コピー先の `~/.claude/CLAUDE.local.md` にだけ書く**（公開リポジトリに晒さないため＝#30）。
+
+使い方:
+```bash
+cp claude/CLAUDE.local.md.example ~/.claude/CLAUDE.local.md
+# 以下の <...> を自分の環境の実値に置き換える
+```
+
+## Vault の場所
+
+- Obsidian Vault（正典）: `<iCloud 上の Vault 04_Context への実パス>`
+  - 話し方・進め方・ツール優先順位＝`_My Context.md` 等
+
+## リモートホスト / 別マシン
+
+- `ssh <alias>` で <接続先の説明> に接続できる（VPN/Tailscale 等が必要ならその条件も書く）
+- 必要なら WSL / リモートシェルでのコマンド実行方法（`wsl -- bash -c '...'` など）をここに
+
+## クラウドサービスの認証（ネイティブCLI/トークン優先）
+
+- 各クラウドサービスはそのサービス固有の CLI/API/token で直接操作する（別サービスの統合/Marketplace 経由で作らない）
+- 認証済みアカウント・org・プロジェクト名など固有情報はここに書く
+  - 例: Vercel `<whoami>` / Neon `<org>` / Supabase `<project-a>`, `<project-b>`
+
+## その他マシン固有
+
+- （internal IP・内部ホスト名・アカウント固有の運用メモなど、公開したくないものをここに）

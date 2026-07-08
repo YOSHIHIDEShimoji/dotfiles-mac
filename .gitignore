@@ -11,4 +11,7 @@ zsh/starship/.current-name
 
 .claude/
 
+# マシン/アカウント固有の Claude ローカルルール（実値は非公開。テンプレートは .example）＝#30
+claude/CLAUDE.local.md
+
 scripts/john/wordlists/rockyou.txt

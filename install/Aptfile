@@ -15,6 +15,10 @@
 #   ghostty              → apt.ghostty.org
 #   code                 → packages.microsoft.com
 #   google-chrome-stable → dl.google.com
+#   gh                   → cli.github.com
+#
+# apt に無いため bootstrap-linux.sh が別途 GitHub Releases から導入するもの:
+#   git-delta（gitconfig の pager = delta が要求。無いと全ページャ出力がエラーになる＝#23）
 
 [wsl]
 git
@@ -36,6 +40,8 @@ npm
 tmux
 # eza: 公式 deb リポジトリ経由（bootstrap が自動追加）
 eza
+# gh: GitHub CLI。credential helper（gitconfig）が使う。公式 apt リポジトリ経由（bootstrap が自動追加）＝#23
+gh
 build-essential
 libssl-dev
 zlib1g-dev

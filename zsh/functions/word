@@ -14,9 +14,11 @@ word() {
 	if [[ "$(uname)" == "Darwin" ]]; then
 		open -a "Microsoft Word" "$filepath"
 	elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+		# explorer.exe が既定ハンドラ（.docx→Word）で開く。旧 powershell.exe -c "Start-Process '$p'"
+		# はパスにアポストロフィが含まれると文字列リテラルが壊れる問題があった（#24）。
 		local winpath
 		winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
-		/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c "Start-Process '$winpath'"
+		explorer.exe "$winpath"
 	else
 		echo "word: この環境（純 Linux）では Microsoft Word を起動できません。"
 		return 1

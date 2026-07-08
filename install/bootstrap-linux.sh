@@ -95,6 +95,16 @@ for pkg in "${all_pkgs[@]}"; do
                     | sudo tee /etc/apt/sources.list.d/google-chrome.list
             fi
             ;;
+        gh)
+            if ! apt-cache show gh &>/dev/null 2>&1; then
+                info "GitHub CLI: cli.github.com リポジトリを追加します..."
+                wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+                    | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+                sudo chmod 644 /etc/apt/keyrings/githubcli-archive-keyring.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+                    | sudo tee /etc/apt/sources.list.d/github-cli.list
+            fi
+            ;;
     esac
 done
 
@@ -142,6 +152,30 @@ if ! command -v tldr &>/dev/null; then
     sudo npm install -g tldr
 fi
 
+# ─── 6.5. git-delta（apt に無いため GitHub Releases の .deb から導入）＝#23 ──────
+# gitconfig の pager = delta が要求する。無いと git のページャ出力が毎回エラーになる。
+if ! command -v delta &>/dev/null; then
+    info "git-delta をインストールします（GitHub Releases）..."
+    delta_arch="$(dpkg --print-architecture)"   # amd64 / arm64
+    # 最新リリースのタグを取得（例: 0.18.2）。取得失敗時はスキップして続行する。
+    delta_ver="$(curl -fsSL https://api.github.com/repos/dandavison/delta/releases/latest \
+        | grep -m1 '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')"
+    if [[ -n "$delta_ver" ]]; then
+        delta_deb="git-delta_${delta_ver}_${delta_arch}.deb"
+        delta_url="https://github.com/dandavison/delta/releases/download/${delta_ver}/${delta_deb}"
+        delta_tmp="$(mktemp -d)"
+        if curl -fsSL -o "$delta_tmp/$delta_deb" "$delta_url"; then
+            sudo dpkg -i "$delta_tmp/$delta_deb" || sudo apt-get install -f -y
+            info "git-delta ${delta_ver} (${delta_arch}) をインストールしました。"
+        else
+            warn "git-delta の .deb 取得に失敗しました（${delta_url}）。手動導入してください。"
+        fi
+        rm -rf "$delta_tmp"
+    else
+        warn "git-delta の最新バージョン取得に失敗しました。手動導入してください。"
+    fi
+fi
+
 # ─── 7. シンボリックリンクの作成 ─────────────────────────
 link_from_prop() {
     dir="$1"
@@ -167,7 +201,8 @@ link_from_prop() {
 
         mkdir -p "$(dirname "$dst")"
         info "リンク作成: $src_path -> $dst"
-        ln -sfv "$src_path" "$dst"
+        # -n: dst が既存のディレクトリ symlink でも辿らず置換する（辿ると中にリンクが増殖する＝#22）
+        ln -sfnv "$src_path" "$dst"
     done < "$prop"
 }
 
@@ -191,7 +226,8 @@ link_from_prop tmux
 link_from_prop claude
 
 # ~/.claude/skills -> ~/.agents/skills の恒久リンク（cc-skills-sync 不要）
-ln -sfv "${HOME}/.agents/skills" "${HOME}/.claude/skills"
+# -n: 既存のディレクトリ symlink を辿らず置換（再実行で中に自己参照リンクを作らない＝#22）
+ln -sfnv "${HOME}/.agents/skills" "${HOME}/.claude/skills"
 
 # Ghostty は純 Linux のみリンク（WSL はデスクトップ環境がないため不要）
 if [[ "$IS_WSL" == false ]]; then

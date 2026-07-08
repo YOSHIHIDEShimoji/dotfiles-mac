@@ -1,10 +1,12 @@
 # パッケージを更新・アップグレード（Darwin=brew / Linux=apt）
+# brew doctor は毎回実行すると遅く警告だけで非ゼロ終了するため既定から外した（#28）。
+# 診断したいときは明示的に `brew doctor` を叩く。
 update() {
 	if [[ "$(uname)" == "Darwin" ]]; then
-		brew update && brew upgrade && brew cleanup && brew doctor
-		echo "Homebrew packages updated."
+		brew update && brew upgrade && brew cleanup \
+			&& echo "Homebrew packages updated."
 	else
-		sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get autoremove -y && sudo apt-get autoclean
-		echo "apt packages updated."
+		sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get autoremove -y && sudo apt-get autoclean \
+			&& echo "apt packages updated."
 	fi
 }

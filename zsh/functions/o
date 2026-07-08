@@ -7,8 +7,11 @@ o() {
       open .
     fi
   elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+    # explorer.exe に一本化（#24）。URL は既定ブラウザで開き、ファイル/ディレクトリは
+    # winpath に変換して開く。旧 `cmd.exe /c start "$target"` は start が最初の引用符付き
+    # 引数をウィンドウタイトルと解釈するため URL が開けなかった。
     if [[ "$target" == http://* || "$target" == https://* ]]; then
-      cmd.exe /c start "$target" 2>/dev/null
+      explorer.exe "$target"
     else
       local winpath
       winpath=$(wslpath -w "$target" 2>/dev/null || echo "$target")

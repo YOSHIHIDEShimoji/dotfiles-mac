@@ -34,14 +34,16 @@ EOF
 
 INPUT=""
 OUTPUT=""
-LANG="ja"
+# 言語コード。環境変数 LANG（ロケール）とは別物にするため LANG_CODE を使う。
+# LANG に代入すると子プロセス（ffmpeg / whisper-cli）へ不正ロケールとして伝播する（#28）。
+LANG_CODE="ja"
 FORMAT="plain"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help) usage; exit 0 ;;
     -o|--output) OUTPUT="$2"; shift 2 ;;
-    --lang) LANG="$2"; shift 2 ;;
+    --lang) LANG_CODE="$2"; shift 2 ;;
     --format) FORMAT="$2"; shift 2 ;;
     -*) echo "Unknown option: $1" >&2; usage; exit 1 ;;
     *) INPUT="$1"; shift ;;
@@ -91,7 +93,7 @@ echo "[model] $WHISPER_MODEL (CoreML)" >&2
 echo "[transcribe] 文字起こし開始: ${INPUT##*/}" >&2
 echo "[output] ${OUTPUT_BASE}.${EXT}" >&2
 
-WHISPER_FLAGS=(-m "$WHISPER_MODEL" -f "$AUDIO" -l "$LANG" -of "$OUTPUT_BASE")
+WHISPER_FLAGS=(-m "$WHISPER_MODEL" -f "$AUDIO" -l "$LANG_CODE" -of "$OUTPUT_BASE")
 
 case "$FORMAT" in
   srt)   WHISPER_FLAGS+=(-osrt) ;;

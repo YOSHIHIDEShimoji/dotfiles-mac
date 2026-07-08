@@ -3,6 +3,14 @@ set -e
 
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
+# ─── 前提チェック ───────────────────────────────────────────
+# envsubst（gettext 由来）は links.prop の ${HOME} 展開に必須だが macOS 標準には無い。
+# 欠けたまま set -e で途中死しないよう、最初に明示的に確認する（#22）。
+if ! command -v envsubst >/dev/null 2>&1; then
+	echo "envsubst が見つかりません。'brew install gettext' を実行してから再試行してください。" >&2
+	exit 1
+fi
+
 # ─── ログ設定 ───────────────────────────────────────────────
 LOG_FILE="/tmp/bootstrap-$(date +%Y%m%d-%H%M%S).log"
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -39,8 +47,10 @@ link_from_prop() {
 		mkdir -p "$(dirname "$dst")"
 
 		# シンボリックリンク作成
+		# -n: dst が既存のディレクトリ symlink でも辿らず置換する（辿ると中に
+		#     リンクが増殖する＝#22。skills/iCloud などディレクトリを指す dst で顕在化）
 		echo "Linking $src_path -> $dst"
-		ln -sfv "$src_path" "$dst"
+		ln -sfnv "$src_path" "$dst"
 	done < "$prop"
 }
 
@@ -61,7 +71,7 @@ if [ -d "$LAUNCH_SRC" ]; then
 
 		# リンク作成
 		echo "Linking LaunchAgent: $filename"
-		ln -sfv "$plist" "$target"
+		ln -sfnv "$plist" "$target"
 
 		# 新しいMacで実行した場合など、未ロードならロードする
 		if ! launchctl list | grep -q "${filename%.plist}"; then
@@ -111,10 +121,12 @@ link_from_prop ssh
 link_from_prop claude
 
 # ~/.claude/skills -> ~/.agents/skills の恒久リンク（cc-skills-sync 不要）
-ln -sfv "${HOME}/.agents/skills" "${HOME}/.claude/skills"
+# -n: 既存のディレクトリ symlink を辿らず置換（再実行で中に自己参照リンクを作らない＝#22）
+ln -sfnv "${HOME}/.agents/skills" "${HOME}/.claude/skills"
 
 # ~/iCloud -> iCloud Drive のショートカット
-ln -sfv "${HOME}/Library/Mobile Documents/com~apple~CloudDocs" "${HOME}/iCloud"
+# -n 必須: これが無いと再実行時に iCloud Drive 実体の中へリンクが作られ全デバイスへ同期される（#22）
+ln -sfnv "${HOME}/Library/Mobile Documents/com~apple~CloudDocs" "${HOME}/iCloud"
 
 # ControlMaster のソケットディレクトリを作成
 mkdir -p "${HOME}/.ssh/cm"
@@ -126,6 +138,14 @@ if [ ! -f "${HOME}/.ssh/config.local" ] && [ -f "${DOTFILES_DIR}/ssh/config.loca
     cp "${DOTFILES_DIR}/ssh/config.local.example" "${HOME}/.ssh/config.local"
     chmod 600 "${HOME}/.ssh/config.local"
     echo "seeded ~/.ssh/config.local (Host win 等のマシン固有ホストをここに記入)"
+fi
+
+# マシン/アカウント固有の Claude ローカルルール（~/.claude/CLAUDE.local.md）を
+# 未存在時にテンプレートからシード（#30）。claude/CLAUDE.md の @CLAUDE.local.md が読み込む。
+mkdir -p "${HOME}/.claude"
+if [ ! -f "${HOME}/.claude/CLAUDE.local.md" ] && [ -f "${DOTFILES_DIR}/claude/CLAUDE.local.md.example" ]; then
+    cp "${DOTFILES_DIR}/claude/CLAUDE.local.md.example" "${HOME}/.claude/CLAUDE.local.md"
+    echo "seeded ~/.claude/CLAUDE.local.md (プロジェクト名・Vault 実パス等の固有情報をここに記入)"
 fi
 
 echo "Dotfiles linking done."
@@ -147,6 +167,31 @@ if command -v brew &>/dev/null && [ -f "$BREWFILE" ]; then
 	echo "Brew installation completed."
 else
 	echo "Homebrew not found or Brewfile missing. Skipping package install."
+fi
+
+# scripts/bin の Python ツール用 venv を用意する（#25）。
+# excel2csv 等は shebang で PYENV_VERSION=dotfiles-scripts-3.11.9 を固定しており、
+# この venv に pandas/openpyxl 等（requirements.txt）が入っている必要がある。
+if command -v pyenv >/dev/null 2>&1; then
+	SCRIPTS_ENV="dotfiles-scripts-3.11.9"
+	PY_VERSION="3.11.9"
+	REQ_FILE="$DOTFILES_DIR/scripts/requirements.txt"
+	export PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
+	if ! pyenv versions --bare | grep -qx "$PY_VERSION"; then
+		echo "pyenv: Python $PY_VERSION をインストールします..."
+		pyenv install -s "$PY_VERSION"
+	fi
+	if ! pyenv versions --bare | grep -qx "$SCRIPTS_ENV"; then
+		echo "pyenv: venv $SCRIPTS_ENV を作成します..."
+		pyenv virtualenv "$PY_VERSION" "$SCRIPTS_ENV"
+	fi
+	if [ -f "$REQ_FILE" ]; then
+		echo "pyenv: scripts の依存を $SCRIPTS_ENV にインストールします..."
+		"$PYENV_ROOT/versions/$SCRIPTS_ENV/bin/pip" install -q -r "$REQ_FILE" || \
+			echo "  (pip install に失敗。手動で確認してください)"
+	fi
+else
+	echo "pyenv が見つからないため scripts 用 venv の作成をスキップしました（excel2csv 等は動きません）。"
 fi
 
 # my-projects のクローン

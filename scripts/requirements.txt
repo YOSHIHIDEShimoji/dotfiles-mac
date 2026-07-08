@@ -1,2 +1,12 @@
-inquirer
+# scripts/bin の Python ツールの依存。専用 venv dotfiles-scripts-3.11.9 に入れる（#25）。
+# bootstrap.sh が venv 作成 + `pip install -r` を行う。
+
+# excel2csv（Excel→CSV 変換）
+pandas
+openpyxl
+
+# ppdf（PDF 暗号化解除・整形）系
 pyhanko
+
+# launchd_manager 等の対話プロンプト
+inquirer

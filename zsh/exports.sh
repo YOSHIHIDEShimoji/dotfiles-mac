@@ -2,7 +2,9 @@ if [[ "$(uname)" == "Darwin" ]]; then
   export DOTFILES="$HOME/dotfiles-mac"
 
   # macOS base PATH
-  export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+  # 継承 PATH を破棄せず prepend する（#27）。破棄すると入れ子シェル（rr/sstyle の exec zsh・
+  # tmux 新ペイン）で venv・direnv・nvm 等が積んだ PATH が消える。伸長は末尾の typeset -U が除去。
+  export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
   # VSCode CLI
   export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
@@ -22,8 +24,13 @@ else
   export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
   # WSL: Windows の VS Code bin を PATH に追加（code コマンドを WSL から使うため）
+  # Windows ユーザー名を glob で動的検出する（ハードコードを排除＝#30／他マシン移植性も向上）。
   if [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-    export PATH="$PATH:/mnt/c/Users/gyshi/AppData/Local/Programs/Microsoft VS Code/bin"
+    for _vsc in /mnt/c/Users/*/AppData/Local/Programs/"Microsoft VS Code"/bin(N); do
+      export PATH="$PATH:$_vsc"
+      break
+    done
+    unset _vsc
   fi
 fi
 
@@ -51,6 +58,16 @@ export ZSH_COMPDUMP="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-${ZSH_VERSION
 [ -d "${HISTFILE:h}" ] || mkdir -p "${HISTFILE:h}"
 # macOS Terminal のセッション履歴（.zsh_sessions）を repo に作らせない
 export SHELL_SESSIONS_DISABLE=1
+
+# 履歴の量・保存挙動を dotfiles 側で明示する（#26）。
+# 未設定だと OS の rc 任せ = WSL は SAVEHIST=0 で保存されず、Mac は /etc/zshrc の 1000 件で暗黙キャップ。
+export HISTSIZE=100000        # メモリに保持する行数
+export SAVEHIST=100000        # HISTFILE に保存する行数（0 だと保存されない）
+setopt INC_APPEND_HISTORY    # セッション終了を待たず随時追記（クラッシュしても失わない）
+setopt EXTENDED_HISTORY      # タイムスタンプ付きで記録
+setopt HIST_IGNORE_ALL_DUPS  # 既出コマンドは古い方を捨てて重複を残さない
+setopt HIST_IGNORE_SPACE     # 先頭スペースで始めたコマンドは記録しない
+setopt HIST_REDUCE_BLANKS    # 余分な空白を圧縮して記録
 
 # 重複除去
 typeset -U path PATH

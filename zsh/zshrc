@@ -15,10 +15,16 @@ for f in $FUNCTIONS_DIR/*(.N); do
   autoload -Uz "${f:t}"
 done
 
+# Homebrew prefix を一度だけ解決（brew 不在でも空になるだけで壊れない＝#28）
+BREW_PREFIX=""
+if [[ "$(uname)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
+  BREW_PREFIX="$(brew --prefix)"
+fi
+
 # zsh-completions
-if [[ "$(uname)" == "Darwin" ]]; then
-  fpath=($(brew --prefix)/share/zsh-completions $fpath)
-else
+if [[ -n "$BREW_PREFIX" ]]; then
+  fpath=("$BREW_PREFIX/share/zsh-completions" $fpath)
+elif [[ "$(uname)" != "Darwin" ]]; then
   fpath=(/usr/share/zsh/vendor-completions $fpath)
 fi
 
@@ -30,23 +36,23 @@ else
   compinit -d "$ZSH_COMPDUMP"
 fi
 
-# zsh-autosuggestions
-if [[ "$(uname)" == "Darwin" ]]; then
-  source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-else
-  [[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
-    source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# zsh-autosuggestions（Mac/Linux とも [[ -f ]] ガードで統一。bootstrap 前や最小環境でも壊さない＝#28）
+if [[ -n "$BREW_PREFIX" && -f "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+elif [[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
+  source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
-# themes
-eval "$(starship init zsh)"
+# themes（starship 未インストールでも起動を止めない＝#28）
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
 
-# zsh-syntax-highlighting
-if [[ "$(uname)" == "Darwin" ]]; then
-  source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-else
-  [[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
-    source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# zsh-syntax-highlighting（末尾で source すること。[[ -f ]] ガードで統一＝#28）
+if [[ -n "$BREW_PREFIX" && -f "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+elif [[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
+  source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
 # History search with arrow keys

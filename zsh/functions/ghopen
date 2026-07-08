@@ -1,5 +1,7 @@
 # GitHub 上でカレント（または指定）パスを開く
 ghopen() {
+	# すべてローカル宣言してグローバル汚染を防ぐ（#28）
+	local target_path abs_path repo_root remote_url gh_owner gh_repo rel_path branch url
 	target_path="${1:-.}"
 	abs_path=$(cd "$target_path" && pwd)
 
@@ -34,7 +36,10 @@ ghopen() {
 		rel_path="${abs_path#$repo_root/}"
 	fi
 
-	branch=$(git -C "$abs_path" symbolic-ref --short HEAD)
+	# detached HEAD では symbolic-ref が失敗し branch が空になり URL が壊れる。
+	# その場合は現在のコミット SHA にフォールバックする（#28）。
+	branch=$(git -C "$abs_path" symbolic-ref --short HEAD 2>/dev/null) \
+		|| branch=$(git -C "$abs_path" rev-parse HEAD 2>/dev/null)
 
 	if [[ -n "$rel_path" ]]; then
 		url="https://github.com/${gh_owner}/${gh_repo}/tree/${branch}/${rel_path}"
