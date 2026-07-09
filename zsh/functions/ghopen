@@ -48,11 +48,5 @@ ghopen() {
 	fi
 
 	# 開く処理
-	if [[ "$(uname -s)" == "Darwin" ]]; then
-		open "$url"
-	elif grep -qi microsoft /proc/version 2>/dev/null; then
-		explorer.exe "$url"
-	else
-		xdg-open "$url" || google-chrome "$url" &
-	fi
+	open "$url"
 }

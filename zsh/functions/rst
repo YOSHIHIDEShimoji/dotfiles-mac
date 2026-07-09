@@ -26,16 +26,9 @@ rst() {
   fi
 
   # 4. RStudio インストール確認
-  if [[ "$(uname)" == "Darwin" ]]; then
-    if [[ ! -d "/Applications/RStudio.app" ]]; then
-      echo "rst: RStudio not found at /Applications/RStudio.app" >&2
-      return 1
-    fi
-  else
-    if ! command -v rstudio &>/dev/null; then
-      echo "rst: RStudio not found (install via https://posit.co/download/rstudio-desktop/)" >&2
-      return 1
-    fi
+  if [[ ! -d "/Applications/RStudio.app" ]]; then
+    echo "rst: RStudio not found at /Applications/RStudio.app" >&2
+    return 1
   fi
 
   # 5. .Rproj ファイルの確認と生成
@@ -58,9 +51,5 @@ rst() {
   fi
 
   # 6. RStudio で起動
-  if [[ "$(uname)" == "Darwin" ]]; then
-    open -a RStudio "$rproj_file"
-  else
-    rstudio "$rproj_file" &>/dev/null &
-  fi
+  open -a RStudio "$rproj_file"
 }

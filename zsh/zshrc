@@ -1,8 +1,4 @@
-if [[ "$(uname)" == "Darwin" ]]; then
-  ZDOTDIR="$HOME/dotfiles/zsh"
-else
-  ZDOTDIR="$HOME/dotfiles-linux/zsh"
-fi
+ZDOTDIR="$HOME/dotfiles/zsh"
 
 # basic settings
 source $ZDOTDIR/exports.sh
@@ -17,15 +13,13 @@ done
 
 # Homebrew prefix を一度だけ解決（brew 不在でも空になるだけで壊れない＝#28）
 BREW_PREFIX=""
-if [[ "$(uname)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
+if command -v brew >/dev/null 2>&1; then
   BREW_PREFIX="$(brew --prefix)"
 fi
 
 # zsh-completions
 if [[ -n "$BREW_PREFIX" ]]; then
   fpath=("$BREW_PREFIX/share/zsh-completions" $fpath)
-elif [[ "$(uname)" != "Darwin" ]]; then
-  fpath=(/usr/share/zsh/vendor-completions $fpath)
 fi
 
 # complement（1日以内のダンプがあれば -C で高速起動、無ければ/古ければフル実行＝#13）
@@ -36,11 +30,9 @@ else
   compinit -d "$ZSH_COMPDUMP"
 fi
 
-# zsh-autosuggestions（Mac/Linux とも [[ -f ]] ガードで統一。bootstrap 前や最小環境でも壊さない＝#28）
+# zsh-autosuggestions（[[ -f ]] ガードで bootstrap 前や最小環境でも壊さない＝#28）
 if [[ -n "$BREW_PREFIX" && -f "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
   source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-elif [[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
-  source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
 # themes（starship 未インストールでも起動を止めない＝#28）
@@ -51,8 +43,6 @@ fi
 # zsh-syntax-highlighting（末尾で source すること。[[ -f ]] ガードで統一＝#28）
 if [[ -n "$BREW_PREFIX" && -f "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
   source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-elif [[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
-  source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
 # History search with arrow keys
@@ -66,14 +56,9 @@ bindkey "^[[B" down-line-or-beginning-search
 setopt interactive_comments
 setopt no_beep
 
-# fzf（0.48未満は --zsh 非対応のためシステム統合ファイルを使う）
+# fzf
 if command -v fzf >/dev/null 2>&1; then
-  if fzf --zsh &>/dev/null; then
-    source <(fzf --zsh)
-  else
-    [[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]] && source /usr/share/doc/fzf/examples/key-bindings.zsh
-    [[ -f /usr/share/doc/fzf/examples/completion.zsh ]]   && source /usr/share/doc/fzf/examples/completion.zsh
-  fi
+  source <(fzf --zsh)
 fi
 
 # pyenv
