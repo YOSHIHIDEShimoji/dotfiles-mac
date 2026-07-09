@@ -45,7 +45,7 @@ import re
 import sys
 from pathlib import Path
 
-# 出力先は環境変数 YT2OB_OUTPUT_DIR で上書き可能（Linux/WSL など iCloud パスが無い環境向け）。
+# 出力先は環境変数 YT2OB_OUTPUT_DIR で上書き可能（iCloud パスが無い環境向け）。
 # 未設定時は Mac の iCloud 上 Obsidian Vault の 00_Inbox を既定とする。
 DEFAULT_OUTPUT_DIR = Path(
     os.environ.get("YT2OB_OUTPUT_DIR")

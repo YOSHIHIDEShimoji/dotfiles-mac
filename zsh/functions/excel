@@ -1,4 +1,4 @@
-# Excel で開く（Darwin=open -a / WSL=powershell / 純Linux=不可）
+# Excel で開く（open -a）
 excel() {
 	local filepath="$1"
 	local template="${DOTFILES:-$HOME/dotfiles}/templates/template.xlsx"
@@ -11,16 +11,5 @@ excel() {
 	[[ "$filepath" != *.xlsx ]] && filepath="${filepath}.xlsx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
 
-	if [[ "$(uname)" == "Darwin" ]]; then
-		open -a "Microsoft Excel" "$filepath"
-	elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-		# explorer.exe が既定ハンドラ（.xlsx→Excel）で開く。旧 powershell.exe -c "Start-Process '$p'"
-		# はパスにアポストロフィが含まれると文字列リテラルが壊れる問題があった（#24）。
-		local winpath
-		winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
-		explorer.exe "$winpath"
-	else
-		echo "excel: この環境（純 Linux）では Microsoft Excel を起動できません。"
-		return 1
-	fi
+	open -a "Microsoft Excel" "$filepath"
 }

@@ -165,51 +165,9 @@ fi
 echo ""
 
 # ==========================================
-# 9. Linux/WSL ブートストラップ（単一ブランチ化で main に統合）
+# 9. zsh 関数の構文チェック
 # ==========================================
-echo "--- [9] Linux/WSL ブートストラップ ---"
-LINUX_BOOT="$DOTFILES_DIR/install/bootstrap-linux.sh"
-APTFILE="$DOTFILES_DIR/install/Aptfile"
-
-if [ -f "$LINUX_BOOT" ]; then
-	pass "bootstrap-linux.sh 存在: $LINUX_BOOT"
-	if bash -n "$LINUX_BOOT" 2>/dev/null; then
-		pass "bootstrap-linux.sh 構文OK"
-	else
-		fail "bootstrap-linux.sh 構文エラー"
-		bash -n "$LINUX_BOOT" 2>&1 | sed 's/^/  /'
-	fi
-	# 2本ブランチ時代の worktree 足場が残っていないこと
-	if grep -q 'worktree add' "$LINUX_BOOT"; then
-		fail "bootstrap-linux.sh に worktree add が残存（単一ブランチ化で撤去済みのはず）"
-	else
-		pass "bootstrap-linux.sh に worktree 足場なし"
-	fi
-else
-	fail "bootstrap-linux.sh が存在しない: $LINUX_BOOT"
-fi
-
-if [ -f "$APTFILE" ]; then
-	pass "Aptfile 存在: $APTFILE"
-	# [wsl] / [linux] セクションが存在すること
-	if grep -q '^\[wsl\]' "$APTFILE" && grep -q '^\[linux\]' "$APTFILE"; then
-		pass "Aptfile に [wsl]/[linux] セクションあり"
-	else
-		fail "Aptfile のセクション定義が不正（[wsl]/[linux] が必要）"
-	fi
-	# 両対応に必要なパッケージ（純 Linux の clipboard/open）
-	for pkg in xclip xdg-utils; do
-		grep -q "^${pkg}$" "$APTFILE" && pass "Aptfile に $pkg あり" || warn "Aptfile に $pkg が無い（純 Linux の一部機能が動かない）"
-	done
-else
-	fail "Aptfile が存在しない: $APTFILE"
-fi
-echo ""
-
-# ==========================================
-# 10. zsh 関数の構文チェック
-# ==========================================
-echo "--- [10] zsh 関数の構文 ---"
+echo "--- [9] zsh 関数の構文 ---"
 if command -v zsh &>/dev/null; then
 	fn_fail=0
 	for fn in "$DOTFILES_DIR"/zsh/functions/*; do

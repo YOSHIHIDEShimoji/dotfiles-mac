@@ -1,12 +1,6 @@
 # ファイルをクリップボードにコピー
 copyfile() {
 	emulate -L zsh
-	if [[ "$(uname)" == "Darwin" ]]; then
-		cat "$1" | pbcopy
-	elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-		cat "$1" | iconv -f UTF-8 -t UTF-16LE | /mnt/c/Windows/System32/clip.exe
-	else
-		cat "$1" | xclip -selection clipboard
-	fi
+	cat "$1" | pbcopy
 	echo ${(%):-"%B$1%b copied to clipboard."}
 }

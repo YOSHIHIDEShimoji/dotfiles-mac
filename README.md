@@ -128,10 +128,8 @@ dotfiles/
 │   ├── skills/                          # AI agentスキル群（~/.agents/skillsにリンク）
 │   └── links.prop                       # シンボリックリンク定義
 ├── install/                             # インストール関連
-│   ├── bootstrap.sh                     # セットアップスクリプト（macOS）
-│   ├── bootstrap-linux.sh               # セットアップスクリプト（Linux/WSL）
-│   ├── Brewfile                         # Homebrewパッケージリスト（macOS）
-│   ├── Aptfile                          # aptパッケージリスト（[wsl]/[linux] セクション）
+│   ├── bootstrap.sh                     # セットアップスクリプト
+│   ├── Brewfile                         # Homebrewパッケージリスト
 │   ├── gui-apps.txt                     # GUIアプリ一覧
 │   ├── install-mactex-ja.zsh            # MacTeX日本語環境構築
 │   ├── setup-john-wordlists.sh          # rockyou.txtワードリスト取得
@@ -167,8 +165,7 @@ dotfiles/
 │       └── wordlists/                   # ワードリスト（rockyou.txtは.gitignore対象）
 ├── docs/                                # 詳細ドキュメント
 │   ├── setup-detail.md                  # bootstrap.sh の詳細
-│   ├── keybindings.md                   # Ghostty/Karabiner キーバインド
-│   └── platform-notes.md                # OS固有ファイルの参照表
+│   └── keybindings.md                   # Ghostty/Karabiner キーバインド
 ├── .github/workflows/                   # GitHub Actions
 │   └── ci.yml                           # push/PR で bootstrap dry-run + 構文チェック
 ├── LaunchAgents/                        # macOS LaunchAgents
@@ -187,13 +184,13 @@ dotfiles/
 
 ## テスト / CI
 
-`install/test_bootstrap_dry_run.sh` が副作用なしで `links.prop` の src 欠落・plist 構文・Brewfile/Aptfile・zsh 関数構文などを検証します（FAIL があれば終了コード 1）。手元で `bootstrap.sh` を走らせる前の事前チェックに使えます。
+`install/test_bootstrap_dry_run.sh` が副作用なしで `links.prop` の src 欠落・plist 構文・Brewfile・zsh 関数構文などを検証します（FAIL があれば終了コード 1）。手元で `bootstrap.sh` を走らせる前の事前チェックに使えます。
 
 ```bash
 bash install/test_bootstrap_dry_run.sh
 ```
 
-`.github/workflows/ci.yml` が push / PR ごとにこの検証を macOS runner で、Linux/WSL 側の構文・Aptfile 構造チェックを Ubuntu runner で自動実行します。
+`.github/workflows/ci.yml` が push / PR ごとにこの検証を macOS runner で自動実行します。
 
 ## 主な機能
 
@@ -213,9 +210,9 @@ Ghostty・Karabiner-Elements のキーバインド詳細は [`docs/keybindings.m
 | `awake` | システムスリープ防止（macOS専用） |
 | `ghopen` | 現在のディレクトリをGitHubで開く |
 | `update` | Homebrewパッケージを一括更新（macOS専用） |
-| `word` / `excel` / `powerpoint` | Office文書を新規作成して開く（macOS/WSL） |
+| `word` / `excel` / `powerpoint` | Office文書を新規作成して開く |
 | `lp` | 低電力モードを切り替える（macOS専用） |
-| `o` | ファイル・URLを開く（macOS/WSL/Linux対応） |
+| `o` | ファイル・URLを開く |
 | `v` | VS Codeで開く（引数なしでカレントディレクトリ） |
 | `sstyle` | Starshipプロンプトのテーマを切り替える |
 | `rst` | RStudioプロジェクトを初期化・起動 |
@@ -311,49 +308,6 @@ dump
 ```
 
 `dump` コマンドは `install/Brewfile` と `vscode/extensions.txt` を現在の環境から自動更新し、コミットまで行います。
-
-## Linux/WSL 対応
-
-macOS をメイン環境としつつ、**単一 `main` ブランチ**で Linux / WSL / 純Linux でも同じシェル体験を得られるクロスプラットフォーム構成です。共有設定ファイルが実行時に OS を判定して分岐するため、ブランチ分割や同期作業は不要です。
-
-> 2026-07-08 に旧・2本ブランチ運用（`linux` ブランチ + `git worktree` + `/sync-to-linux` スキル）を廃止し、`main` 1本に統合しました。旧ブランチは `backup/linux-20260708` タグとして保全しています。
-
-### リポジトリ配置
-
-| 環境 | 配置先 | ブランチ |
-|------|--------|---------|
-| macOS | `~/dotfiles` | `main` |
-| Linux/WSL | `~/dotfiles-linux` | `main` |
-
-ディレクトリ名が OS で異なるのは `zsh/zshenv`・`zsh/exports.sh` の `DOTFILES`/`ZDOTDIR` 定義に合わせるためで、ブランチはどちらも `main` です。
-
-### 設定ファイルの OS 判定
-
-共有ファイルはファイル内で OS を判定し、macOS / WSL / 純Linux の差異を吸収します。
-
-```zsh
-# aliases.sh の clipboard 例
-if [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-  alias copy='/mnt/c/Windows/System32/clip.exe'   # WSL
-elif [[ "$(uname)" != "Darwin" ]]; then
-  alias copy='xclip -selection clipboard'          # 純Linux
-fi
-```
-
-どのファイルがどの OS 固有かの一覧は [`docs/platform-notes.md`](docs/platform-notes.md) を参照してください。
-
-### Linux/WSL セットアップ
-
-```bash
-# 前提: デフォルトシェルを zsh に変更済みであること
-# sudo chsh -s $(which zsh) $USER && ログアウト → 再ログイン
-
-git clone git@github.com:YOSHIHIDEShimoji/dotfiles.git ~/dotfiles-linux
-cd ~/dotfiles-linux
-bash install/bootstrap-linux.sh
-```
-
-apt パッケージは `install/Aptfile`（`[wsl]` / `[linux]` セクション）で管理します。
 
 ---
 

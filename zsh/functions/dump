@@ -5,8 +5,8 @@ dump() {
 
   mkdir -p "$(dirname "$extfile")"
 
-  # Darwin のみ Brewfile を自動 dump（Linux の Aptfile は手動管理のため対象外）
-  if [[ "$(uname)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
+  # Brewfile を自動 dump（brew 不在ならスキップ＝#28）
+  if command -v brew >/dev/null 2>&1; then
     local brewfile="$DOTFILES/install/Brewfile"
     mkdir -p "$(dirname "$brewfile")"
     local tmp; tmp="$(mktemp)"

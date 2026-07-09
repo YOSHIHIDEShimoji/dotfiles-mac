@@ -1,4 +1,4 @@
-# PowerPoint で開く（Darwin=open -a / WSL=powershell / 純Linux=不可）
+# PowerPoint で開く（open -a）
 powerpoint() {
 	local filepath="$1"
 	local template="${DOTFILES:-$HOME/dotfiles}/templates/template.pptx"
@@ -11,16 +11,5 @@ powerpoint() {
 	[[ "$filepath" != *.pptx ]] && filepath="${filepath}.pptx"
 	[ ! -f "$filepath" ] && cp "$template" "$filepath"
 
-	if [[ "$(uname)" == "Darwin" ]]; then
-		open -a "Microsoft PowerPoint" "$filepath"
-	elif [[ -n "$WSL_DISTRO_NAME" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-		# explorer.exe が既定ハンドラ（.pptx→PowerPoint）で開く。旧 powershell.exe -c "Start-Process '$p'"
-		# はパスにアポストロフィが含まれると文字列リテラルが壊れる問題があった（#24）。
-		local winpath
-		winpath=$(wslpath -w "$filepath" 2>/dev/null || echo "$filepath")
-		explorer.exe "$winpath"
-	else
-		echo "powerpoint: この環境（純 Linux）では Microsoft PowerPoint を起動できません。"
-		return 1
-	fi
+	open -a "Microsoft PowerPoint" "$filepath"
 }
