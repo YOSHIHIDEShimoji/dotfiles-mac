@@ -1,5 +1,5 @@
 if [[ "$(uname)" == "Darwin" ]]; then
-  export DOTFILES="$HOME/dotfiles-mac"
+  export DOTFILES="$HOME/dotfiles"
 
   # macOS base PATH
   # 継承 PATH を破棄せず prepend する（#27）。破棄すると入れ子シェル（rr/sstyle の exec zsh・

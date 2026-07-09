@@ -1,7 +1,7 @@
 # PowerPoint で開く（Darwin=open -a / WSL=powershell / 純Linux=不可）
 powerpoint() {
 	local filepath="$1"
-	local template="${DOTFILES:-$HOME/dotfiles-mac}/templates/template.pptx"
+	local template="${DOTFILES:-$HOME/dotfiles}/templates/template.pptx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: powerpoint [path]"

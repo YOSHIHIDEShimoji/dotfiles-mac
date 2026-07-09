@@ -9,7 +9,7 @@ dotfiles の変更内容と README の記述が一致しているかを確認し
 
 ## 前提
 
-- README は `~/dotfiles-mac/README.md` の**1本のみ**（単一 `main` ブランチ運用。Linux/WSL の記述も同じファイルの「Linux/WSL 対応」セクションにある。旧 linux ブランチ・`~/dotfiles-linux/README.md` は 2026-07-08 に廃止済み）
+- README は `~/dotfiles/README.md` の**1本のみ**（単一 `main` ブランチ運用。Linux/WSL の記述も同じファイルの「Linux/WSL 対応」セクションにある。旧 linux ブランチ・`~/dotfiles-linux/README.md` は 2026-07-08 に廃止済み）
 - セクション名は変わることがある。照合前に `grep -n "^## \|^### " README.md` で**実際の見出し一覧を取得**し、下の表とズレていたら実物を正とする
 
 ## ワークフロー
@@ -19,7 +19,7 @@ dotfiles の変更内容と README の記述が一致しているかを確認し
 どのファイルが変更されたかを確認する：
 
 ```bash
-git -C ~/dotfiles-mac diff --name-only HEAD
+git -C ~/dotfiles diff --name-only HEAD
 ```
 
 ### Step 2: README との照合

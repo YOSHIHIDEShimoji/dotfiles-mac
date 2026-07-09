@@ -1,7 +1,7 @@
 # Excel で開く（Darwin=open -a / WSL=powershell / 純Linux=不可）
 excel() {
 	local filepath="$1"
-	local template="${DOTFILES:-$HOME/dotfiles-mac}/templates/template.xlsx"
+	local template="${DOTFILES:-$HOME/dotfiles}/templates/template.xlsx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: excel [path]"

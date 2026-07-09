@@ -5,7 +5,7 @@ description: >-
   「launchdに登録して」「定期実行を追加して」「毎日N時にこのスクリプトを実行して」
   「plistを作って登録して」「常駐ジョブにして」等、Mac 本体でスクリプトを永続的に定期実行させたいときに使う。
   スクリプトパス・ラベル(com.yoshihide.run_<name>)・実行時刻を対話で収集し、
-  ~/dotfiles-mac/LaunchAgents/ に plist 生成 → ~/Library/LaunchAgents/ へ symlink → launchctl load →
+  ~/dotfiles/LaunchAgents/ に plist 生成 → ~/Library/LaunchAgents/ へ symlink → launchctl load →
   dotfiles コミットまで行う。クラウド/ルーチン系ではなく Mac ローカルの launchd 常駐が必要な場合に選ぶ
   （軽い自然言語スケジュールや claude.ai 側の定期実行は schedule 系スキルの領分）。
 ---
@@ -15,16 +15,16 @@ description: >-
 ## 収集する情報
 
 1. **実行スクリプトのパス** — 絶対パスで確認（例: `/Users/yoshihide/my-projects/foo/bar.sh`）。実在と実行権限を `ls -l` で確認する
-2. **launchd ラベル** — `com.yoshihide.run_<name>` 形式を提案してユーザーに確認。同名の plist が `~/dotfiles-mac/LaunchAgents/` や `launchctl list` に既に無いか先に確認し、あればユーザーに上書きの可否を聞く
+2. **launchd ラベル** — `com.yoshihide.run_<name>` 形式を提案してユーザーに確認。同名の plist が `~/dotfiles/LaunchAgents/` や `launchctl list` に既に無いか先に確認し、あればユーザーに上書きの可否を聞く
 3. **スケジュール** — 実行時刻（Hour / Minute）を確認。「毎日12:00」など自然言語で受け取り、整数に変換する
 
 ## 実行手順
 
 情報が揃ったら以下を順に実行する。
 
-### 1. plist を dotfiles-mac に生成
+### 1. plist を dotfiles に生成
 
-`~/dotfiles-mac/LaunchAgents/<label>.plist` を以下のテンプレートで書き出す:
+`~/dotfiles/LaunchAgents/<label>.plist` を以下のテンプレートで書き出す:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -62,7 +62,7 @@ description: >-
 ### 2. ~/Library/LaunchAgents にシンボリックリンクを作成
 
 ```bash
-ln -s ~/dotfiles-mac/LaunchAgents/{label}.plist ~/Library/LaunchAgents/{label}.plist
+ln -s ~/dotfiles/LaunchAgents/{label}.plist ~/Library/LaunchAgents/{label}.plist
 ```
 
 ### 3. launchctl で読み込み
@@ -88,12 +88,12 @@ sleep 3 && tail -20 ~/Library/Logs/{label}.out ~/Library/Logs/{label}.err
 副作用がある・判断がつかない場合は試走をスキップし、その旨をユーザーに伝える
 （「初回実行は次のスケジュール時刻。ログは `~/Library/Logs/{label}.out` / `.err`」）。
 
-### 4. dotfiles-mac を commit & push
+### 4. dotfiles を commit & push
 
 ```bash
-git -C ~/dotfiles-mac add LaunchAgents/{label}.plist
-git -C ~/dotfiles-mac commit -m "feat: {label} の launchd plist を追加"
-git -C ~/dotfiles-mac push
+git -C ~/dotfiles add LaunchAgents/{label}.plist
+git -C ~/dotfiles commit -m "feat: {label} の launchd plist を追加"
+git -C ~/dotfiles push
 ```
 
 ## 完了報告

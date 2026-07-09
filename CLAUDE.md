@@ -8,8 +8,8 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 
 ## 主要コマンド
 
-- **フルセットアップ**: `cd ~/dotfiles-mac && ./install/bootstrap.sh`
-- **Homebrew パッケージのインストール**: `brew bundle --file=~/dotfiles-mac/install/Brewfile`
+- **フルセットアップ**: `cd ~/dotfiles && ./install/bootstrap.sh`
+- **Homebrew パッケージのインストール**: `brew bundle --file=~/dotfiles/install/Brewfile`
 - **Zsh 設定の再読み込み**: `rr`（カスタム関数、または `source ~/.zshrc`）
 - **新しい Zsh 関数の追加**: `zsh/functions/` にファイルを作成（拡張子なし、`autoload -Uz` で自動読み込み）
 
@@ -29,7 +29,7 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 
 ### Zsh の読み込み順序
 
-1. `zshenv` — `ZDOTDIR=~/dotfiles-mac/zsh` を設定（ログイン前に読み込み）
+1. `zshenv` — `ZDOTDIR=~/dotfiles/zsh` を設定（ログイン前に読み込み）
 2. `zshrc` — メイン設定、以下の順序で読み込み:
    - `exports.sh` — PATH と環境変数
    - `aliases.sh` — シェルおよび Git のエイリアス
@@ -61,7 +61,7 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 
 | 環境 | 配置先 | ブランチ |
 |------|--------|---------|
-| macOS | `~/dotfiles-mac` | `main` |
+| macOS | `~/dotfiles` | `main` |
 | Linux/WSL | `~/dotfiles-linux` | `main` |
 
 配置ディレクトリ名が OS で異なるのは `zsh/zshenv`・`zsh/exports.sh` の `DOTFILES`/`ZDOTDIR` 定義に合わせるため（Linux/WSL では `main` を `~/dotfiles-linux` に clone する）。ブランチはどちらも `main`。
@@ -90,7 +90,7 @@ macOS 用の dotfiles リポジトリ。Zsh、Git、Karabiner-Elements、VS Code
 
 ### セットアップ
 
-- **macOS**: `cd ~/dotfiles-mac && ./install/bootstrap.sh`
+- **macOS**: `cd ~/dotfiles && ./install/bootstrap.sh`
 - **Linux/WSL**: `main` を `~/dotfiles-linux` に clone → `bash install/bootstrap-linux.sh`（前提: `chsh -s $(which zsh)` 済み）
 
 ### 復元用バックアップ

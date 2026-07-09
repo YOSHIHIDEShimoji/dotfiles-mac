@@ -1,7 +1,7 @@
 # Word で開く（Darwin=open -a / WSL=powershell / 純Linux=不可）
 word() {
 	local filepath="$1"
-	local template="${DOTFILES:-$HOME/dotfiles-mac}/templates/template.docx"
+	local template="${DOTFILES:-$HOME/dotfiles}/templates/template.docx"
 
 	if [ -z "$filepath" ]; then
 		echo "Usage: word [path]"

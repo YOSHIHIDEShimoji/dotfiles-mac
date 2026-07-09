@@ -1,5 +1,5 @@
 dump() {
-  local DOTFILES="${DOTFILES:-$HOME/dotfiles-mac}"
+  local DOTFILES="${DOTFILES:-$HOME/dotfiles}"
   local extfile="$DOTFILES/vscode/extensions.txt"
   local -a add_files=()
 

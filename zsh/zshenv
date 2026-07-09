@@ -1,5 +1,5 @@
 if [[ "$(uname)" == "Darwin" ]]; then
-  export ZDOTDIR="$HOME/dotfiles-mac/zsh"
+  export ZDOTDIR="$HOME/dotfiles/zsh"
 else
   export ZDOTDIR="$HOME/dotfiles-linux/zsh"
 fi

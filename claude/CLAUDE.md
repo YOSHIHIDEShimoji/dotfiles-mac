@@ -32,9 +32,9 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 
 ## Skills 管理
 
-- Skills の実体は `~/dotfiles-mac/claude/skills/` で管理（git 管理対象）
-- 新しい skill をインストールするときは `~/dotfiles-mac/claude/skills/` に入れる
-- `~/.agents/skills` → `~/dotfiles-mac/claude/skills/`（シンボリックリンク）
+- Skills の実体は `~/dotfiles/claude/skills/` で管理（git 管理対象）
+- 新しい skill をインストールするときは `~/dotfiles/claude/skills/` に入れる
+- `~/.agents/skills` → `~/dotfiles/claude/skills/`（シンボリックリンク）
 - `~/.claude/skills` → `~/.agents/skills`（シンボリックリンク）
 - `cc-skills-sync` は廃止済み・使わない
 - **第三者スキルも git 管理する**。再インストール可能でも「依存物だから非追跡」にはしない。clone 一発で全環境が揃うこと（オフライン復元・版の固定）を、リポジトリの軽さより優先する

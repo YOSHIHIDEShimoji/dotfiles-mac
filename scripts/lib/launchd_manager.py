@@ -21,7 +21,7 @@ except ImportError:
     sys.exit(1)
 
 # --- 設定 ---
-DOTFILES_PLIST_DIR = os.path.expanduser("~/dotfiles-mac/LaunchAgents")
+DOTFILES_PLIST_DIR = os.path.expanduser("~/dotfiles/LaunchAgents")
 SYSTEM_LAUNCH_DIR = os.path.expanduser("~/Library/LaunchAgents")
 LOG_DIR = os.path.expanduser("~/Library/Logs")
 CURRENT_USER = getpass.getuser()

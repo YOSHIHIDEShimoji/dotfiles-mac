@@ -1,6 +1,6 @@
 # ppdf — PDF操作ツール群
 
-ターミナルから使えるPDF操作コマンド群。`~/dotfiles-mac/scripts/` は `exports.sh` によって PATH に追加されているため、**ターミナルのどこからでもコマンド名だけで呼び出せる**（例: `ppdf_unlock file.pdf`）。
+ターミナルから使えるPDF操作コマンド群。`~/dotfiles/scripts/` は `exports.sh` によって PATH に追加されているため、**ターミナルのどこからでもコマンド名だけで呼び出せる**（例: `ppdf_unlock file.pdf`）。
 
 ---
 

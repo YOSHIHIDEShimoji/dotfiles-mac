@@ -1,10 +1,10 @@
 #!/bin/bash
-# dotfiles-mac/LaunchAgents/ 配下のジョブを一覧表示
+# dotfiles/LaunchAgents/ 配下のジョブを一覧表示
 # 列: LABEL / SCHEDULE / NEXT (次回実行) / STATUS / PROGRAM
 
 set -euo pipefail
 
-PLIST_DIR="${HOME}/dotfiles-mac/LaunchAgents"
+PLIST_DIR="${HOME}/dotfiles/LaunchAgents"
 PB=/usr/libexec/PlistBuddy
 
 [ -d "$PLIST_DIR" ] || { echo "Not found: $PLIST_DIR" >&2; exit 1; }

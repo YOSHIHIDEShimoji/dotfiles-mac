@@ -18,7 +18,7 @@ tmux の見た目まで揃うよう、実体をリポジトリに含めている
 
 ```bash
 git clone --depth 1 https://github.com/catppuccin/tmux /tmp/catppuccin-tmux
-DEST=~/dotfiles-mac/tmux/plugins/catppuccin/tmux
+DEST=~/dotfiles/tmux/plugins/catppuccin/tmux
 cp /tmp/catppuccin-tmux/{catppuccin.tmux,catppuccin_tmux.conf,catppuccin_options_tmux.conf,LICENSE} "$DEST/"
 cp -R /tmp/catppuccin-tmux/{status,themes,utils} "$DEST/"
 # この README の「取り込み版」の SHA を更新する
