@@ -1,4 +1,6 @@
-#!/Users/yoshihide/my-projects/python/.venv/bin/python3
+#!/usr/bin/env -S PYENV_VERSION=dotfiles-scripts-3.11.9 python3
+# PYENV_VERSION を固定して、カレントディレクトリの .python-version に依存せず
+# 常に専用 venv（pikepdf 入り）で実行する（excel2csv と同型 = #35）。
 
 import pikepdf
 import os

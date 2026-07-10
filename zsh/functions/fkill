@@ -1,0 +1,24 @@
+# fzf でプロセスを選んで kill する（#43）
+# 使い方: fkill [signal]   例: fkill / fkill 9
+# fzf 不在時は何もしない（依存を強制しない）。
+fkill() {
+  if ! command -v fzf >/dev/null 2>&1; then
+    echo "fkill: fzf が必要です (brew install fzf)" >&2
+    return 1
+  fi
+
+  local sig="${1:-15}"
+  local -a pids
+  # procs があれば見やすい表示、無ければ ps にフォールバック
+  if command -v procs >/dev/null 2>&1; then
+    pids=(${(f)"$(procs --no-header 2>/dev/null | fzf --multi --header='kill するプロセスを選択 (Tab で複数選択)' | awk '{print $1}')"})
+  else
+    pids=(${(f)"$(ps -eo pid,pcpu,pmem,comm | sed 1d | fzf --multi --header='kill するプロセスを選択 (Tab で複数選択)' | awk '{print $1}')"})
+  fi
+
+  if [[ ${#pids} -eq 0 ]]; then
+    return 0
+  fi
+
+  print -l -- "${pids[@]}" | xargs kill "-${sig}" && echo "fkill: ${#pids} 個のプロセスに signal ${sig} を送りました"
+}

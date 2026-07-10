@@ -6,7 +6,10 @@ pandas
 openpyxl
 
 # ppdf（PDF 暗号化解除・整形）系
+# pyhanko: pdf2john.py（ppdf_crack が呼ぶハッシュ抽出）の依存
 pyhanko
+# pikepdf: ppdf_concatenate（PDF 結合・編集制限解除）の依存（#35）
+pikepdf
 
 # launchd_manager 等の対話プロンプト
 inquirer

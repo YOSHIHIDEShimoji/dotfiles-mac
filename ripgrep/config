@@ -1,0 +1,20 @@
+# ripgrep 共通設定（#41）
+# RIPGREP_CONFIG_PATH（zsh/exports.sh で設定）が指すこのファイルを rg が既定オプションとして読む。
+# 1行1オプション。コメントは # 始まり。
+
+# 大文字を含むときだけ大小区別（小文字クエリは大小無視）
+--smart-case
+
+# 隠しファイルも検索対象に（.gitignore は引き続き尊重される）
+--hidden
+
+# ノイズになりやすいディレクトリを除外
+--glob=!.git/
+--glob=!node_modules/
+--glob=!.venv/
+--glob=!__pycache__/
+--glob=!.mypy_cache/
+
+# 長すぎる行は折り返さず末尾を省略（プレビュー付き）
+--max-columns=200
+--max-columns-preview

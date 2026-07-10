@@ -1,0 +1,32 @@
+# 拡張子を見て万能展開する（#43）
+# 使い方: extract <archive> [archive2 ...]
+extract() {
+  if [[ $# -eq 0 ]]; then
+    echo "Usage: extract <archive> [archive2 ...]" >&2
+    return 1
+  fi
+
+  local f ret=0
+  for f in "$@"; do
+    if [[ ! -f "$f" ]]; then
+      echo "extract: ファイルが見つかりません: $f" >&2
+      ret=1
+      continue
+    fi
+    case "$f" in
+      *.tar.gz|*.tgz)   tar xzf "$f" ;;
+      *.tar.bz2|*.tbz2) tar xjf "$f" ;;
+      *.tar.xz|*.txz)   tar xJf "$f" ;;
+      *.tar.zst)        tar --zstd -xf "$f" ;;
+      *.tar)            tar xf  "$f" ;;
+      *.gz)             gunzip -k "$f" ;;
+      *.bz2)            bunzip2 -k "$f" ;;
+      *.xz)             unxz -k "$f" ;;
+      *.zip)            unzip "$f" ;;
+      *.rar)            if command -v unar >/dev/null 2>&1; then unar "$f"; else echo "extract: unar が必要です (brew install unar)" >&2; ret=1; fi ;;
+      *.7z)             if command -v 7z >/dev/null 2>&1; then 7z x "$f"; else echo "extract: p7zip が必要です (brew install p7zip)" >&2; ret=1; fi ;;
+      *)                echo "extract: 未対応の形式: $f" >&2; ret=1 ;;
+    esac
+  done
+  return $ret
+}

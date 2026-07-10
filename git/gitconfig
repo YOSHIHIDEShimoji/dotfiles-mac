@@ -19,9 +19,35 @@
 
 [merge]
     conflictstyle = zdiff3
+    autoStash = true
 
 [init]
     defaultBranch = main
+
+# 日々地味に効く現代的な既定（#42）
+[fetch]
+    prune = true          # リモートで消えたブランチを fetch 時に自動掃除
+    pruneTags = true
+[pull]
+    ff = only             # 意図しないマージコミットを防ぐ（衝突時は明示 rebase/merge）
+[rebase]
+    autoStash = true      # rebase 前に自動 stash → 後で戻す
+    updateRefs = true     # スタックした複数ブランチを一括で追従
+[rerere]
+    enabled = true        # 同じ衝突解決を記憶して再利用
+[diff]
+    algorithm = histogram # より読みやすい差分
+    colorMoved = default  # 移動した行を別色で表示
+    mnemonicPrefix = true
+    renames = copies
+[branch]
+    sort = -committerdate # git branch を最新更新順に
+[tag]
+    sort = version:refname
+[column]
+    ui = auto             # branch/status を端末幅に応じて多列表示
+[help]
+    autocorrect = prompt  # タイポ時に候補を提示
 
 [alias]
   st = status

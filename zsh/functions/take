@@ -1,0 +1,37 @@
+# mkdir + cd の上位互換（#43）
+# 使い方:
+#   take <dir>            ディレクトリを作って cd（mkcd と同じ）
+#   take <git-url>        clone してそのディレクトリへ cd
+#   take <tar/zip path>   展開してそのディレクトリへ cd
+take() {
+  if [[ -z "$1" ]]; then
+    echo "Usage: take <dir | git-url | archive>" >&2
+    return 1
+  fi
+
+  local arg="$1"
+
+  # git URL（git@host:owner/repo(.git) または scheme://host/owner/repo(.git)）なら clone して cd
+  if [[ "$arg" == git@*:*/* || "$arg" == *://*/* ]]; then
+    local dest="${arg:t:r}"   # 末尾要素から拡張子(.git)を除いた名前
+    git clone "$arg" || return 1
+    cd "$dest" || return 1
+    return 0
+  fi
+
+  # アーカイブなら extract して、生成されたトップディレクトリへ cd
+  case "$arg" in
+    *.tar.gz|*.tgz|*.tar.bz2|*.tbz2|*.tar.xz|*.txz|*.tar|*.zip)
+      if [[ -f "$arg" ]]; then
+        extract "$arg" || return 1
+        local top="${arg:t}"
+        top="${top%.tar.*}"; top="${top%.*}"
+        [[ -d "$top" ]] && cd "$top"
+        return 0
+      fi
+      ;;
+  esac
+
+  # それ以外は mkdir -p して cd
+  mkdir -p "$arg" && cd "$arg"
+}

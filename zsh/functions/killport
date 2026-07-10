@@ -1,0 +1,20 @@
+# 指定 TCP ポートを専有しているプロセスを kill する（#43）
+# 使い方: killport <port> [signal]   例: killport 3000 / killport 8080 TERM
+killport() {
+  if [[ -z "$1" ]]; then
+    echo "Usage: killport <port> [signal]" >&2
+    return 1
+  fi
+
+  local port="$1"
+  local sig="${2:-9}"
+  local pids
+  pids=$(lsof -ti "tcp:${port}" 2>/dev/null)
+
+  if [[ -z "$pids" ]]; then
+    echo "killport: :${port} を使用中のプロセスはありません"
+    return 0
+  fi
+
+  echo "$pids" | xargs kill "-${sig}" && echo "killport: :${port} のプロセスを終了しました (signal ${sig})"
+}

@@ -30,6 +30,20 @@ else
   compinit -d "$ZSH_COMPDUMP"
 fi
 
+# 補完のスタイリング（menu select・大文字小文字無視・色付き・グループ表示＝#40）
+zmodload zsh/complist
+zstyle ':completion:*' menu select
+# 小文字→大文字も一致、途中一致（foo→FooBar / f-b→foo-bar）
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+# LS_COLORS を補完候補にも反映（未設定でも無害）
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+# 候補をグループ化して見出しを表示
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '%F{yellow}%B-- %d --%b%f'
+# 補完キャッシュ（重い補完を高速化・repo 外へ退避）
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache"
+
 # zsh-autosuggestions（[[ -f ]] ガードで bootstrap 前や最小環境でも壊さない＝#28）
 if [[ -n "$BREW_PREFIX" && -f "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
   source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
@@ -40,10 +54,20 @@ if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
 fi
 
+# zsh-you-should-use（既存エイリアスをフルで打つと通知。syntax-highlighting より前で source＝#37）
+if [[ -n "$BREW_PREFIX" && -f "$BREW_PREFIX/share/zsh-you-should-use/you-should-use.plugin.zsh" ]]; then
+  export YSU_MESSAGE_POSITION="after"   # コマンド実行後に控えめに表示
+  source "$BREW_PREFIX/share/zsh-you-should-use/you-should-use.plugin.zsh"
+fi
+
 # zsh-syntax-highlighting（末尾で source すること。[[ -f ]] ガードで統一＝#28）
 if [[ -n "$BREW_PREFIX" && -f "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
   source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 fi
+
+# emacs キーマップを明示（$EDITOR に vi を含まない前提を固定＝#49）。
+# 以降の bindkey が main(=emacs) に確実に載るよう、カスタムバインド前に置く。
+bindkey -e
 
 # History search with arrow keys
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
@@ -52,9 +76,21 @@ zle -N down-line-or-beginning-search
 bindkey "^[[A" up-line-or-beginning-search
 bindkey "^[[B" down-line-or-beginning-search
 
+# 行編集キー（#49）。単語移動・行削除・Delete を追加。
+bindkey '^[[1;5C' forward-word       # Ctrl-→ で単語前進
+bindkey '^[[1;5D' backward-word      # Ctrl-← で単語後退
+bindkey '^A' beginning-of-line
+bindkey '^E' end-of-line
+bindkey '^U' backward-kill-line      # 行頭まで削除（zsh 既定の全行 kill より Bash 的で扱いやすい）
+bindkey '^[[3~' delete-char          # Delete キー
+# Ctrl-W がパス階層（/ 区切り）単位で消えるよう / を単語文字から外す（#49）
+WORDCHARS="${WORDCHARS//[\/]}"
+
 # 挙動設定
 setopt interactive_comments
 setopt no_beep
+setopt HIST_VERIFY           # 履歴展開（!! 等）は実行前に一度編集行へ出す（誤爆防止＝#49）
+setopt HIST_FIND_NO_DUPS     # 履歴検索で同一コマンドを連続表示しない
 
 # fzf
 if command -v fzf >/dev/null 2>&1; then
