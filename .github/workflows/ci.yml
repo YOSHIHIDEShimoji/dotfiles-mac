@@ -24,3 +24,19 @@ jobs:
         run: |
           for f in zsh/functions/*; do zsh -n "$f" || exit 1; done
           for f in install/*.zsh; do zsh -n "$f" || exit 1; done
+      # shellcheck: 構文チェックでは拾えない論理バグ（未クオート変数・$* 連結・[ ] 誤り）を検出する（#51）。
+      # まずは非ブロッキング（|| true）でレポートのみ。warning を潰してから将来 -S error で強制化する。
+      - name: shellcheck (non-blocking / レポートのみ)
+        run: |
+          brew install shellcheck
+          # bash/sh シバンを持つスクリプトだけを対象にする（Python CLI・vendored john は除外）
+          files=()
+          while IFS= read -r f; do
+            head -1 "$f" | grep -qE '(bash|/bin/sh|env sh)' && files+=("$f")
+          done < <(find install scripts -type f ! -name '*.py' ! -path '*/john/*' ! -path '*/wordlists/*')
+          printf 'shellcheck target:\n'; printf '  %s\n' "${files[@]}"
+          shellcheck -S warning "${files[@]}" || true
+      # Brewfile の健全性: formula/cask 名のタイポや削除済みパッケージを検知する（#51）。
+      # CI runner には未インストールなので check は差分を出すが、|| true で非ブロッキングにする。
+      - name: Brewfile check (non-blocking)
+        run: brew bundle check --file=install/Brewfile --verbose || true

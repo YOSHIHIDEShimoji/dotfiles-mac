@@ -22,12 +22,15 @@ Options:
   -o, --output PATH    出力ファイルパス (省略時はカレントディレクトリに自動保存)
   --lang LANG          言語コード (default: ja)
   --format FORMAT      plain=テキストのみ, txt=タイムスタンプ付き, srt=字幕 (default: plain)
+  --summary            文字起こし後に Windows の Ollama で要約し、箇条書きをファイル先頭に追記
+  --summary-model M    要約に使うモデル (default: qwen2.5:14b)
   -h, --help
 
 Examples:
   transcribe voice_memo.m4a
   transcribe voice_memo.m4a -o ~/Desktop/output.txt
   transcribe voice_memo.m4a --lang en --format srt
+  transcribe voice_memo.m4a --summary
   transcribe voice_memo.m4a | pbcopy
 EOF
 }
@@ -38,6 +41,9 @@ OUTPUT=""
 # LANG に代入すると子プロセス（ffmpeg / whisper-cli）へ不正ロケールとして伝播する（#28）。
 LANG_CODE="ja"
 FORMAT="plain"
+SUMMARY=0
+# 要約に使う Windows 上の Ollama モデル（cm / ask と同じ既定）
+SUMMARY_MODEL="qwen2.5:14b"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -45,6 +51,8 @@ while [[ $# -gt 0 ]]; do
     -o|--output) OUTPUT="$2"; shift 2 ;;
     --lang) LANG_CODE="$2"; shift 2 ;;
     --format) FORMAT="$2"; shift 2 ;;
+    --summary) SUMMARY=1; shift ;;
+    --summary-model) SUMMARY_MODEL="$2"; shift 2 ;;
     -*) echo "Unknown option: $1" >&2; usage; exit 1 ;;
     *) INPUT="$1"; shift ;;
   esac
@@ -106,3 +114,26 @@ esac
 SEG_COUNT=$(grep -c "." "${OUTPUT_BASE}.${EXT}" 2>/dev/null || echo 0)
 echo "[完了] ${SEG_COUNT} 行" >&2
 echo "[saved] $(realpath "${OUTPUT_BASE}.${EXT}")" >&2
+
+# --summary: Windows の Ollama で要約し、箇条書きをファイル先頭に追記する（#7）。
+# 要約に失敗しても文字起こし本体は保存済みなので、非致命扱いで警告だけ出す。
+if [[ "$SUMMARY" -eq 1 ]]; then
+  OUT_FILE="${OUTPUT_BASE}.${EXT}"
+  echo "[summary] Windows の Ollama (${SUMMARY_MODEL}) で要約中 ..." >&2
+  SUMMARY_PROMPT=$'以下は音声の文字起こしです。日本語で要約してください。各項目は「- 」で始まる箇条書きにし、重要な点だけを簡潔に。前置き・見出し・締めの文は不要です。\n\n'
+  # ssh win 経由で要約を取得。set -e/pipefail 下で ssh 失敗が致命化しないよう || true で受ける。
+  SUMMARY_TEXT=$(printf '%s%s' "$SUMMARY_PROMPT" "$(cat "$OUT_FILE")" \
+    | ssh win "ollama run ${SUMMARY_MODEL}" 2>/dev/null \
+    | sed $'s/\r$//') || true
+  if [[ -n "$SUMMARY_TEXT" ]]; then
+    TMP_SUM=$(mktemp /tmp/transcribe_sum_XXXXXX)
+    {
+      printf '%s\n\n---\n\n' "$SUMMARY_TEXT"
+      cat "$OUT_FILE"
+    } > "$TMP_SUM"
+    mv "$TMP_SUM" "$OUT_FILE"
+    echo "[summary] 要約をファイル先頭に追記しました" >&2
+  else
+    echo "[summary] 要約に失敗しました（win 未接続 / Ollama 未起動?）。文字起こし本体は保存済みです。" >&2
+  fi
+fi

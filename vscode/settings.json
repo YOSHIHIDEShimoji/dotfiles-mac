@@ -32,7 +32,6 @@
     "accessibility.signals.diffLineModified": {"sound": "off"},
     "accessibility.signals.diffLineInserted": {"sound": "off"},
     "accessibility.signals.diffLineDeleted": {"sound": "off"},
-    "python.defaultInterpreterPath": "/Users/yoshihide/.pyenv/versions/3.11.9/envs/prog-spe2-3.11.9",
     "explorer.confirmDragAndDrop": false,
     "git.openRepositoryInParentFolders": "always",
     "editor.minimap.enabled": false,

@@ -1,0 +1,36 @@
+# 自然言語の要求から zsh コマンドを1行生成し、確認してから実行する（#44）。
+# LLM 生成コマンドは必ず確認プロンプトを挟み、無確認 eval しない。
+# claude CLI を使う（cm と同型）。オフライン/レート制限時は静かに失敗する。
+# 使い方: please <やりたいことを日本語で>   例: please いま開いてるポートを一覧
+please() {
+  if ! command -v claude >/dev/null 2>&1; then
+    echo "please: claude CLI が必要です" >&2
+    return 1
+  fi
+
+  local q="$*"
+  if [[ -z "$q" ]]; then
+    echo "Usage: please <やりたいことを自然言語で>" >&2
+    return 1
+  fi
+
+  local prompt cmd
+  prompt=$(printf 'あなたはmacOSのzsh専門家です。次の要求を満たす1行のシェルコマンドだけを出力してください。説明・コードフェンス・前置きは一切不要:\n%s' "$q")
+  cmd=$(printf '%s' "$prompt" | claude -p - 2>/dev/null)
+  # ANSI エスケープ・CR を除去（cm と同型）
+  cmd=$(printf '%s' "$cmd" | sed $'s/\033\\[[0-9;]*[mGKHF]//g')
+  cmd=${cmd//$'\r'/}
+  # 前後の空白を除去
+  cmd="${cmd#"${cmd%%[![:space:]]*}"}"
+  cmd="${cmd%"${cmd##*[![:space:]]}"}"
+
+  if [[ -z "$cmd" ]]; then
+    echo "please: コマンド生成に失敗しました（オフライン/レート制限?）" >&2
+    return 1
+  fi
+
+  echo "→ $cmd"
+  local ok
+  read "ok?実行する? [y/N]: "
+  [[ "$ok" == [yY] ]] && eval "$cmd"
+}

@@ -211,8 +211,9 @@ USAGE
     [[ ${#all_flags[@]} -gt 0 ]] && compile_args+=("${all_flags[@]}")
     compile_args+=("${src_files[@]}" -o "$out")
     [[ -n "$lm_flag" ]] && compile_args+=("$lm_flag")
-    # -T モード用に文字列表現も保持
-    local compile_cmd="${(j: :)${compile_args[@]}}"
+    # -T モード用の文字列表現。各要素を ${(q)} でクオートしてから join することで、
+    # スペース入りパス（/tmp/My Project/a.out 等）でも sh -c での再パースが壊れない（#47）。
+    local compile_cmd="${(j: :)${(q)compile_args[@]}}"
 
     # -C: コンパイルのみ
     if [[ $compile_only -eq 1 ]]; then
@@ -256,8 +257,10 @@ USAGE
 
     local _c_ret=0
     if [[ $include_compile -eq 1 ]]; then
-        local shell_cmd="$compile_cmd && \"$out\""
-        _c_run_binary sh -c "$shell_cmd $*"
+        # コンパイルと実行を1プロセスで計測（-T）。実行ファイルと実行時引数は sh の
+        # 位置パラメータ（$1 以降）として渡し、文字列連結による分割・誤解釈を防ぐ（#47）。
+        # $compile_cmd は上で ${(q)} 済みなのでスペース入りパスでも安全。
+        _c_run_binary sh -c "$compile_cmd || exit; prog=\"\$1\"; shift; \"\$prog\" \"\$@\"" sh "$out" "$@"
         _c_ret=$?
     else
         if ! "${compile_args[@]}"; then

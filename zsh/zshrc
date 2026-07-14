@@ -97,9 +97,19 @@ if command -v fzf >/dev/null 2>&1; then
   source <(fzf --zsh)
 fi
 
-# pyenv
+# atuin（履歴を SQLite 全文検索に置き換え Ctrl-R を刷新＝#45）。
+# fzf の後に init して Ctrl-R を atuin に握らせる。--disable-up-arrow により
+# 上下矢印は前方で設定した history-beginning-search を維持する（誤って奪わせない）。
+if command -v atuin >/dev/null 2>&1; then
+  eval "$(atuin init zsh --disable-up-arrow)"
+fi
+
+# pyenv（起動ごとの rehash を省いて起動を軽くする＝#50）。
+# --no-rehash: shim 再生成を起動時に走らせない。shim は `pyenv install/rehash` 時に
+# 更新されるので日常の起動では不要。CLAUDE.md 記載の shim ロック起因フリーズも回避できる。
+# virtualenv-init は .python-version の自動 activate（プロンプト表示・cd 追従）に要るため残す。
 if command -v pyenv >/dev/null 2>&1; then
-  eval "$(pyenv init -)"
+  eval "$(pyenv init - --no-rehash)"
   eval "$(pyenv virtualenv-init -)"
 fi
 

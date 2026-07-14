@@ -1,0 +1,33 @@
+# 直前のコマンドの失敗を診断し、原因と修正案を日本語で提示する（#44）。claude CLI を使う。
+# 安全のためコマンドの再実行はしない（直前が rm 等の破壊的コマンドでも安全）。
+# エラー出力も渡したいときはパイプで: some_cmd 2>&1 | wtf
+wtf() {
+  if ! command -v claude >/dev/null 2>&1; then
+    echo "wtf: claude CLI が必要です" >&2
+    return 1
+  fi
+
+  # 直前のコマンドを履歴から取得。wtf 自身が最新に載っている場合は1つ前を使う。
+  local last
+  last=$(fc -ln -1 2>/dev/null | sed 's/^[[:space:]]*//')
+  if [[ "$last" == wtf* ]]; then
+    last=$(fc -ln -2 2>/dev/null | head -1 | sed 's/^[[:space:]]*//')
+  fi
+
+  # パイプで出力が渡されていれば読み込む（例: cmd 2>&1 | wtf）
+  local output=""
+  if [[ ! -t 0 ]]; then
+    output=$(cat)
+  fi
+
+  if [[ -z "$last" && -z "$output" ]]; then
+    echo "wtf: 直前のコマンドが取得できませんでした" >&2
+    return 1
+  fi
+
+  {
+    printf '次のシェルコマンドが失敗しました。原因と修正案を日本語で簡潔に説明してください。前置きは不要:\n'
+    printf '$ %s\n' "$last"
+    [[ -n "$output" ]] && printf '\n--- 出力 ---\n%s\n' "$output"
+  } | claude -p - 2>/dev/null
+}

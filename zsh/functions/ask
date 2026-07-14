@@ -1,0 +1,41 @@
+# Windows 上のローカル LLM（Ollama）に質問する（#6）。
+# mac から `ssh win "ollama run <model>"` 経由で問い合わせる（cm の commit 生成と同じ経路）。
+# claude（please/explain/wtf）が「手元の CLI」なのに対し、こちらは win 上の Ollama を叩く。
+# 使い方:
+#   ask いま開いてるポートを調べる方法は?          引数を質問として送る
+#   echo "長い質問文" | ask                          標準入力から質問を送る
+#   ask --model llama3.1 <質問>                       モデルを指定（既定: qwen2.5:14b）
+ask() {
+  local model="qwen2.5:14b"
+
+  # 先頭のオプションを解釈（--model/-m でモデル指定）
+  while [[ "$1" == -* ]]; do
+    case "$1" in
+      --model|-m)
+        [[ -n "$2" ]] || { echo "ask: --model の引数がありません" >&2; return 1; }
+        model="$2"; shift 2 ;;
+      -h|--help)
+        echo "Usage: ask [--model NAME] <質問>   |   echo 質問 | ask [--model NAME]"; return 0 ;;
+      --) shift; break ;;
+      *) echo "ask: 不明なオプション: $1" >&2; return 1 ;;
+    esac
+  done
+
+  local q="$*"
+  # 引数が無ければ標準入力から読む（パイプ対応）
+  if [[ -z "$q" && ! -t 0 ]]; then
+    q=$(cat)
+  fi
+  if [[ -z "$q" ]]; then
+    echo "Usage: ask [--model NAME] <質問>" >&2
+    return 1
+  fi
+
+  # ssh win 経由で Ollama に投げる。到達不可なら理由を出して失敗する。
+  printf '%s\n' "$q" | ssh win "ollama run ${(q)model}"
+  local ret=$?
+  if [[ $ret -ne 0 ]]; then
+    echo "ask: win への接続 or Ollama 実行に失敗しました（ssh win の疎通・モデル名を確認）" >&2
+    return $ret
+  fi
+}

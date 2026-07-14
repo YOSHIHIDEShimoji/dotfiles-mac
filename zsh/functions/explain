@@ -1,0 +1,22 @@
+# コマンドやコードを日本語で簡潔に説明する（#44）。claude CLI を使う。
+# 使い方:
+#   explain 'tar xzf a.tgz'          引数を説明対象として渡す
+#   echo "長いコード" | explain       標準入力から渡す
+explain() {
+  if ! command -v claude >/dev/null 2>&1; then
+    echo "explain: claude CLI が必要です" >&2
+    return 1
+  fi
+
+  local target="$*"
+  # 引数が無ければ標準入力から読む（パイプ対応）
+  if [[ -z "$target" && ! -t 0 ]]; then
+    target=$(cat)
+  fi
+  if [[ -z "$target" ]]; then
+    echo "Usage: explain <コマンド または コード>" >&2
+    return 1
+  fi
+
+  printf '次のコマンド/コードを初心者にも分かるよう日本語で簡潔に説明してください。前置きや締めの文は不要:\n\n%s' "$target" | claude -p - 2>/dev/null
+}
