@@ -109,6 +109,8 @@ dotfiles/
 │   ├── starship/                        # Starshipテーマ集（current.toml を sstyle で切替）
 │   ├── functions/                       # カスタム関数
 │   └── links.prop                       # シンボリックリンク定義
+├── ripgrep/                             # ripgrep共通設定
+│   └── config                           # RIPGREP_CONFIG_PATH が読む既定オプション
 ├── tmux/                                # tmux設定
 │   ├── tmux.conf                        # tmux設定ファイル（~/.tmux.confにリンク）
 │   ├── README.md                        # キーバインド・操作マニュアル
@@ -220,6 +222,25 @@ Ghostty・Karabiner-Elements のキーバインド詳細は [`docs/keybindings.m
 | `rr` | Zsh設定の再読み込み |
 | `c` | C/C++ファイルをコンパイルして実行 |
 | `cm` | Claudeでコミットメッセージを自動生成 |
+| `extract` | アーカイブを拡張子から判別して展開（tar/zip/7z/rar/gz 等） |
+| `take` | ディレクトリを作成して移動（git URLならclone、アーカイブなら展開して移動） |
+| `killport` | 指定TCPポートを使用中のプロセスを終了 |
+| `fkill` | fzfでプロセスを選択して終了 |
+| `fco` | fzfでgitブランチを選択して切り替え |
+
+> `extract` / `take` は未対応ツール（`unar`・`7z` 等）が無くても壊れず、`fkill` / `fco` は `fzf` 不在時に案内を出して終了します。
+
+### ターミナル統合（補完・fzf・検索）
+
+| 項目 | 内容 |
+|------|------|
+| 補完 | `zstyle` で矢印キー選択（menu select）・大文字小文字を無視した一致・色付き候補・グループ表示を有効化 |
+| fzf | `fd` をバックエンドに（`.gitignore` 尊重・hidden込み）、`Ctrl-T` は `bat`、`Alt-C` は `eza --tree` でプレビュー |
+| ripgrep | `ripgrep/config`（`RIPGREP_CONFIG_PATH` 経由）で smart-case・hidden・ノイズ除外を既定化 |
+| ページャ | `bat` を `MANPAGER` に設定し man をシンタックスハイライト表示 |
+| プラグイン | `zsh-you-should-use` を読み込み、定義済みエイリアスをフル入力すると通知 |
+
+いずれも該当ツールが未インストールの環境ではガードにより無効化され、素のシェルとして正常起動します。
 
 ## スクリプト群 (scripts/)
 
