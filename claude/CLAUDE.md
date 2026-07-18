@@ -41,6 +41,18 @@ rm -f ~/.pyenv/shims/.pyenv-shim
 - **第三者スキルの導入は公式リポジトリを `git clone` してファイルを取り込む**（npm 等のインストーラでコード実行しない＝安全機構でブロックされるうえ版が浮く）。例: ui-ux-pro-max は `nextlevelbuilder/ui-ux-pro-max-skill` を clone → `.claude/skills/ui-ux-pro-max/` を skills 配下へコピー
 - ただし**同じスキルが環境のプラグインとして常時提供されている場合**（`anthropic-skills:*` 等）は dotfiles に自作コピーを二重に置かず、プラグイン版に一本化する（例: frontend-design / skill-creator は自作コピーを削除しプラグイン版を使う）
 
+## Agents 管理（サブエージェント定義）
+
+- Agents の実体は `~/dotfiles/claude/agents/` で管理（git 管理対象）。`~/.claude/agents` → そこへのシンボリックリンク（`links.prop` に登録済み＝bootstrap が新マシンでも自動リンク）
+- **グローバル土台＋プロジェクト自己専用化**方式: エージェント定義は汎用の方法論だけ持ち、プロンプト内で「対象 repo の CLAUDE.md / docs の規約を読んで固有基準を合成せよ」と指示する。より強く縛りたい repo は `.claude/agents/<name>.md` を置けばプロジェクト版が優先される
+- **`test-auditor`**（テスト監査・Fable5・readonly）: ロジック変更（lib / actions / API / middleware 等）を伴う merge の**前に必ず**起動し、追加テストの質と漏れ（false confidence）を監査する。blocking が出たらテストを直してから merge。データ・docs のみの変更ではスキップ。起動判断は Claude が行う。モデルは `fable`（引退時は opus → sonnet に降格）
+
+## merge 前の検証（全プロジェクト共通）
+
+1. `npm test` 等の単体テストを**その場で実行して緑を目視**（実装時に通った記録を信頼しない）
+2. ロジック変更があれば `test-auditor` で監査 → blocking ゼロを確認
+3. それから merge。統合テストは重い場合、スキーマ/アクション層を触ったときのみ merge 前に回し、通常は夜間 CI に任せる
+
 ## クラウドサービスの認証・Supabase 等（マシン/アカウント固有）
 
 - ネイティブ CLI/token 優先の原則、認証済みアカウント・org・プロジェクト名などの固有情報は
