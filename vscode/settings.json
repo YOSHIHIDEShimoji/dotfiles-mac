@@ -7,7 +7,6 @@
     "editor.quickSuggestions": {
         "other": "on"
     },
-    "editor.parameterHints.enabled": false,
     "github.copilot.enable": {
         "*": false
     },
