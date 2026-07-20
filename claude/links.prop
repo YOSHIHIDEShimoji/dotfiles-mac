@@ -1,4 +1,5 @@
 CLAUDE.md -> ${HOME}/.claude/CLAUDE.md
 skills -> ${HOME}/.agents/skills
 agents -> ${HOME}/.claude/agents
+statusline.sh -> ${HOME}/.claude/statusline.sh
 
